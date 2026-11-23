@@ -125,4 +125,6 @@ Per-character cost drivers, how to measure (`PerfSuite.Crowd`), the measured per
 - **Optimized hierarchies don't skin outside an updating Animator** (tools-unity-synty-characters §2, `optimizeHierarchy`).
 - **Posing:** `AnimationClip.SampleAnimation` poses a humanoid instance in a preview scene; a PlayableGraph evaluated there didn't.
 - **Root speed:** `ClipInfo.averageSpeed` is 0 when root motion is baked into the pose. Take speeds from the vendor's documentation.
+- **Holding a clip's last frame** (lying after a fall): `cycleOffset` with speed 0 is ignored on a non-looping clip, so the state shows its first frame. Use motion time (`timeParameterActive` on a float parameter left at 1), as the robots' `Lie_n` does (found 2026-11-23: the robot stood frozen, then got up from lying).
+- **Animator triggers wait:** a trigger set while no transition can take it (an act asked for while sitting) stays set and fires whenever one can, seconds later. Drop the request or `ResetTrigger` when the character settles (`Dog.Act`).
 - **IDs:** `Object.GetInstanceID()` is obsolete (an error) in Unity 6.6. Seed per-instance randomness with `Random.Range`, or use `GetEntityId()`.

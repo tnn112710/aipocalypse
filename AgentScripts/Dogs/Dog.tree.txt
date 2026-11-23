@@ -10,7 +10,8 @@
 # mark, look round, check in, settle while the player stands still); stay out in the world (sit, lie, nap, sniff about,
 # back to the spot; DogManager sends it home at night or when the player is far away); at home at night sleep in its dog
 # house, but never during a raid (up, facing the nearest raider); otherwise home life (stroll, sniff, visit spots, sit, nap
-# in the doorway, zoomies).
+# in the doorway, zoomies). Staying home, the player back after a while: it runs over happy. Following, the player goes to
+# bed: it lies down beside the bed.
 # Warns: barks, whines, pants (DogVoice keeps it rare).
 # Aborts: Both re-checks the conditional every think, so a whistle or a pet cuts into anything below.
 # Build: unity command script run --file .agents/skills/aipocalypse-enemy-ai/scripts/TreeKit.cs --entry TreeKit.Build
@@ -18,7 +19,7 @@
 # Rebuilding keeps the asset's GUID; edits made in the Behavior Designer window are overwritten, so make them here.
 tree Assets/_Game/Content/Dogs/_Shared/Dog.asset
 Repeater "Repeat forever"
-  Selector "Down, over the fence, come, petted, sad, catch up, keep away, back off, fight, warn, hurt player, herd, follow, stay out, raid watch, sleep, home life"
+  Selector "Down, over the fence, come, petted, sad, catch up, keep away, back off, fight, warn, hurt player, welcome, herd, bedtime, follow, stay out, raid watch, sleep, home life"
     Sequence AbortType=Both "Knocked down (aborts both ways)"
       DogIsDown "Down?"
       DogLieDown "Lie and whine until helped up"
@@ -52,9 +53,15 @@ Repeater "Repeat forever"
     Sequence AbortType=Both "Player hurt (aborts both ways)"
       DogPlayerHurt "Player badly hurt?"
       DogStayCloseHurtPlayer "Close by, whining"
+    Sequence AbortType=Both "Welcome home (aborts both ways)"
+      DogIsWelcoming "Staying home, the player back after a while?"
+      DogWelcome "Run over happy, circle them, sit"
     Sequence AbortType=Both "Herding (aborts both ways)"
       DogIsHerding "Told to bring the herd home?"
       DogHerd "Behind the stragglers, barking them home"
+    Sequence AbortType=Both "Bedtime (aborts both ways)"
+      DogIsBedtime "Following, the player lying down in bed?"
+      DogLieByBed "Lie down beside the bed"
     Sequence AbortType=Both "Follow (aborts both ways)"
       DogIsFollowing "Following?"
       DogFollowPlayer "Return, scout, alongside, or dog things"

@@ -166,6 +166,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
         enum Phase { Circle, Dart, Biting, Pin, Escape }
 
         Dog _dog;
+        bool _started;
         Phase _phase;
         int _foeId;
         float _phaseStart;
@@ -181,6 +182,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
 
         public override void OnStart()
         {
+            _started = true;
             _dog.SetCombat(true);
             _dog.SetSniffing(false);
             _dog.SetPose(DogPose.Stand);
@@ -353,10 +355,12 @@ namespace MB13.Aipocalypse.Core.DogSystem
             return reachable >= settings.CircleRoom;
         }
 
+        // Once per run (Behavior Designer may call OnEnd again on a finished task: see DogWelcome.OnEnd).
         public override void OnEnd()
         {
-            if (_dog == null)
+            if (!_started || _dog == null)
                 return;
+            _started = false;
             _dog.SetCombat(false);
             _dog.SetPin(false);
             _dog.Escaping = false;
@@ -386,12 +390,14 @@ namespace MB13.Aipocalypse.Core.DogSystem
         float _giveUp;
         bool _growled;
         bool _found;
+        bool _started;
         Vector3 _at;
 
         public override void OnAwake() => _dog = GetComponent<Dog>();
 
         public override void OnStart()
         {
+            _started = true;
             _growled = false;
             _giveUp = Time.time + 6f;
             _found = _dog.Manager.TryGetFoe(_dog.Manager.WarnId, out FoeView foe);
@@ -431,11 +437,12 @@ namespace MB13.Aipocalypse.Core.DogSystem
             return TaskStatus.Success;
         }
 
-        // Cut off (a whistle, a fight), the warning ends with it.
+        // Cut off (a whistle, a fight), the warning ends with it (once per run: see DogWelcome.OnEnd).
         public override void OnEnd()
         {
-            if (_dog == null)
+            if (!_started || _dog == null)
                 return;
+            _started = false;
             _dog.SetCombat(false);
             _dog.Manager.WarningDone();
         }
@@ -529,7 +536,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
             if (herd == null || herd.Pen == null)
                 return Finish();
             Vector3 home = herd.Pen.transform.position;
-            if (DogState.HerdDone(herd.CountHome(), herd.Animals.Count, manager.HerdStartedAt, now))
+            if (DogState.HerdDone(herd.CountHome(), herd.Animals.Count, _dog.State.HerdStartedAt, now))
                 return Finish();
             if (now < _nextGo)
                 return TaskStatus.Running;
@@ -668,6 +675,203 @@ namespace MB13.Aipocalypse.Core.DogSystem
             {
                 _alerted = true;
                 _dog.Act(DogAct.Alert);
+            }
+            return TaskStatus.Running;
+        }
+    }
+
+    // ---- Welcome home: staying at home, the player back after a while ----
+
+    [Category("Aipocalypse/Dogs")]
+    public sealed class DogIsWelcoming : ConditionalNode
+    {
+        Dog _dog;
+
+        public override void OnAwake() => _dog = GetComponent<Dog>();
+        public override TaskStatus OnUpdate() => _dog.State.Welcoming(Time.time) && _dog.State.Order == DogOrder.Stay && _dog.Roster.HasPlayer
+            ? TaskStatus.Success
+            : TaskStatus.Failure;
+    }
+
+    // Runs to the player, happy (a bark within the budget), circles them once, then sits facing them a moment.
+    [Category("Aipocalypse/Dogs")]
+    public sealed class DogWelcome : ActionNode
+    {
+        enum Phase { Run, Circle, Sit }
+
+        const float Reach = 2.2f;
+        const float CircleRadius = 1.6f;
+        // The lap's target runs this far ahead of the dog (radians); a slow lap (the happy act, a detour) ends here so
+        // the sit still fits in the welcome.
+        const float LapLead = 0.8f;
+        const float LapGiveUp = 8f;
+        const float SitTime = 2.5f;
+
+        Dog _dog;
+        Phase _phase;
+        float _phaseStart;
+        float _angle;
+        float _turned;
+        float _nextGo;
+        bool _started;
+
+        public override void OnAwake() => _dog = GetComponent<Dog>();
+
+        public override void OnStart()
+        {
+            _started = true;
+            _dog.SetSniffing(false);
+            if (_dog.InHouse)
+                _dog.ResetBody();
+            _dog.SetPose(DogPose.Stand);
+            _phase = Phase.Run;
+            _phaseStart = Time.time;
+            _nextGo = 0f;
+        }
+
+        public override TaskStatus OnUpdate()
+        {
+            float now = Time.time;
+            Vector3 player = _dog.Roster.PlayerPosition;
+            if (!_dog.State.Welcoming(now))
+                return TaskStatus.Success;
+            switch (_phase)
+            {
+                case Phase.Run:
+                    if (DogWalk.Near(_dog, player, Reach))
+                    {
+                        _phase = Phase.Circle;
+                        _phaseStart = now;
+                        Vector3 away = _dog.transform.position - player;
+                        _angle = Mathf.Atan2(away.x, away.z);
+                        _turned = 0f;
+                        if (_dog.Manager.TryPlay(_dog, DogSound.Bark) && _dog.Standing)
+                            _dog.Act(DogAct.Happy);
+                    }
+                    else if (now >= _nextGo)
+                    {
+                        // To just in front of the player, not into them.
+                        _nextGo = now + 0.3f;
+                        Vector3 toDog = _dog.transform.position - player;
+                        toDog.y = 0f;
+                        DogWalk.Go(_dog, player + (toDog.sqrMagnitude > 0.01f ? toDog.normalized : Vector3.forward) * 1.4f, DogGait.Canter);
+                    }
+                    return TaskStatus.Running;
+                case Phase.Circle:
+                {
+                    // Steered from where it really is round the player (never by the clock: during the happy act it
+                    // can't walk, and a clock-driven target would end up across the circle).
+                    if (now < _nextGo || !_dog.Standing)
+                        return TaskStatus.Running;
+                    _nextGo = now + 0.25f;
+                    Vector3 away = _dog.transform.position - player;
+                    float angle = Mathf.Atan2(away.x, away.z);
+                    _turned += Mathf.Max(0f, Mathf.DeltaAngle(_angle * Mathf.Rad2Deg, angle * Mathf.Rad2Deg) * Mathf.Deg2Rad);
+                    _angle = angle;
+                    Vector3 next = player + new Vector3(Mathf.Sin(angle + LapLead), 0f, Mathf.Cos(angle + LapLead)) * CircleRadius;
+                    // A lap, or the circle runs into something (a wall, its house): it sits there instead of cutting past
+                    // the player.
+                    if (_turned >= Mathf.PI * 2f || !OnGround(next) || now - _phaseStart > LapGiveUp)
+                    {
+                        _phase = Phase.Sit;
+                        _phaseStart = now;
+                        DogWalk.Settle(_dog, DogPose.Sit, player);
+                        return TaskStatus.Running;
+                    }
+                    DogWalk.Go(_dog, next, DogGait.Trot);
+                    return TaskStatus.Running;
+                }
+                default:
+                    if (now - _phaseStart < SitTime)
+                        return TaskStatus.Running;
+                    _dog.State.WelcomeDone();
+                    return TaskStatus.Success;
+            }
+        }
+
+        static bool OnGround(Vector3 point)
+        {
+            AstarPath navigation = AstarPath.active;
+            if (navigation == null)
+                return true;
+            Pathfinding.NNInfo nearest = navigation.GetNearest(point, Pathfinding.NearestNodeConstraint.Walkable);
+            return nearest.node != null && DogWalk.Flat(nearest.position - point) < 0.4f;
+        }
+
+        // Cut off (a whistle, a raid), the welcome is over too. Only once per run: Behavior Designer calls OnEnd again on a
+        // finished task when a later abort interrupts the tree, which would cancel the next welcome before it starts.
+        public override void OnEnd()
+        {
+            if (!_started || _dog == null)
+                return;
+            _started = false;
+            _dog.State.WelcomeDone();
+        }
+    }
+
+    // ---- Bedtime: following, the player lies down in bed ----
+
+    [Category("Aipocalypse/Dogs")]
+    public sealed class DogIsBedtime : ConditionalNode
+    {
+        Dog _dog;
+
+        public override void OnAwake() => _dog = GetComponent<Dog>();
+        public override TaskStatus OnUpdate() => _dog.State.Order == DogOrder.Follow && _dog.Manager.TryGetBedSpot(out _, out _, out _)
+            ? TaskStatus.Success
+            : TaskStatus.Failure;
+    }
+
+    // Trots to the floor beside the bed and sits while the player picks a time; when they lie down it lies down facing the
+    // bed and falls asleep (the time skip then sends it home).
+    [Category("Aipocalypse/Dogs")]
+    public sealed class DogLieByBed : ActionNode
+    {
+        Dog _dog;
+        float _nextGo;
+        bool _arrived;
+        float _layAt;
+
+        public override void OnAwake() => _dog = GetComponent<Dog>();
+
+        public override void OnStart()
+        {
+            _dog.SetSniffing(false);
+            _nextGo = 0f;
+            _arrived = false;
+            _layAt = float.NaN;
+        }
+
+        public override TaskStatus OnUpdate()
+        {
+            float now = Time.time;
+            if (!_dog.Manager.TryGetBedSpot(out Vector3 spot, out Vector3 bed, out bool lyingDown))
+                return TaskStatus.Success;
+            if (_arrived)
+            {
+                if (!lyingDown)
+                    return TaskStatus.Running;
+                if (float.IsNaN(_layAt))
+                {
+                    _layAt = now;
+                    DogWalk.Settle(_dog, DogPose.Lie, bed);
+                }
+                else if (now - _layAt > 2f && _dog.Pose == DogPose.Lie)
+                    _dog.SetPose(DogPose.Sleep);
+                return TaskStatus.Running;
+            }
+            if (DogWalk.Near(_dog, spot, 0.6f))
+            {
+                _arrived = true;
+                DogWalk.Settle(_dog, DogPose.Sit, bed);
+                return TaskStatus.Running;
+            }
+            if (now >= _nextGo)
+            {
+                _nextGo = now + 0.4f;
+                if (_dog.Pose != DogPose.Stand)
+                    _dog.SetPose(DogPose.Stand);
+                DogWalk.Go(_dog, spot, DogWalk.Near(_dog, spot, 4f) ? DogGait.Trot : DogGait.Canter);
             }
             return TaskStatus.Running;
         }
@@ -1022,6 +1226,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
         enum Free { None, Sniff, Look, CheckIn, Settled }
 
         Dog _dog;
+        bool _started;
         Vector3 _goal;
         float _nextGo;
         Free _free;
@@ -1034,6 +1239,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
 
         public override void OnStart()
         {
+            _started = true;
             _free = Free.None;
             _nextGo = 0f;
             _settleRolled = false;
@@ -1180,10 +1386,14 @@ namespace MB13.Aipocalypse.Core.DogSystem
             return false;
         }
 
+        // Once per run: a second call would halt whatever moves it next.
         public override void OnEnd()
         {
-            _dog?.SetSniffing(false);
-            _dog?.Legs?.Halt();
+            if (!_started || _dog == null)
+                return;
+            _started = false;
+            _dog.SetSniffing(false);
+            _dog.Legs?.Halt();
         }
     }
 
@@ -1205,6 +1415,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
     public sealed class DogStayHere : ActionNode
     {
         Dog _dog;
+        bool _started;
         float _until;
         bool _walking;
 
@@ -1212,6 +1423,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
 
         public override void OnStart()
         {
+            _started = true;
             _until = 0f;
             _walking = false;
         }
@@ -1252,7 +1464,13 @@ namespace MB13.Aipocalypse.Core.DogSystem
             return TaskStatus.Running;
         }
 
-        public override void OnEnd() => _dog?.SetSniffing(false);
+        public override void OnEnd()
+        {
+            if (!_started || _dog == null)
+                return;
+            _started = false;
+            _dog.SetSniffing(false);
+        }
     }
 
     // ---- At home ----
@@ -1350,26 +1568,30 @@ namespace MB13.Aipocalypse.Core.DogSystem
         }
     }
 
-    // Night at home: a yawn, into its dog house, asleep with its head out until morning.
+    // Night at home: a yawn, into its dog house, asleep with its head out until morning. Once a night (22:00–02:00, a
+    // HowlChance roll) it comes out to the door, howls, and goes back in.
     [Category("Aipocalypse/Dogs")]
     public sealed class DogSleepInHouse : ActionNode
     {
+        enum Howl { None, Out, Howling }
+
         Dog _dog;
+        bool _started;
         int _step;
         float _startedAt;
+        Howl _howl;
+        bool _leaving;
+        float _howlAt;
 
         public override void OnAwake() => _dog = GetComponent<Dog>();
 
         public override void OnStart()
         {
+            _started = true;
             _step = 0;
-            var clock = _dog.Manager.Clock;
-            if (clock != null && _dog.State.TryHowl(clock.Now.Day, clock.Now.Hour, true, _dog.Roster.Raid, Random.value))
-            {
-                _dog.Act(DogAct.Howl);
-                _dog.Manager.TryPlay(_dog, DogSound.Howl);
-            }
-            else if (_dog.Standing)
+            _howl = Howl.None;
+            _leaving = false;
+            if (_dog.Standing)
                 _dog.Act(DogAct.Yawn);
         }
 
@@ -1380,17 +1602,45 @@ namespace MB13.Aipocalypse.Core.DogSystem
                 DogWalk.Settle(_dog, DogPose.Sleep, _dog.transform.position + _dog.transform.forward);
                 return TaskStatus.Running;
             }
+            if (_howl != Howl.None)
+                return Howling();
             int before = _step;
             _step = DogHouseMoves.Enter(_dog, _step, ref _startedAt);
             if (_step == 3 && before != 3)
                 _dog.SetPose(DogPose.Sleep);
+            var clock = _dog.Manager.Clock;
+            if (_step == 3 && clock != null && _dog.State.TryHowl(clock.Now.Day, clock.Now.Hour, true, _dog.Roster.Raid, Random.value))
+                _howl = Howl.Out;
             return TaskStatus.Running;
         }
 
+        // Acts only play on its feet, so it backs out to the door first; then in again from the start.
+        TaskStatus Howling()
+        {
+            float now = Time.time;
+            if (_howl == Howl.Out)
+            {
+                if (!DogHouseMoves.Leave(_dog, ref _leaving, ref _startedAt) || !_dog.Standing)
+                    return TaskStatus.Running;
+                _dog.Act(DogAct.Howl);
+                _dog.Manager.TryPlay(_dog, DogSound.Howl);
+                _howl = Howl.Howling;
+                _howlAt = now;
+                return TaskStatus.Running;
+            }
+            if (now - _howlAt < 0.5f || !_dog.Standing)
+                return TaskStatus.Running;
+            _howl = Howl.None;
+            _step = 0;
+            return TaskStatus.Running;
+        }
+
+        // Once per run: a second call while another task has it in the house would pop it out.
         public override void OnEnd()
         {
-            if (_dog == null)
+            if (!_started || _dog == null)
                 return;
+            _started = false;
             _dog.SpeedOverride = -1f;
             if (!_dog.InHouse)
                 return;
@@ -1415,6 +1665,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
         };
 
         Dog _dog;
+        bool _started;
         Activity _activity;
         float _until;
         int _laps;
@@ -1426,6 +1677,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
 
         public override void OnStart()
         {
+            _started = true;
             _activity = Activity.None;
             _dog.InHomeLife = true;
         }
@@ -1632,10 +1884,12 @@ namespace MB13.Aipocalypse.Core.DogSystem
             }
         }
 
+        // Once per run: a second call after it went to sleep in its house would pop it out.
         public override void OnEnd()
         {
-            if (_dog == null)
+            if (!_started || _dog == null)
                 return;
+            _started = false;
             _dog.InHomeLife = false;
             _dog.GreetedBy = null;
             _dog.SetSniffing(false);

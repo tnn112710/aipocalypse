@@ -369,16 +369,21 @@ public static class RobotPlayCheck
         }
         var seen = new System.Collections.Generic.List<string>();
         bool dizzy = false;
+        // Lying is the fall's last frame: the head stays near the ground (standing it is ~0.6 m up).
+        Transform head = robot.GetComponentsInChildren<Transform>().First(t => t.name == "head");
+        float lyingHead = 0f;
         await Seconds(6f, () =>
         {
             string state = StateName(robot.Animator);
             if (seen.Count == 0 || seen[seen.Count - 1] != state)
                 seen.Add(state);
             dizzy |= robot.Face.Shown == RobotExpression.Dizzy;
+            if (state == "Lie_0" && !robot.Animator.IsInTransition(0))
+                lyingHead = Mathf.Max(lyingHead, head.position.y - robot.transform.position.y);
         });
         bool sulking = robot.State.Sulking(Time.time);
-        bool ok = seen.Contains("Fall_0") && seen.Contains("Lie_0") && seen.Contains("Rise_0") && dizzy && sulking;
-        return $"{(ok ? "PASS" : "FAIL")} {name} knocked down: states {string.Join(" > ", seen)}, crossed eyes {dizzy}, sulking {sulking}; {Line(robot)}";
+        bool ok = seen.Contains("Fall_0") && seen.Contains("Lie_0") && seen.Contains("Rise_0") && lyingHead < 0.35f && dizzy && sulking;
+        return $"{(ok ? "PASS" : "FAIL")} {name} knocked down: states {string.Join(" > ", seen)}, head while lying {lyingHead:0.00} m, crossed eyes {dizzy}, sulking {sulking}; {Line(robot)}";
     }
 
     // Hold-E: heart eyes and a laugh; it forgives a sulk.

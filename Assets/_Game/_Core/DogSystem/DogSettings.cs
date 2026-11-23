@@ -56,6 +56,15 @@ namespace MB13.Aipocalypse.Core.DogSystem
         [Min(0f), Tooltip("...for this long (s): a head tilt")] public float LookTime = 1f;
         [Min(0f), Tooltip("Seconds between head tilts")] public float HeadTiltGap = 20f;
 
+        [Header("Turning, rain, welcome home")]
+        [Min(0f), Tooltip("Turning on the spot faster than this (degrees/s)...")] public float TurnMinRate = 50f;
+        [Min(0f), Tooltip("...while slower than this (m/s)...")] public float TurnStillBelow = 0.25f;
+        [Min(0f), Tooltip("...plays the walk at this speed so its legs step round (m/s)")] public float TurnStepSpeed = 0.6f;
+        [Range(0f, 1f), Tooltip("Rain heavier than this soaks it (the weather's rain amount)")] public float RainWetsAbove = 0.15f;
+        [Min(0f), Tooltip("Seconds in the rain before it shakes itself dry once out of it (a roof, indoors, or the rain stops)")] public float WetToShake = 20f;
+        [Min(0f), Tooltip("Staying at home: the player out of the yard this long (s)...")] public float WelcomeAfter = 60f;
+        [Min(0f), Tooltip("...then back: it runs over happy, circles them and sits, for at most this long (s)")] public float WelcomeTime = 25f;
+
         [Header("Whistle")]
         [Min(0f), Tooltip("A plain whistle within this calls it (m)")] public float HearWhistleRange = 60f;
         [Min(2), Tooltip("This many plain whistles...")] public int SpamWhistles = 4;
@@ -72,6 +81,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
         [Min(0f), Tooltip("Sheep within this of the dog can be chased (m)")] public float ChaseRange = 25f;
         [Min(0f), Tooltip("Raids: Passive, it keeps this far from raiders (m)")] public float AvoidRange = 6f;
         [Tooltip("Raids: seconds between bark bursts (min, max)")] public Vector2 RaidBarkGap = new(8f, 15f);
+        [Range(0f, 1f), Tooltip("Chance of a howl on a night at home (rolled once a night, 22:00–02:00)")] public float HowlChance = 0.2f;
 
         [Header("Stay")]
         [Min(0f), Tooltip("It keeps within this of where it was told to stay (m)")] public float StayRadius = 4f;

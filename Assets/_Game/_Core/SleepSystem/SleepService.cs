@@ -66,6 +66,8 @@ namespace MB13.Aipocalypse.Core.SleepSystem
 
         public bool Enabled => _settings != null && _settings.Enabled;
         public SleepStage Stage { get; private set; }
+        // The bed of the sleep under way (null before the first).
+        public Bed Bed => _bed;
         public bool IsBusy => Stage != SleepStage.None;
         // The time the player wakes at (while choosing: the choice so far).
         public WorldTime Wake { get; private set; }

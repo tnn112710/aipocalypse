@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace MB13.Aipocalypse.Core.DogSystem
 {
     // How often the dog may make noise, so barking never gets annoying: one sound per VoiceGap, and per-sound gaps
-    // (barks also capped per minute).
+    // (barks also capped per minute). The rest of a burst (a raid's 2–3 barks) skips the bark gap, not the minute cap.
     public sealed class DogVoice
     {
         const float Minute = 60f;
@@ -15,11 +15,11 @@ namespace MB13.Aipocalypse.Core.DogSystem
 
         public DogVoice(DogSettings settings) => _settings = settings;
 
-        public bool TryPlay(DogSound sound, float now)
+        public bool TryPlay(DogSound sound, float now, bool burst = false)
         {
             if (now - _lastAny < _settings.VoiceGap)
                 return false;
-            if (_last.TryGetValue(sound, out float last) && now - last < Gap(sound))
+            if (!burst && _last.TryGetValue(sound, out float last) && now - last < Gap(sound))
                 return false;
             if (sound == DogSound.Bark)
             {

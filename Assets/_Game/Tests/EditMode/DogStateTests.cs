@@ -105,6 +105,18 @@ namespace MB13.Aipocalypse.Tests
         }
 
         [Test]
+        public void Voice_BurstBarksSkipTheBarkGapButNotTheMinuteCap()
+        {
+            var voice = new DogVoice(_settings);
+            Assert.That(voice.TryPlay(DogSound.Bark, 0f), Is.True);
+            Assert.That(voice.TryPlay(DogSound.Bark, 1.3f), Is.False, "a lone bark keeps the bark gap");
+            Assert.That(voice.TryPlay(DogSound.Bark, 1.3f, burst: true), Is.True, "the second of a burst");
+            Assert.That(voice.TryPlay(DogSound.Bark, 2.6f, burst: true), Is.True, "the third");
+            Assert.That(voice.TryPlay(DogSound.Bark, 3.9f, burst: true), Is.False, "still three a minute");
+            Assert.That(voice.TryPlay(DogSound.Whine, 3f), Is.False, "the global gap still applies");
+        }
+
+        [Test]
         public void Call_LastsUntilEndedOrTimedOut()
         {
             _state.Call(0f, annoyed: false);
@@ -153,7 +165,6 @@ namespace MB13.Aipocalypse.Tests
                     Order = DogOrder.Stay,
                     Position = new Vector3(1f, 2f, 3f),
                     Yaw = 45f,
-                    InYard = true,
                     StayPoint = new Vector3(4f, 0f, 6f),
                 };
                 data.Set(DogSaveSection.Key, saved);
@@ -161,10 +172,9 @@ namespace MB13.Aipocalypse.Tests
                 Assert.That(back.Order, Is.EqualTo(DogOrder.Stay));
                 Assert.That(back.Position, Is.EqualTo(saved.Position));
                 Assert.That(back.Yaw, Is.EqualTo(45f));
-                Assert.That(back.InYard, Is.True);
                 Assert.That(back.StayPoint, Is.EqualTo(saved.StayPoint));
 
-                _state.Restore(back.Order, back.StayPoint);
+                _state.Restore(back.Order, back.StayPoint, back.HerdFor, back.HowledNight, 0f);
                 Assert.That(_state.Order, Is.EqualTo(DogOrder.Stay));
                 Assert.That(_state.StayPoint, Is.EqualTo(saved.StayPoint));
                 Assert.That(_state.Sad(0f), Is.False, "a load isn't a fresh order");
@@ -236,6 +246,32 @@ namespace MB13.Aipocalypse.Tests
         }
 
         [Test]
+        public void Howl_ANightUsedBeforeASaveIsNotRolledAgain()
+        {
+            Assert.That(_state.TryHowl(3, 23f, true, false, 0.9f), Is.False, "the roll failed: night 3 is used");
+            var loaded = new DogState(_settings);
+            loaded.Restore(DogOrder.Stay, Vector3.zero, 0f, _state.HowledNight, 0f);
+            Assert.That(loaded.TryHowl(3, 23.5f, true, false, 0.1f), Is.False);
+            Assert.That(loaded.TryHowl(4, 23f, true, false, 0.1f), Is.True);
+        }
+
+        [Test]
+        public void Herd_ALoadKeepsTheTimeItHadLeft()
+        {
+            _state.StartHerding(Vector3.zero, 10f);
+            float herdFor = _state.HerdingFor(70f);
+            Assert.That(herdFor, Is.EqualTo(60f).Within(1e-4f));
+            var loaded = new DogState(_settings);
+            loaded.Restore(DogOrder.Herding, Vector3.zero, herdFor, -1, 5f);
+            Assert.That(loaded.Order, Is.EqualTo(DogOrder.Herding));
+            Assert.That(DogState.HerdDone(0, 4, loaded.HerdStartedAt, 5f), Is.False, "not over at once after a load");
+            Assert.That(DogState.HerdDone(0, 4, loaded.HerdStartedAt, 5f + DogState.HerdGiveUp - 60f + 0.1f), Is.True);
+            Assert.That(_state.HerdingFor(70f), Is.EqualTo(60f).Within(1e-4f));
+            _state.SetOrder(DogOrder.Stay, Vector3.zero);
+            Assert.That(_state.HerdingFor(70f), Is.Zero, "not herding");
+        }
+
+        [Test]
         public void SetOrder_StayRemembersThePoint()
         {
             Assert.That(_state.Order, Is.EqualTo(DogOrder.Follow));
@@ -245,6 +281,121 @@ namespace MB13.Aipocalypse.Tests
             Assert.That(_state.StayPoint, Is.EqualTo(at));
             _state.Reset();
             Assert.That(_state.Order, Is.EqualTo(DogOrder.Follow));
+        }
+
+        // ---- Turning on the spot, rain, welcome home ----
+
+        void TurnSettings()
+        {
+            _settings.TurnStepSpeed = 0.6f;
+            _settings.TurnMinRate = 50f;
+            _settings.TurnStillBelow = 0.25f;
+        }
+
+        [Test]
+        public void Turn_StandingTurnPlaysASlowWalk()
+        {
+            TurnSettings();
+            Assert.That(DogTurn.AnimatorSpeed(0f, 120f, true, _settings), Is.EqualTo(0.6f));
+            Assert.That(DogTurn.AnimatorSpeed(0.1f, -120f, true, _settings), Is.EqualTo(0.6f), "either way round");
+        }
+
+        [Test]
+        public void Turn_WalkingSlowTurnOrNotOnItsFeetKeepsItsSpeed()
+        {
+            TurnSettings();
+            Assert.That(DogTurn.AnimatorSpeed(2f, 120f, true, _settings), Is.EqualTo(2f), "already walking");
+            Assert.That(DogTurn.AnimatorSpeed(0f, 20f, true, _settings), Is.EqualTo(0f), "a slow turn");
+            Assert.That(DogTurn.AnimatorSpeed(0f, 120f, false, _settings), Is.EqualTo(0f), "sitting, lying or swimming");
+        }
+
+        [Test]
+        public void Wetness_ShakesOnceOutOfTheRainAfterASoaking()
+        {
+            _settings.WetToShake = 20f;
+            var wet = new DogWetness(_settings);
+            for (int i = 0; i < 25; i++)
+                Assert.That(wet.Tick(1f, rainedOn: true), Is.False, "never while still in the rain");
+            Assert.That(wet.Tick(0.5f, rainedOn: false), Is.True);
+            Assert.That(wet.Tick(0.5f, rainedOn: false), Is.False, "once");
+        }
+
+        [Test]
+        public void Wetness_BriefRainDriesOffWithoutAShake()
+        {
+            _settings.WetToShake = 20f;
+            var wet = new DogWetness(_settings);
+            for (int i = 0; i < 15; i++)
+                wet.Tick(1f, rainedOn: true);
+            for (int i = 0; i < 20; i++)
+                Assert.That(wet.Tick(1f, rainedOn: false), Is.False);
+            for (int i = 0; i < 10; i++)
+                wet.Tick(1f, rainedOn: true);
+            Assert.That(wet.Tick(1f, rainedOn: false), Is.False, "15 s, dried off, then 10 s: not soaked");
+        }
+
+        void WelcomeSettings()
+        {
+            _settings.WelcomeAfter = 60f;
+            _settings.WelcomeTime = 15f;
+        }
+
+        [Test]
+        public void Welcome_AfterThePlayerWasAwayLongEnough()
+        {
+            WelcomeSettings();
+            _state.TrackPlayer(playerInYard: true, stayingHome: true, now: 0f);
+            _state.TrackPlayer(false, true, 10f);
+            _state.TrackPlayer(false, true, 80f);
+            Assert.That(_state.Welcoming(80f), Is.False, "still away");
+            _state.TrackPlayer(true, true, 90f);
+            Assert.That(_state.Welcoming(91f), Is.True);
+            Assert.That(_state.Welcoming(106f), Is.False, "over after WelcomeTime");
+        }
+
+        [Test]
+        public void Welcome_NotAfterAShortTrip()
+        {
+            WelcomeSettings();
+            _state.TrackPlayer(false, true, 10f);
+            _state.TrackPlayer(true, true, 40f);
+            Assert.That(_state.Welcoming(41f), Is.False);
+        }
+
+        [Test]
+        public void Welcome_OnlyWhileStayingAtHome()
+        {
+            WelcomeSettings();
+            _state.TrackPlayer(false, stayingHome: false, now: 10f);
+            _state.TrackPlayer(true, false, 200f);
+            Assert.That(_state.Welcoming(201f), Is.False, "following: it was with the player");
+            _state.TrackPlayer(false, true, 300f);
+            _state.TrackPlayer(false, false, 330f);
+            _state.TrackPlayer(true, true, 400f);
+            Assert.That(_state.Welcoming(401f), Is.False, "away time restarts once it stops staying home");
+        }
+
+        [Test]
+        public void Welcome_CalledOffWhenItStopsStayingHome()
+        {
+            WelcomeSettings();
+            _state.TrackPlayer(false, true, 10f);
+            _state.TrackPlayer(true, true, 200f);
+            Assert.That(_state.Welcoming(201f), Is.True);
+            _state.TrackPlayer(true, false, 202f);
+            _state.TrackPlayer(true, true, 205f);
+            Assert.That(_state.Welcoming(206f), Is.False, "told to follow, then to stay again: no second welcome");
+        }
+
+        [Test]
+        public void Welcome_DoneEndsIt()
+        {
+            WelcomeSettings();
+            _state.TrackPlayer(false, true, 0f);
+            _state.TrackPlayer(true, true, 100f);
+            Assert.That(_state.Welcoming(101f), Is.True);
+            _state.WelcomeDone();
+            Assert.That(_state.Welcoming(102f), Is.False);
         }
     }
 }

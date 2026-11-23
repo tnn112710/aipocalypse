@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using MB13.Aipocalypse.Core.DogSystem;
+using MB13.Aipocalypse.Core.EnemySystem;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -297,6 +298,37 @@ namespace MB13.Aipocalypse.Tests
             Assert.That(_stats.Get(DogStat.BiteDamage), Is.EqualTo(20f));
             _stats.Remove(upgrade);
             Assert.That(_stats.Get(DogStat.BiteDamage), Is.EqualTo(14f));
+        }
+
+        [Test]
+        public void Combat_UnknownEnemyClassCountsAsTheHeaviest()
+        {
+            var light = ScriptableObject.CreateInstance<StaggerProfile>();
+            var boss = ScriptableObject.CreateInstance<StaggerProfile>();
+            var other = ScriptableObject.CreateInstance<StaggerProfile>();
+            try
+            {
+                var classes = new[] { light, boss };
+                Assert.That(DogCombat.ClassOf(classes, light), Is.EqualTo(0));
+                Assert.That(DogCombat.ClassOf(classes, boss), Is.EqualTo(1));
+                Assert.That(DogCombat.ClassOf(classes, other), Is.EqualTo(1), "not in the list: never bitten by default");
+                Assert.That(DogCombat.ClassOf(classes, null), Is.EqualTo(1), "no profile");
+                Assert.That(DogCombat.ClassOf(new StaggerProfile[0], other), Is.EqualTo(0), "no classes set up");
+            }
+            finally
+            {
+                Object.DestroyImmediate(light);
+                Object.DestroyImmediate(boss);
+                Object.DestroyImmediate(other);
+            }
+        }
+
+        [Test]
+        public void Combat_RetaliationOnlyWithinTheRadius()
+        {
+            Assert.That(DogCombat.Provokes(Vector3.zero, new Vector3(2.9f, 0f, 0f), 3f), Is.True);
+            Assert.That(DogCombat.Provokes(Vector3.zero, new Vector3(3.2f, 0f, 0f), 3f), Is.False);
+            Assert.That(DogCombat.Provokes(Vector3.zero, new Vector3(2.9f, 1f, 0f), 3f), Is.True, "flat distance");
         }
 
         [Test]

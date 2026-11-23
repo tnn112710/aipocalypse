@@ -28,6 +28,35 @@ namespace MB13.Aipocalypse.Core.DogSystem
 
         public DogState(DogSettings settings) => _settings = settings;
 
+        // ---- Welcome home: staying at home, the player away a while and back in the yard ----
+
+        float _awaySince = float.NaN;
+        float _welcomeUntil = float.NegativeInfinity;
+
+        // Every think: where the player is, and whether the dog is staying at home.
+        public void TrackPlayer(bool playerInYard, bool stayingHome, float now)
+        {
+            if (!stayingHome)
+            {
+                // Told to follow (or a raid): a welcome still pending is called off, not saved for the next "Stay".
+                _awaySince = float.NaN;
+                _welcomeUntil = float.NegativeInfinity;
+                return;
+            }
+            if (!playerInYard)
+            {
+                if (float.IsNaN(_awaySince))
+                    _awaySince = now;
+                return;
+            }
+            if (!float.IsNaN(_awaySince) && now - _awaySince >= _settings.WelcomeAfter)
+                _welcomeUntil = now + _settings.WelcomeTime;
+            _awaySince = float.NaN;
+        }
+
+        public bool Welcoming(float now) => now < _welcomeUntil;
+        public void WelcomeDone() => _welcomeUntil = float.NegativeInfinity;
+
         public bool CallAnnoyed { get; private set; }
 
         // `now` given: a fresh order from the player ("Stay" makes it a little sad for SadTime); NaN: a quiet change.
@@ -39,12 +68,14 @@ namespace MB13.Aipocalypse.Core.DogSystem
             _sadUntil = order == DogOrder.Stay && !float.IsNaN(now) ? now + SadTime : float.NegativeInfinity;
         }
 
-        // From a save: no reaction.
-        public void Restore(DogOrder order, Vector3 stayPoint)
+        // From a save: no reaction. `herdFor`: how long it had been herding; `howledNight`: the night it last rolled a howl.
+        public void Restore(DogOrder order, Vector3 stayPoint, float herdFor, int howledNight, float now)
         {
             Order = order;
             StayPoint = stayPoint;
             _sadUntil = float.NegativeInfinity;
+            HerdStartedAt = now - herdFor;
+            _howledDay = howledNight;
         }
 
         public bool Sad(float now) => now < _sadUntil;
@@ -96,6 +127,19 @@ namespace MB13.Aipocalypse.Core.DogSystem
 
         public static bool CanHerd(int animalsOut) => animalsOut > 0;
 
+        // The night (its starting day) whose howl roll is used up; -1 none yet.
+        public int HowledNight => _howledDay;
+
+        public float HerdStartedAt { get; private set; }
+
+        public void StartHerding(Vector3 at, float now)
+        {
+            SetOrder(DogOrder.Herding, at);
+            HerdStartedAt = now;
+        }
+
+        public float HerdingFor(float now) => Order == DogOrder.Herding ? now - HerdStartedAt : 0f;
+
         // Cheats: the next home-life pick is a sheep chase.
         public void ForceSheepChase() => _nextSheepChase = 0f;
 
@@ -132,7 +176,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
             return true;
         }
 
-        // A howl at most once a night: at home, between 22:00 and 02:00, no raid, a 20% roll (one roll per night).
+        // A howl at most once a night: at home, between 22:00 and 02:00, no raid, a HowlChance roll (one roll per night).
         public bool TryHowl(int day, float hour, bool atHome, bool raid, float roll)
         {
             bool lateNight = hour >= 22f || hour < 2f;
@@ -143,7 +187,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
             if (night == _howledDay)
                 return false;
             _howledDay = night;
-            return roll < 0.2f;
+            return roll < _settings.HowlChance;
         }
 
         // When its next bite is ready (BiteCooldown after the last).

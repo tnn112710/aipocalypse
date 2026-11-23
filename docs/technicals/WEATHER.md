@@ -30,7 +30,8 @@ weather.* console ──┘  └─► WeatherService.Set(sky, wind)
                         ├─ AmbienceService.NatureVolume      birds, meadow wind, owls get quieter in rain
                         ├─ WeatherAudio                      rain / wind beds (one kept player per sound)
                         ├─ LightningFlash + Thunder          storm: flash, then thunder 0.3–2.5 s later
-                        └─ WeatherChanged (MessagePipe)      no subscriber yet
+                        ├─ WeatherChanged (MessagePipe)      no subscriber yet
+                        └─ (read) Mix.Rain                   DogManager: rain soaks the dog, a shake once out of it (DOGS.md)
 ```
 
 | Sky weather | COZY profile (ours, in `Data/Environment/Cozy/Weather/`) | Default wind | Rain amount | Bed | Fog density × | Nature × | Lightning |

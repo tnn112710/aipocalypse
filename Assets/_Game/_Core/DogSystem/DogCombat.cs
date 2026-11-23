@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using MB13.Aipocalypse.Core.EnemySystem;
 using UnityEngine;
 
 namespace MB13.Aipocalypse.Core.DogSystem
@@ -95,6 +96,24 @@ namespace MB13.Aipocalypse.Core.DogSystem
         }
 
         public static bool CanBite(in FoeView foe, DogStatSheet stats) => foe.Class <= stats.GetClass(DogStat.MaxBiteClass);
+
+        // An enemy's weight class: its stagger profile's place in `classes`. One not in the list (or none) counts as the
+        // heaviest, so a new kind (a boss) is never bitten or taken down until it's given a class.
+        public static int ClassOf(StaggerProfile[] classes, StaggerProfile profile)
+        {
+            if (classes == null || classes.Length == 0)
+                return 0;
+            int index = profile != null ? System.Array.IndexOf(classes, profile) : -1;
+            return index < 0 ? classes.Length - 1 : index;
+        }
+
+        // A bite gives an enemy within `radius` of the dog (flat distance) a reason to swing back.
+        public static bool Provokes(Vector3 dogAt, Vector3 enemyAt, float radius)
+        {
+            Vector3 d = enemyAt - dogAt;
+            d.y = 0f;
+            return d.sqrMagnitude <= radius * radius;
+        }
 
         // A moment to dart in: the target faces away (more than `openingAngle`), is swinging at someone else, or the dog has
         // circled long enough (`circleWait` × the cooldown).

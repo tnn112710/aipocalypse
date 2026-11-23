@@ -142,13 +142,15 @@ Assets/_Game/
 │  │  ├─ DogInstaller.cs                    SceneInstaller (_settings, _house, _yard, _visits; dogs collected on save / Play, injected): DogRoster, CommandWheelPresenter, DogManager (AsSelf, IWhistleFallback), DogSaveSection (+ DogCommands); needs EnemyInstaller and WorldTimeInstaller
 │  │  ├─ DogManager.cs                      ITickable + IWhistleFallback: night, the player into the roster, follow plans, swim, head tilt, wheel slices, whistles, sounds, home after death / sleep
 │  │  ├─ Dog.cs                             the entity bridge: IInteractable (wheel), IHoldInteractable (pet), IWhistleTarget, INameTagged, IDamageable (flinch only); animator; model offset into its house; swim float
-│  │  ├─ DogState.cs                        plain C#: order (sad after Stay), call, whistle spam, pet, head tilt, settle pose; stance, toughness, Hit → DogHit, down / help up / limp, regen, retreat, takedown rolls, bite cooldown (DogStateTests, DogCombatTests)
+│  │  ├─ DogState.cs                        plain C#: welcome home (player away and back), order (sad after Stay), call, whistle spam, pet, head tilt, settle pose; stance, toughness, Hit → DogHit, down / help up / limp, regen, retreat, takedown rolls, bite cooldown (DogStateTests, DogCombatTests)
 │  │  ├─ DogFollow.cs                       plain C#: FollowInput → FollowPlan (comfort zone, reaction delay, scout, side, aim cone, catch up, separated) (DogFollowTests)
 │  │  ├─ DogVoice.cs                        plain C#: the noise budget (DogStateTests)
 │  │  ├─ DogJumpArc.cs                      plain C#: JumpKind pick, body path, duration (DogTests)
 │  │  ├─ DogStats.cs                        DogStat enum, DogStatBlock SO (Data/Dogs/DogStatBlock: base values), IDogUpgradeSource, DogStatSheet (base + upgrades, class index) (DogCombatTests)
+│  │  ├─ DogTurn.cs                         plain C#: a quick turn on the spot plays a slow walk (DogStateTests)
+│  │  ├─ DogWetness.cs                      plain C#: rain soaks it; out of it after a soaking, one shake (DogStateTests)
 │  │  ├─ DogCombat.cs                       plain C#: HerdView, FoeView; PickTarget (stance, sent, ranged first, home defence), CanBite, IsOpening, WarnTarget (DogCombatTests)
-│  │  ├─ DogTasks.cs                        Behavior Designer tasks of AgentScripts/Dogs/Dog.tree.txt (down, scramble, come, petted, sad stay, catch up, avoid raiders, back off, skirmish, warn, hurt player, herd, follow, stay here, raid watch, sleep in house, home life)
+│  │  ├─ DogTasks.cs                        Behavior Designer tasks of AgentScripts/Dogs/Dog.tree.txt (down, scramble, come, petted, sad stay, catch up, avoid raiders, back off, skirmish, warn, hurt player, welcome home, herd, lie by the bed, follow, stay here, raid watch, sleep in house, home life)
 │  │  ├─ DogLegs.cs                         EnemyMover wrapper on every nav tag; gaits
 │  │  ├─ DogHouse.cs, DogLinkInfo.cs        the dog house (door, bed); an off-mesh link's obstacle height and Via point
 │  │  ├─ DogRoster.cs                       scene service: the dog, house, yard, visits, night, the player
@@ -455,7 +457,7 @@ Assets/_Game/
 │  │  └─ SaveCommands.cs                    console: save.list, write, load, new, delete, deleteall, auto, path, menu
 │  ├─ SleepSystem/                          MB13.Aipocalypse.Core.SleepSystem — sleeping in a bed, see SLEEP.md
 │  │  ├─ SleepInstaller.cs                  SceneInstaller (_settings: SleepSettings; beds collected on scene save / entering Play, injected): SleepService (entry point); needs a ready WorldTimeInstaller
-│  │  ├─ SleepService.cs                    ITickable: one sleep as stages (Choosing → LyingDown → FallingAsleep → Asleep → Waking); Begin(bed, player) (or Refusal), Shift / Confirm / Cancel, Wake, Window, Darkness; plays the sequences in the bed anchor's space, WorldClock.SkipTo, ends standing where the get-up's last beat is; raids optional (TryResolve RaidDirector, RaidSettings, IRaidSchedule)
+│  │  ├─ SleepService.cs                    ITickable: one sleep as stages (Choosing → LyingDown → FallingAsleep → Asleep → Waking); Begin(bed, player) (or Refusal), Shift / Confirm / Cancel, Wake, Window, Darkness; plays the sequences in the bed anchor's space, WorldClock.SkipTo, ends standing where the get-up's last beat is; raids optional (TryResolve RaidDirector, RaidSettings, IRaidSchedule); Bed (the current bed, read by the dog)
 │  │  ├─ SleepRules.cs                      pure: Window(now, min, max, wakeBeforeRaid, SleepRaids?) → SleepWindow (earliest / latest whole hours, or a reason: raid running, raid coming, too close), DefaultWake (SleepTests)
 │  │  ├─ SleepSettings.cs                   SO: Enabled, MinHours, MaxHours, DefaultWakeHour, WakeBeforeRaid, LieDown / GetUp (PoseSequence), FadeOut, SkipSeconds, FadeIn, sounds; asset in Data/Sleep/
 │  │  └─ Bed.cs                             IInteractable "[E] Sleep" → SleepService.Begin; Anchor (on the floor: x = the side you get in from, z = towards the pillow)

@@ -50,9 +50,12 @@ public static class DogPlayCheck
         Vector3 start = Yard(-10f, -2f);
         PlacePlayer(start, start + YardRight);
         dog.Legs.Warp(Yard(-11f, 0f));
-        // On its feet first (a previous probe may have left it asleep: getting up takes a few seconds).
+        // On its feet first (a previous probe may have left it lying down: getting up, and the happy wag the order asked
+        // for, take a few seconds); a fixed wait let it settle again next to the still player.
         dog.SetPose(DogPose.Stand);
-        await Seconds(4f, null);
+        await Seconds(1f, null);
+        for (int i = 0; i < 50 && !dog.Standing; i++)
+            await Seconds(0.2f, null);
         float farthest = 0f;
         Vector3 end = Yard(-10f + metres, -2f);
         float walkTime = metres / 3f;
@@ -331,24 +334,36 @@ public static class DogPlayCheck
     public static async Task<string> HeadTilt()
     {
         Dog dog = Dog;
+        // Daytime, no enemies, the player alive (a real raid at 21:00 kills an idle player, and a dead one isn't looked for).
+        Console("enemy.clear");
+        Scope.Resolve<WorldClock>().JumpTo(10f);
+        Player.Invulnerable = true;
         DogManager manager = Scope.Resolve<DogManager>();
         manager.Order(dog, DogOrder.Follow);
         dog.SetPose(DogPose.Stand);
-        await Seconds(2.5f, null);
         Vector3 at = Ground(dog.transform.position + dog.transform.forward * 4f);
         PlacePlayer(at, dog.transform.position + Vector3.up * 0.5f);
         bool tilted = false;
         var animator = dog.GetComponentInChildren<Animator>();
         int tilt = Animator.StringToHash("Act HeadTilt");
         DogRoster roster = Scope.Resolve<DogRoster>();
-        await Seconds(3f, () =>
+        // Looking away until it's up (from a nap) and standing still at its spot by the player; then the player "just
+        // stopped" and looks at it (one standing still for long has a dog sitting, which can't tilt).
+        float ready = -1f;
+        for (int i = 0; i < 60 && ready < 0f; i++)
         {
-            // A player who just stopped to look (one standing still for long has a dog sitting down, which can't tilt).
-            roster.PlayerStillFor = 0f;
+            AimAt(at + YardRight * 5f + Vector3.up * 1.5f);
+            await Seconds(0.2f, null);
+            if (dog.Standing && dog.Pose == DogPose.Stand && Flat(dog.Legs.Velocity) < 0.3f && Flat(dog.transform.position - at) < 5f)
+                ready = i * 0.2f;
+        }
+        roster.PlayerStillFor = 0f;
+        await Seconds(4f, () =>
+        {
             AimAt(dog.transform.position + Vector3.up * 0.5f);
             tilted |= animator.GetCurrentAnimatorStateInfo(0).shortNameHash == tilt || animator.GetNextAnimatorStateInfo(0).shortNameHash == tilt;
         });
-        return $"{Pass(tilted)} head tilt when looked at: {tilted}; {Line(dog)}";
+        return $"{Pass(tilted)} head tilt when looked at: {tilted} (standing still after {ready:0.0} s); {Line(dog)}";
     }
 
     // Tap E: the wheel opens slowing time; picking Stay closes it, gives time and input back, and the dog stays.
@@ -595,10 +610,14 @@ public static class DogPlayCheck
             // After the pin it must leave the fight and follow again.
             Vector3 from = Player.transform.position;
             PlacePlayer(Ground(from - YardRight * 10f), Ground(from - YardRight * 20f));
-            await Seconds(6f, null);
+            await Seconds(0.2f, null);
+            float gap = Flat(dog.transform.position - Player.transform.position);
+            // It may have dozed off next to the still player during the fight's wait: getting up takes ~4.5 s.
+            await Seconds(10f, null);
             float after = Flat(dog.transform.position - Player.transform.position);
-            bool follows = after < 8.5f;
-            return $"{Pass(diedAt >= 0f && pinned && follows)} takedown: goblin dragged down after {diedAt:0.0} s, pinned {pinned} (flag {pinFlag}, bit {bit}); then followed {follows} ({after:0.0} m, bite landed {dog.BiteLanded}); {Line(dog)}";
+            // Closing the gap (hurt, it may limp and come slower); stuck in the fight branch it doesn't move.
+            bool follows = after < 8.5f || after < gap - 2f;
+            return $"{Pass(diedAt >= 0f && pinned && follows)} takedown: goblin dragged down after {diedAt:0.0} s, pinned {pinned} (flag {pinFlag}, bit {bit}); then followed {follows} ({gap:0.0} > {after:0.0} m, limping {dog.State.Limping(Time.time)}, bite landed {dog.BiteLanded}); {Line(dog)}";
         }
         finally
         {
@@ -826,6 +845,8 @@ public static class DogPlayCheck
         Console("enemy.clear");
         Scope.Resolve<WorldClock>().JumpTo(10f);
         Robot bolt = Object.FindObjectsByType<Robot>().First(r => r.name == "Robot_Shop");
+        // Told to stay in the yard (home life), not wherever the last probe left it.
+        dog.Legs.Warp(Ground(Yard(0f, 0f)));
         Scope.Resolve<DogManager>().Order(dog, DogOrder.Stay);
         await Seconds(7f, null);
         dog.Legs.Warp(Ground(bolt.transform.position + bolt.transform.forward * 2.5f));
@@ -983,6 +1004,335 @@ public static class DogPlayCheck
         Player.IgnoredByEnemies = false;
         bool ok = !everInHouse && pose == DogPose.Stand && (goblin == null || (raiderIn ? fought : facing < 50f));
         return $"{Pass(ok)} raid night: in its house {inHouse} (ever {everInHouse}), pose {pose}, raider in the yard {raiderIn} (fought {fought}), facing it within {facing:0} deg; {Line(dog)}{timeline}";
+    }
+
+    // ---- Polish: turning on the spot, rain, welcome home, bedtime ----
+
+    // A raid at home: a raider appears outside the back fence behind it (it only watches those) and it turns on the spot
+    // to face it; its legs step round (the animator's Speed comes up while it turns).
+    public static async Task<string> TurnInPlace()
+    {
+        Dog dog = Dog;
+        Console("enemy.clear");
+        Scope.Resolve<WorldClock>().JumpTo(10f);
+        DogManager manager = Scope.Resolve<DogManager>();
+        Player.IgnoredByEnemies = true;
+        manager.Order(dog, DogOrder.Stay);
+        dog.State.SetStance(DogStance.Active);
+        PlacePlayer(Ground(Yard(-14f, 10f)), Ground(Yard(0f, 10f)));
+        dog.Legs.Warp(Ground(Yard(0f, -11f)));
+        Scope.Resolve<IPublisher<RaidStarted>>().Publish(new RaidStarted(1));
+        Console("enemy.spawn goblin 1");
+        await Seconds(0.5f, null);
+        var goblin = Goblins().FirstOrDefault();
+        if (goblin == null)
+            return "FAIL turn in place: no goblin";
+        goblin.Mover.Teleport(Ground(Yard(0f, -45f)));
+        // Past the sad reaction to "Stay" (6 s), facing into the yard.
+        Vector3 inward = Ground(Yard(0f, 0f));
+        await Seconds(8f, () => dog.Legs.Face(inward));
+        var animator = dog.GetComponentInChildren<Animator>();
+        float startYaw = dog.transform.eulerAngles.y;
+        goblin.Mover.Teleport(Ground(Yard(0f, -18f)));
+        float maxSpeed = 0f, turned = 0f, moved = 0f;
+        Vector3 from = dog.transform.position;
+        var trace = new System.Text.StringBuilder();
+        float nextMark = 0f;
+        await Seconds(2.5f, () =>
+        {
+            maxSpeed = Mathf.Max(maxSpeed, animator.GetFloat("Speed"));
+            turned = Mathf.Max(turned, Mathf.Abs(Mathf.DeltaAngle(startYaw, dog.transform.eulerAngles.y)));
+            moved = Mathf.Max(moved, Flat(dog.transform.position - from));
+            if (Time.time >= nextMark)
+            {
+                nextMark = Time.time + 0.5f;
+                manager.NearestFoe(dog, out Vector3 nf);
+                trace.Append($" [raid {dog.Roster.Raid} home {manager.AtHome(dog)} homelife {dog.InHomeLife} foes {manager.Foes.Count} target {manager.TargetId} yaw {dog.transform.eulerAngles.y:0} toFoe {Quaternion.LookRotation(Vector3.ProjectOnPlane(nf - dog.transform.position, Vector3.up)).eulerAngles.y:0} pose {dog.Pose}]");
+            }
+        });
+        Scope.Resolve<IPublisher<RaidEnded>>().Publish(new RaidEnded(1, RaidEndReason.Stopped));
+        Console("enemy.clear");
+        Player.IgnoredByEnemies = false;
+        bool ok = turned > 90f && moved < 1f && maxSpeed > 0.25f;
+        return $"{Pass(ok)} turn in place: turned {turned:0} deg, moved {moved:0.0} m, animator speed up to {maxSpeed:0.00}; {Line(dog)}{trace}";
+    }
+
+    // Following in heavy rain long enough to be soaked, then the rain stops: it shakes itself dry (never while still in it).
+    public static async Task<string> RainShake()
+    {
+        Dog dog = Dog;
+        Console("enemy.clear");
+        Scope.Resolve<WorldClock>().JumpTo(10f);
+        var weather = Scope.Resolve<MB13.Aipocalypse.Core.EnvironmentSystem.WeatherService>();
+        DogManager manager = Scope.Resolve<DogManager>();
+        manager.Order(dog, DogOrder.Follow);
+        PlacePlayer(Ground(Yard(-8f, 4f)), Ground(Yard(0f, 4f)));
+        dog.Legs.Warp(Ground(Yard(-6f, 4f)));
+        var animator = dog.GetComponentInChildren<Animator>();
+        bool shookInRain = false, shook = false;
+        var trace = new System.Text.StringBuilder();
+        try
+        {
+            // Held (the console's set), so the weather rules don't swap it back.
+            Console("weather.set HeavyRain Gale 0");
+            var rainedOn = typeof(DogManager).GetField("_rainedOn", Private);
+            var wetnessField = typeof(DogManager).GetField("_wetness", Private);
+            var wetField = typeof(DogWetness).GetField("_wet", Private);
+            float rainMark = 0f;
+            await Seconds(24f, () =>
+            {
+                shookInRain |= animator.GetCurrentAnimatorStateInfo(0).IsName("Act ShakeWater");
+                if (Time.time >= rainMark)
+                {
+                    rainMark = Time.time + 3f;
+                    trace.Append($" <rain {weather.Mix.Rain:0.00} sky {weather.Sky} on {rainedOn.GetValue(manager)} wet {wetField.GetValue(wetnessField.GetValue(manager))} at {dog.transform.position:F1}>");
+                }
+            });
+            Console("weather.set Clear Calm 0");
+            float nextMark = 0f;
+            await Seconds(12f, () =>
+            {
+                shook |= animator.GetCurrentAnimatorStateInfo(0).IsName("Act ShakeWater");
+                if (Time.time >= nextMark)
+                {
+                    nextMark = Time.time + 1f;
+                    trace.Append($" [pending {dog.ShakePending} pose {dog.Pose} standing {dog.Standing} v {dog.Legs.Velocity.magnitude:0.0} homelife {dog.InHomeLife} hurt {manager.PlayerHurt} rain {weather.Mix.Rain:0.00}]");
+                }
+            });
+        }
+        finally
+        {
+            Console("weather.auto");
+        }
+        return $"{Pass(shook && !shookInRain)} rain shake: shook in the rain {shookInRain}, shook once it stopped {shook}; {Line(dog)}{(shook && !shookInRain ? "" : trace.ToString())}";
+    }
+
+    // Behavior Designer may call OnEnd on a task that isn't running (a later abort's interrupted pass): it must change nothing.
+    public static string SpuriousEnd()
+    {
+        Dog dog = Dog;
+        var sb = new StringBuilder();
+        bool ok = true;
+        FieldInfo sniffing = typeof(Dog).GetField("_sniffing", Private);
+        float speed = dog.SpeedOverride;
+        bool homeLife = dog.InHomeLife, escaping = dog.Escaping, sniff = (bool)sniffing.GetValue(dog);
+        void Check(Type type, Action set, Func<bool> intact, string what)
+        {
+            object task = Activator.CreateInstance(type);
+            type.GetField("_dog", Private).SetValue(task, dog);
+            set();
+            type.GetMethod("OnEnd").Invoke(task, null);
+            bool kept = intact();
+            ok &= kept;
+            sb.Append($"{type.Name} {(kept ? "kept" : "changed")} {what}; ");
+        }
+        try
+        {
+            Check(typeof(DogHomeLife), () => dog.InHomeLife = true, () => dog.InHomeLife, "home life");
+            Check(typeof(DogSleepInHouse), () => dog.SpeedOverride = 2f, () => Mathf.Approximately(dog.SpeedOverride, 2f), "speed");
+            Check(typeof(DogSkirmish), () => dog.Escaping = true, () => dog.Escaping, "escaping");
+            Check(typeof(DogStayHere), () => sniffing.SetValue(dog, true), () => (bool)sniffing.GetValue(dog), "sniffing");
+            Check(typeof(DogFollowPlayer), () => sniffing.SetValue(dog, true), () => (bool)sniffing.GetValue(dog), "sniffing");
+            Check(typeof(DogWelcome), () => { }, () => true, "-");
+        }
+        finally
+        {
+            dog.SpeedOverride = speed;
+            dog.InHomeLife = homeLife;
+            dog.Escaping = escaping;
+            dog.SetSniffing(sniff);
+        }
+        return $"{Pass(ok)} spurious OnEnd: {sb}";
+    }
+
+    // A quiet night at home with the howl certain: out of its house to the door, a howl, back in asleep.
+    public static async Task<string> NightHowl()
+    {
+        Dog dog = Dog;
+        var clock = Scope.Resolve<WorldClock>();
+        DogRoster roster = Scope.Resolve<DogRoster>();
+        Console("enemy.clear");
+        Scope.Resolve<DogManager>().Order(dog, DogOrder.Stay);
+        PlacePlayer(Ground(Yard(-14f, -10f)), roster.House.transform.position);
+        float chance = dog.Settings.HowlChance;
+        dog.Settings.HowlChance = 1f;
+        typeof(DogState).GetField("_howledDay", Private).SetValue(dog.State, -1);
+        bool howled = false, outside = false;
+        int howledNight = -1;
+        try
+        {
+            clock.JumpTo(22.5f);
+            await Seconds(35f, () =>
+            {
+                if (roster.Raid)
+                    Console("raid.stop");
+                AnimatorStateInfo info = dog.GetComponentInChildren<Animator>().GetCurrentAnimatorStateInfo(0);
+                if (info.IsName("Act Howl"))
+                {
+                    howled = true;
+                    outside |= !dog.InHouse;
+                }
+            });
+            howledNight = dog.State.HowledNight;
+        }
+        finally
+        {
+            dog.Settings.HowlChance = chance;
+        }
+        bool backIn = dog.InHouse && dog.Pose == DogPose.Sleep;
+        bool ok = howled && outside && backIn && howledNight == clock.Now.Day;
+        return $"{Pass(ok)} night howl: howled {howled} (outside {outside}), back in asleep {backIn}, night used {howledNight} (day {clock.Now.Day}); {Line(dog)}";
+    }
+
+    // Herding survives a save and load: it keeps herding, with the time it had left.
+    public static async Task<string> HerdAfterLoad()
+    {
+        Dog dog = Dog;
+        Console("enemy.clear");
+        var herd = Scope.Resolve<MB13.Aipocalypse.Core.AnimalSystem.AnimalHerd>();
+        Scope.Resolve<WorldClock>().JumpTo(10f);
+        if (!herd.Orders.Released)
+            herd.Orders.Bell();
+        for (int i = 0; i < 30 && herd.Animals.Count == herd.CountHome(); i++)
+            await Seconds(1f, null);
+        if (herd.Animals.Count == herd.CountHome())
+            return "SKIP herd after load: no animal out";
+        DogManager manager = Scope.Resolve<DogManager>();
+        manager.BringHerdHome(dog);
+        await Seconds(3f, null);
+        DogSaveSection section = Scope.Resolve<SaveRegistry>().Sections.OfType<DogSaveSection>().First();
+        var data = Scope.Resolve<SaveService>().Create();
+        section.Capture(data);
+        data.TryGet(DogSaveSection.Key, out DogSaveSection.DogSave saved);
+        section.Restore(data);
+        await Seconds(3f, null);
+        bool ok = saved.HerdFor > 2f && saved.HerdFor < 10f && dog.State.Order == DogOrder.Herding;
+        return $"{Pass(ok)} herd after load: saved herding for {saved.HerdFor:0.0} s, order after the load {dog.State.Order}; {Line(dog)}";
+    }
+
+    // Told to stay at home, the player away a while, then back in the yard: it runs over happy, circles, then sits by them.
+    public static async Task<string> WelcomeHome()
+    {
+        Dog dog = Dog;
+        Console("enemy.clear");
+        Scope.Resolve<WorldClock>().JumpTo(10f);
+        DogManager manager = Scope.Resolve<DogManager>();
+        var after = typeof(DogSettings).GetField("WelcomeAfter");
+        object was = after?.GetValue(dog.Settings);
+        try
+        {
+            after?.SetValue(dog.Settings, 3f);
+            var stateType0 = typeof(DogState);
+            string atStart = $"welcoming {dog.State.Welcoming(Time.time)} away {stateType0.GetField("_awaySince", Private).GetValue(dog.State)} now {Time.time:0.0} player {Player.transform.position:F0} inYard {dog.Roster.InYard(Player.transform.position)}";
+            PlacePlayer(Ground(Yard(-6f, 0f)), Ground(Yard(0f, 0f)));
+            dog.Legs.Warp(Ground(Yard(6f, 0f)));
+            manager.Order(dog, DogOrder.Stay);
+            await Seconds(7f, null);
+            string afterStay = $"welcoming {dog.State.Welcoming(Time.time)} away {stateType0.GetField("_awaySince", Private).GetValue(dog.State)} now {Time.time:0.0}";
+            PlacePlayer(Ground(Yard(-40f, 0f)), Ground(Yard(-60f, 0f)));
+            await Seconds(5f, null);
+            var stateType = typeof(DogState);
+            string Fields() => $"away {stateType.GetField("_awaySince", Private).GetValue(dog.State)} until {stateType.GetField("_welcomeUntil", Private).GetValue(dog.State)} now {Time.time:0.0} home {manager.AtHome(dog)} raid {dog.Roster.Raid} player {dog.Roster.HasPlayer} order {dog.State.Order} pos {dog.transform.position:F0} stateWA {((DogSettings)stateType.GetField("_settings", Private).GetValue(dog.State)).WelcomeAfter} dogWA {dog.Settings.WelcomeAfter} same {ReferenceEquals(stateType.GetField("_settings", Private).GetValue(dog.State), dog.Settings)}";
+            string beforeBack = Fields();
+            Vector3 back = Ground(Yard(-10f, 4f));
+            PlacePlayer(back, Ground(Yard(0f, 4f)));
+            int frames = 0, welcomingFrames = 0;
+            string firstTrue = "";
+            await Seconds(0.5f, () =>
+            {
+                frames++;
+                if (dog.State.Welcoming(Time.time))
+                {
+                    welcomingFrames++;
+                    if (firstTrue == "")
+                        firstTrue = $"frame {frames} homelife {dog.InHomeLife}";
+                }
+            });
+            string afterBack = Fields() + $" welcoming {welcomingFrames}/{frames} first {firstTrue} playerInYard {dog.Roster.InYard(dog.Roster.PlayerPosition)} rosterPlayer {dog.Roster.PlayerPosition:F0}";
+            float closest = float.MaxValue;
+            bool sat = false;
+            string closeAt = "";
+            float welcomeFrom = Time.time;
+            float nextPolar = 0f;
+            var polar = new System.Text.StringBuilder();
+            await Seconds(22f, () =>
+            {
+                if (!dog.State.Welcoming(Time.time))
+                    return;
+                float d = Flat(dog.transform.position - Player.transform.position);
+                if (Time.time >= nextPolar)
+                {
+                    nextPolar = Time.time + 0.4f;
+                    Vector3 rel = dog.transform.position - Player.transform.position;
+                    polar.Append($" [{Time.time - welcomeFrom:0.0}s {d:0.0}m {Mathf.Atan2(rel.x, rel.z) * Mathf.Rad2Deg:0}deg v{dog.Legs.Velocity.magnitude:0.0} {dog.Pose}]");
+                }
+                if (d < closest)
+                    closeAt = $"{d:0.0} m at {Time.time - welcomeFrom:0.0} s, pose {dog.Pose}, v {dog.Legs.Velocity.magnitude:0.0}";
+                closest = Mathf.Min(closest, d);
+                sat |= closest < 2.6f && dog.Pose == DogPose.Sit;
+            });
+            bool ok = closest < 2.6f && closest > 0.6f && sat && dog.State.Order == DogOrder.Stay;
+            return $"{Pass(ok)} welcome home: came to {closest:0.0} m ({closeAt}), sat by the player {sat}, order {dog.State.Order}; {Line(dog)}";
+        }
+        finally
+        {
+            if (after != null)
+                after.SetValue(dog.Settings, was);
+        }
+    }
+
+    // Following into the house; the player goes to bed: it lies down beside the bed while they fall asleep, and wakes at
+    // its dog house.
+    public static async Task<string> Bedtime()
+    {
+        Dog dog = Dog;
+        Console("enemy.clear");
+        Scope.Resolve<WorldClock>().JumpTo(8f);
+        DogManager manager = Scope.Resolve<DogManager>();
+        var sleep = Scope.Resolve<MB13.Aipocalypse.Core.SleepSystem.SleepService>();
+        var bed = Object.FindAnyObjectByType<MB13.Aipocalypse.Core.SleepSystem.Bed>();
+        if (bed == null)
+            return "FAIL bedtime: no bed";
+        manager.Order(dog, DogOrder.Follow);
+        Vector3 anchor = bed.Anchor.position;
+        PlacePlayer(anchor + bed.Anchor.right * 1.2f, anchor);
+        // Following, it's indoors with the player (the floor: Ground() would find the terrain under the house).
+        dog.Legs.Warp(AstarPath.active.GetNearest(anchor + bed.Anchor.right * 3.5f, NearestNodeConstraint.Walkable).position);
+        await Seconds(1f, null);
+        if (!sleep.Begin(bed, Player))
+            return "FAIL bedtime: the bed refused";
+        // A few seconds picking the wake-up time, as a player would.
+        await Seconds(4f, null);
+        sleep.Shift(2);
+        sleep.Confirm();
+        float closest = float.MaxValue;
+        bool lay = false;
+        bool homeAtWake = false, woke = false;
+        var trace = new System.Text.StringBuilder();
+        float nextMark = 0f;
+        var fe = dog.GetComponent<Pathfinding.FollowerEntity>();
+        var anim = dog.GetComponentInChildren<Animator>();
+        await Seconds(25f, () =>
+        {
+            if (sleep.Stage == MB13.Aipocalypse.Core.SleepSystem.SleepStage.None)
+                return;
+            if (!woke && sleep.Stage == MB13.Aipocalypse.Core.SleepSystem.SleepStage.Waking)
+            {
+                woke = true;
+                homeAtWake = dog.Roster.House != null && Flat(dog.transform.position - dog.Roster.House.transform.position) < 4f;
+            }
+            if (Time.time >= nextMark)
+            {
+                nextMark = Time.time + 1f;
+                bool has = manager.TryGetBedSpot(out Vector3 sp, out _, out _);
+                float t = Time.time;
+                trace.Append($" [{sleep.Stage} spot {has} {sp:F1} dog {dog.transform.position:F1} pose {dog.Pose} v {dog.Legs.Velocity.magnitude:0.0} | down {dog.State.Down} scr {dog.Scrambling}/{manager.WantsScramble} called {dog.State.Called(t)} pet {dog.State.Petting(t)} sad {dog.State.Sad(t)} plan {dog.Plan.Mode} target {manager.TargetId} warn {manager.WarnId}/{manager.Warning} hurt {manager.PlayerHurt} welcome {dog.State.Welcoming(t)} hasPlayer {dog.Roster.HasPlayer} homelife {dog.InHomeLife} dest {fe.destination:F1} stopped {fe.isStopped} reached {fe.reachedDestination} standing {dog.Standing} hasPath {fe.hasPath} pending {fe.pathPending} remaining {fe.remainingDistance:0.0} end {fe.endOfPath:F1} tags {fe.pathfindingSettings.traversableTags} clip {(anim.GetCurrentAnimatorClipInfo(0).Length > 0 ? anim.GetCurrentAnimatorClipInfo(0)[0].clip.name : "-")} trans {anim.IsInTransition(0)}]");
+            }
+            float d = Flat(dog.transform.position - anchor);
+            closest = Mathf.Min(closest, d);
+            lay |= d < 2.2f && (dog.Pose == DogPose.Lie || dog.Pose == DogPose.Sleep);
+        });
+        return $"{Pass(lay && homeAtWake)} bedtime: closest to the bed {closest:0.0} m, lay down by it {lay}, at its dog house on waking {homeAtWake}; {Line(dog)}{(lay && homeAtWake ? "" : trace.ToString())}";
     }
 
     // Renders the player camera to a PNG (outside Assets).

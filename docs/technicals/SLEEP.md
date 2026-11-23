@@ -8,7 +8,7 @@ Sleeping in a bed to skip time. Code in `_Core/SleepSystem/` (namespace `MB13.Ai
 2. The wake-up clock opens (the game keeps running): **-1 H / +1 H** pick a whole clock hour, **Sleep** confirms, **Cancel** or Esc closes it. It offers the next `DefaultWakeHour` (07:00) when that's in reach, else the latest hour.
 3. The view gets into the bed and lies down, the eyes close, the hours run past on a black screen with the clock, the eyes open, the view sits up and stands beside the bed.
 
-Nothing else happens yet: no healing, no sanity, no morning report.
+A following dog lies down beside the bed (DOGS.md). Nothing else happens yet: no healing, no sanity, no morning report.
 
 ## Rules
 

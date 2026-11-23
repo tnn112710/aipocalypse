@@ -6,6 +6,8 @@ using MB13.Aipocalypse.Core.AnimalSystem;
 using MB13.Aipocalypse.Core.Combat;
 using MB13.Aipocalypse.Core.RobotSystem;
 using MB13.Aipocalypse.Core.EnemySystem;
+using MB13.Aipocalypse.Core.EnvironmentSystem;
+using MB13.Aipocalypse.Core.SleepSystem;
 using MB13.Aipocalypse.Core.TimeSystem;
 using MB13.Aipocalypse.Core.Events;
 using MB13.Aipocalypse.Core.Interaction;
@@ -58,9 +60,17 @@ namespace MB13.Aipocalypse.Core.DogSystem
         float _nextWarn;
         bool _wasDown;
         readonly SicOrder _sic;
+        readonly DogWetness _wetness;
+        readonly WeatherService _weather;
+        readonly SleepService _sleep;
+        float _nextRainCheck;
+        bool _rainedOn;
+        bool _bedSpotFound;
+        Vector3 _bedSpot;
         readonly AnimalHerd _herd;
         readonly RobotRoster _robots;
         float _nextRaidBark;
+        bool _inBurst;
         int _raidBarksLeft;
         float _nextBurstBark;
         readonly IDisposable _subscriptions;
@@ -71,6 +81,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
         bool _hasPath = true;
         float _nextPathCheck;
         float _shakeUntil = float.NegativeInfinity;
+        float _nextShakeTry;
         float _fencedFor;
 
         public DogManager(DogRoster roster, DogSettings settings, WorldClock clock, PlayerRegistry players, AudioService audio,
@@ -85,6 +96,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
             _wheel = wheel;
             _voice = new DogVoice(settings);
             _sic = new SicOrder(this);
+            _wetness = new DogWetness(settings);
             Stats = new DogStatSheet(settings.Stats, settings.Classes != null ? settings.Classes.Length : 1);
             _random = resolver.TryResolve(out RandomService random) ? random.Stream("Dog") : new RandomStream(7);
             resolver.TryResolve(out _enemies);
@@ -93,6 +105,8 @@ namespace MB13.Aipocalypse.Core.DogSystem
             resolver.TryResolve(out _damage);
             resolver.TryResolve(out _time);
             resolver.TryResolve(out _water);
+            resolver.TryResolve(out _weather);
+            resolver.TryResolve(out _sleep);
             _subscriptions = DisposableBag.Create(
                 revived.Subscribe(_ => SendHome(DogOrder.Follow)),
                 skipEnded.Subscribe(_ => AfterSleep()),
@@ -155,6 +169,9 @@ namespace MB13.Aipocalypse.Core.DogSystem
             Fenced(dog, dt);
             RaidBarks(dog, now);
             GreetRobots(dog, now);
+            if (_roster.HasPlayer)
+                dog.State.TrackPlayer(_roster.InYard(_roster.PlayerPosition), dog.State.Order == DogOrder.Stay && AtHome(dog) && !_roster.Raid, now);
+            Rain(dog, now, dt);
             Swim(dog, now);
             LookedAt(dog, player, now, dt);
             dog.Advance(dt);
@@ -265,13 +282,86 @@ namespace MB13.Aipocalypse.Core.DogSystem
             }
             if (!dog.ShakePending)
                 return;
-            if (now >= _shakeUntil)
+            // Done only once the act really plays: a settle (sit, lie) in the same moment can swallow the trigger.
+            if (dog.Shaking || now >= _shakeUntil)
                 dog.ShakePending = false;
-            else if (dog.Standing && dog.Pose == DogPose.Stand && Flat(dog.Legs.Velocity) < 0.5f)
+            else if (now >= _nextShakeTry && dog.Standing && dog.Pose == DogPose.Stand && Flat(dog.Legs.Velocity) < 0.5f)
             {
-                dog.ShakePending = false;
+                _nextShakeTry = now + 0.6f;
                 dog.Act(DogAct.ShakeWater);
             }
+        }
+
+        // Rain soaks it unless something is over it (indoors, its dog house, a roof, a canopy); out of it after a soaking it
+        // shakes itself dry (the same shake as after a swim).
+        void Rain(Dog dog, float now, float dt)
+        {
+            if (_weather == null || dog.Swimming)
+                return;
+            if (now >= _nextRainCheck)
+            {
+                _nextRainCheck = now + 0.5f;
+                _rainedOn = _weather.Mix.Rain > _settings.RainWetsAbove && !Sheltered(dog);
+            }
+            if (!_wetness.Tick(dt, _rainedOn))
+                return;
+            dog.ShakePending = true;
+            _shakeUntil = now + ShakeWindow;
+        }
+
+        static bool Sheltered(Dog dog)
+        {
+            Vector3 at = dog.transform.position;
+            return dog.InHouse || Indoors(at)
+                || Physics.Raycast(at + Vector3.up * 0.8f, Vector3.up, 30f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+        }
+
+        // The player at the bed (from the wake-up clock until the hours have passed; then the dog is sent home): a floor spot
+        // beside it for a following dog, found once per sleep; `lyingDown` once they lie down.
+        public bool TryGetBedSpot(out Vector3 spot, out Vector3 bed, out bool lyingDown)
+        {
+            spot = bed = default;
+            lyingDown = false;
+            if (_sleep == null || _sleep.Bed == null || _sleep.Stage is SleepStage.None or SleepStage.Waking)
+            {
+                _bedSpotFound = false;
+                return false;
+            }
+            lyingDown = _sleep.Stage != SleepStage.Choosing;
+            Transform anchor = _sleep.Bed.Anchor;
+            bed = anchor.position;
+            if (!_bedSpotFound)
+            {
+                _bedSpotFound = true;
+                _bedSpot = BedSide(anchor);
+            }
+            spot = _bedSpot;
+            return true;
+        }
+
+        // The walkable floor point closest to the bed among its sides (one is against a wall).
+        static Vector3 BedSide(Transform anchor)
+        {
+            AstarPath navigation = AstarPath.active;
+            Vector3 best = anchor.position;
+            if (navigation == null)
+                return best;
+            float bestGap = float.MaxValue;
+            Vector3[] sides = { anchor.right, -anchor.right, anchor.forward, -anchor.forward };
+            foreach (Vector3 side in sides)
+            {
+                Vector3 wanted = anchor.position + side * 1.2f;
+                NNInfo nearest = navigation.GetNearest(wanted, NearestNodeConstraint.Walkable);
+                if (nearest.node == null)
+                    continue;
+                float gap = Vector3.Distance(nearest.position, wanted);
+                if (gap < bestGap)
+                {
+                    bestGap = gap;
+                    best = nearest.position;
+                }
+            }
+            return best;
         }
 
         // Looked at for LookTime within LookRange: a head tilt (at most every HeadTiltGap), when it's standing about.
@@ -287,7 +377,8 @@ namespace MB13.Aipocalypse.Core.DogSystem
             bool looking = toDog.sqrMagnitude <= _settings.LookRange * _settings.LookRange
                 && (ReferenceEquals(player.Interactor?.Focus, dog) || Vector3.Angle(player.View.forward, toDog) < LookAngle);
             _lookedFor = looking ? _lookedFor + dt : 0f;
-            if (_lookedFor < _settings.LookTime || !dog.Standing || Flat(dog.Legs.Velocity) > 0.3f || !dog.State.TryHeadTilt(now))
+            if (_lookedFor < _settings.LookTime || !dog.Standing || dog.Pose != DogPose.Stand || Flat(dog.Legs.Velocity) > 0.3f
+                || !dog.State.TryHeadTilt(now))
                 return;
             dog.Legs.Face(_roster.PlayerPosition);
             dog.Act(DogAct.HeadTilt);
@@ -365,12 +456,8 @@ namespace MB13.Aipocalypse.Core.DogSystem
         // A non-negative id per enemy (−1 means none): its object hash with the sign bit cleared.
         static int IdOf(EnemyBrain brain) => System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(brain) & int.MaxValue;
 
-        int ClassOf(EnemyBrain brain)
-        {
-            StaggerProfile profile = brain.Definition.Reaction != null ? brain.Definition.Reaction.Stagger : null;
-            int index = profile != null && _settings.Classes != null ? System.Array.IndexOf(_settings.Classes, profile) : -1;
-            return index < 0 ? 0 : index;
-        }
+        int ClassOf(EnemyBrain brain) =>
+            DogCombat.ClassOf(_settings.Classes, brain.Definition.Reaction != null ? brain.Definition.Reaction.Stagger : null);
 
         // A warning under way (its target is cleared at once by the gap): the warn branch holds until it's done.
         public bool Warning => Time.time < _warningUntil;
@@ -436,7 +523,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
             float until = now + Stats.Get(DogStat.RetaliationWindow);
             foreach (EnemyBrain brain in _brains.Values)
             {
-                if (brain == null || brain.IsDead || Flat(brain.transform.position - dogAt) > _settings.RetaliationRadius + 0.5f)
+                if (brain == null || brain.IsDead || !DogCombat.Provokes(dogAt, brain.transform.position, _settings.RetaliationRadius))
                     continue;
                 float reach = brain.Definition.Ranged != null ? brain.Definition.Ranged.MaxRange
                     : brain.Definition.Melee != null ? brain.Definition.Melee.AttackRange + _settings.MeleeReachSlack : 2f;
@@ -449,7 +536,6 @@ namespace MB13.Aipocalypse.Core.DogSystem
         public AnimalHerd Herd => _herd;
         public int AnimalsOut => _herd == null ? 0 : _herd.Animals.Count - _herd.CountHome();
         public bool AtHome(Dog dog) => _roster.InYard(dog.transform.position);
-        public float HerdStartedAt { get; set; }
 
         // Raiders near a Passive dog at home: it keeps away from them (never bites).
         public bool RaiderClose(Dog dog, out Vector3 raider)
@@ -495,6 +581,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
             if (!_roster.Raid || !AtHome(dog) || dog.State.Down || _foes.Count == 0)
             {
                 _raidBarksLeft = 0;
+                _inBurst = false;
                 return;
             }
             if (_raidBarksLeft == 0 && now >= _nextRaidBark)
@@ -505,8 +592,9 @@ namespace MB13.Aipocalypse.Core.DogSystem
             if (_raidBarksLeft > 0 && now >= _nextBurstBark)
             {
                 _nextBurstBark = now + 1.3f;
-                _raidBarksLeft--;
-                if (TryPlay(dog, DogSound.Bark) && dog.Standing && Flat(dog.Legs.Velocity) < 0.5f)
+                bool first = !_inBurst;
+                _inBurst = --_raidBarksLeft > 0;
+                if (TryPlay(dog, DogSound.Bark, burst: !first) && dog.Standing && Flat(dog.Legs.Velocity) < 0.5f)
                     dog.Act(DogAct.Bark);
             }
         }
@@ -570,8 +658,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
                 return;
             _herd.Orders.Call();
             dog.State.EndCall();
-            dog.State.SetOrder(DogOrder.Herding, dog.transform.position);
-            HerdStartedAt = Time.time;
+            dog.State.StartHerding(dog.transform.position, Time.time);
             TryPlay(dog, DogSound.Bark);
         }
 
@@ -648,9 +735,9 @@ namespace MB13.Aipocalypse.Core.DogSystem
             return true;
         }
 
-        public bool TryPlay(Dog dog, DogSound sound)
+        public bool TryPlay(Dog dog, DogSound sound, bool burst = false)
         {
-            if (!_voice.TryPlay(sound, Time.time))
+            if (!_voice.TryPlay(sound, Time.time, burst))
                 return false;
             if (_audio != null && _settings.Sounds.TryGetValue(sound, out SoundID id) && id.IsValid())
                 _audio.PlayAt(id, dog.transform.position + Vector3.up * 0.6f);

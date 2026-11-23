@@ -4,7 +4,8 @@ using UnityEngine;
 
 namespace MB13.Aipocalypse.Core.DogSystem
 {
-    // Saves the dog: its order (and where it was told to stay), where it stands, whether it's in the yard.
+    // Saves the dog: its order (and where it was told to stay, how long it had been herding), where it stands, its fight
+    // state, and the night it last rolled a howl.
     public sealed class DogSaveSection : SaveSection
     {
         public const string Key = "dog";
@@ -26,8 +27,9 @@ namespace MB13.Aipocalypse.Core.DogSystem
                 Order = dog.State.Order,
                 Position = transform.position,
                 Yaw = transform.eulerAngles.y,
-                InYard = _roster.InYard(transform.position),
                 StayPoint = dog.State.StayPoint,
+                HerdFor = dog.State.HerdingFor(Time.time),
+                HowledNight = dog.State.HowledNight,
                 Stance = dog.State.Stance,
                 Toughness = dog.State.Toughness,
                 Down = dog.State.Down,
@@ -40,7 +42,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
             Dog dog = _roster.Dog;
             if (dog == null || dog.State == null || !save.TryGet(Key, out DogSave saved) || saved == null)
                 return;
-            dog.Restore(saved.Position, saved.Yaw, saved.Order, saved.StayPoint);
+            dog.Restore(saved.Position, saved.Yaw, saved.Order, saved.StayPoint, saved.HerdFor, saved.HowledNight);
             dog.State.RestoreFight(saved.Stance, saved.Toughness, saved.Down, saved.LimpLeft, Time.time);
         }
 
@@ -50,8 +52,9 @@ namespace MB13.Aipocalypse.Core.DogSystem
             public DogOrder Order;
             public Vector3 Position;
             public float Yaw;
-            public bool InYard;
             public Vector3 StayPoint;
+            public float HerdFor;
+            public int HowledNight = -1;
             public DogStance Stance;
             public float Toughness = 100f;
             public bool Down;

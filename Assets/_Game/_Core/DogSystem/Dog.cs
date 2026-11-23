@@ -35,6 +35,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
         static readonly int MoveState = Animator.StringToHash("Move");
         static readonly int SniffState = Animator.StringToHash("Sniff");
         static readonly int SwimState = Animator.StringToHash("Swim");
+        static readonly int ShakeState = Animator.StringToHash("Act ShakeWater");
         const float SpeedDamping = 0.12f;
         const float NameTagHeight = 1.05f;
         const float LiftSpeed = 1.5f;
@@ -60,6 +61,19 @@ namespace MB13.Aipocalypse.Core.DogSystem
         public bool Swimming { get; private set; }
         // Out of deep water: it shakes itself dry at the next chance (stopped, on its feet).
         public bool ShakePending { get; set; }
+
+        // The shake-dry act is playing (or blending in).
+        public bool Shaking
+        {
+            get
+            {
+                if (_animator == null || !_animator.isActiveAndEnabled)
+                    return false;
+                return _animator.GetCurrentAnimatorStateInfo(0).shortNameHash == ShakeState
+                    || (_animator.IsInTransition(0) && _animator.GetNextAnimatorStateInfo(0).shortNameHash == ShakeState);
+            }
+        }
+        float _lastYaw;
         // Metres the model floats above the agent (the agent walks the stream bed).
         public float TargetLift { get; set; }
         public bool Active => _active;
@@ -155,7 +169,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
         }
 
         // From a save: where it stood, its order; on its feet, nothing pending.
-        public void Restore(Vector3 position, float yaw, DogOrder order, Vector3 stayPoint)
+        public void Restore(Vector3 position, float yaw, DogOrder order, Vector3 stayPoint, float herdFor, int howledNight)
         {
             SpeedOverride = -1f;
             ResetBody();
@@ -165,7 +179,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
                 transform.position = position;
             transform.rotation = Quaternion.Euler(0f, yaw, 0f);
             State.Reset();
-            State.Restore(order, stayPoint);
+            State.Restore(order, stayPoint, herdFor, howledNight, Time.time);
             SetPose(DogPose.Stand);
             SetSniffing(false);
             Follow.Reset(Time.time);
@@ -177,7 +191,12 @@ namespace MB13.Aipocalypse.Core.DogSystem
             if (!_active || _animator == null)
                 return;
             Vector3 velocity = Legs.Velocity;
-            float speed = SpeedOverride >= 0f ? SpeedOverride : new Vector2(velocity.x, velocity.z).magnitude;
+            float yaw = transform.eulerAngles.y;
+            float yawRate = dt > 0f ? Mathf.DeltaAngle(_lastYaw, yaw) / dt : 0f;
+            _lastYaw = yaw;
+            float speed = SpeedOverride >= 0f
+                ? SpeedOverride
+                : DogTurn.AnimatorSpeed(new Vector2(velocity.x, velocity.z).magnitude, yawRate, Pose == DogPose.Stand && !Swimming && !InHouse, Settings);
             _animator.SetFloat(SpeedParameter, speed, SpeedDamping, dt);
             _lift = Mathf.MoveTowards(_lift, Swimming ? TargetLift : 0f, LiftSpeed * dt);
             if (_model == null)
@@ -207,8 +226,11 @@ namespace MB13.Aipocalypse.Core.DogSystem
         public void SetPose(DogPose pose)
         {
             Pose = pose;
-            if (_animator != null)
-                _animator.SetInteger(PoseParameter, (int)pose);
+            if (_animator == null)
+                return;
+            _animator.SetInteger(PoseParameter, (int)pose);
+            if (pose != DogPose.Stand)
+                _animator.ResetTrigger(ActParameter);
         }
 
         public void SetSniffing(bool sniffing)
@@ -287,9 +309,11 @@ namespace MB13.Aipocalypse.Core.DogSystem
                 _animator.SetBool(PinParameter, pinning);
         }
 
+        // Acts only play on its feet: one asked for while it sits or lies would wait in the animator and go off seconds later,
+        // once it's up (a happy wag holding it back from following), so it's dropped.
         public void Act(DogAct act)
         {
-            if (_animator == null)
+            if (_animator == null || Pose != DogPose.Stand)
                 return;
             _animator.SetInteger(ActIndexParameter, (int)act);
             _animator.SetTrigger(ActParameter);

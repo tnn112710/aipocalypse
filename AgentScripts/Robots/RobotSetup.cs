@@ -312,6 +312,8 @@ public static class RobotSetup
         controller.AddParameter("Knock", AnimatorControllerParameterType.Trigger);
         controller.AddParameter("Down", AnimatorControllerParameterType.Bool);
         controller.AddParameter("Standby", AnimatorControllerParameterType.Bool);
+        // Never set by code: the lying states sample the fall at this normalized time (its last frame).
+        controller.AddParameter(new AnimatorControllerParameter { name = "LieTime", type = AnimatorControllerParameterType.Float, defaultFloat = 1f });
 
         AnimatorStateMachine machine = controller.layers[0].stateMachine;
         foreach (ChildAnimatorState child in machine.states.ToArray())
@@ -388,8 +390,10 @@ public static class RobotSetup
             enter.AddCondition(AnimatorConditionMode.Equals, i, "HitIndex");
             AnimatorState lie = machine.AddState("Lie_" + i, new Vector3(0f, 240f + i * 120f));
             lie.motion = Clip(falls[i, 0]);
-            lie.speed = 0f;
-            lie.cycleOffset = 0.99f;
+            // Held on the last frame by motion time: cycle offset (with speed 0) only works on looping clips, and the
+            // falls don't loop, so it showed the first, standing frame.
+            lie.timeParameterActive = true;
+            lie.timeParameter = "LieTime";
             Exit(fall.AddTransition(lie), 0.98f, 0.02f);
             AnimatorState rise = machine.AddState("Rise_" + i, new Vector3(0f, 280f + i * 120f));
             rise.motion = Clip(falls[i, 1]);

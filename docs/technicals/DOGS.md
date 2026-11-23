@@ -18,6 +18,10 @@ Loki, a Border Collie, lives at its dog house in the WorldMap yard and comes exp
    - **Settling** while the player stands still: sits after 3–6 s, lies after 15–25 s, yawns and naps after 60 s.
    - **Head tilt:** looked at within 10 m for 1 s, it tilts its head (at most once per 20 s).
 3. **Water:** in water deeper than 0.45 m (the streams; the spawn system's `IWaterLevel`) it swims, the model floating up so its back is at the surface; out again, it stops and shakes itself dry.
+   - **Rain:** 20 s in rain heavier than 0.15 (the weather's rain amount) with nothing over it soaks it. Out of it (indoors, its dog house, any roof or canopy over it, or the rain stopping), it shakes itself dry the same way, once. A shorter shower dries off by itself (`DogWetness`).
+   - **The shake** (after a swim or rain) waits up to 20 s for it to stand still, and counts as done only once the act plays: a sit or lie in the same moment would swallow the trigger.
+   - **Acts** (bark, happy, head tilt, howl…) only play on its feet: `Dog.Act` drops one asked for while it sits or lies, and settling cancels one still waiting (it would otherwise go off seconds later once it's up, e.g. a happy wag holding it back from following).
+   - **Turning on the spot:** the collie has no turn clips, so a turn faster than 50°/s while standing plays the walk at 0.6 m/s and its legs step round (`DogTurn`).
 4. **Jumping:**
    - **The fence:** cut off from a player within 25 m by the fence, it scrambles over by a crossing point: at once with no walkable way round, else after 2.5 s (a gap nearby gets used first).
      - The crossing points are the 53 `DogLinkInfo` markers in `Home Dog/Fence Links`, one per segment and the gate.
@@ -33,20 +37,22 @@ Loki, a Border Collie, lives at its dog house in the WorldMap yard and comes exp
    - **Told to stay:** it's a little sad for 6 s: a whine, it sits, then lies down watching the player go.
    - **In the yard,** Stay is home life: it strolls, sniff-walks and digs, trots over to its spots (by Bolt's garden, the house door, the gate, the herd's corner, the middle), sits or lies looking round, naps in its dog house doorway, and now and then does zoomies. It's never idle long.
    - **Outside the yard** it keeps within 4 m of the spot. At night, or when the player is over 150 m away, it walks home.
+   - **Welcome home:** staying at home, with the player out of the yard for 60 s or more, when they come back in it runs over (canter, to 1.4 m in front of them), happy with a bark, trots one lap round them (it stops short if the lap runs into a wall), then sits facing them for 2.5 s. At most 25 s; in a raid, never.
 7. **Night at home:** a yawn, then into its dog house to sleep with its head out until morning. Only the model goes in; the agent waits at the door, because the house is cut out of the navmesh.
 8. **The whistle (Q):**
    - **Aimed at Loki,** or a plain whistle with nothing callable under the aim or heard (the robots come first) within 60 m: it comes to heel and follows. The fallback shows no prompt; aiming at Loki shows "[Q] Call Loki".
    - **Spam:** 4 plain whistles in 5 s annoy it. It shakes its head and walks over grumbling, then ignores plain whistles for 6 s. A pet forgives it. Whistles in a fight never count (Phase 2).
 9. **Pet (hold E or the wheel):** it comes in front of the player, happy (a roll 1 in 4, or a head tilt), then sits.
 10. **Shot by the player:** a yelp and a flinch by side. No damage, no hit marker.
-11. **After death or a night's sleep:** it's back at its dog house, following.
-12. **Sounds** (`Data/Audio/Dogs.asset`, placeholders): bark (the collie's own), whine, yelp, pant, sniff, howl, growl, bite (a short snappy bark: the packs have no dog bite). `DogVoice` keeps them rare: one sound per 1.2 s; barks once per 6 s and at most 3 a minute; whines once per 8 s.
+11. **Bedtime:** following, when the player uses the bed it trots (canters from over 4 m) to the floor beside it and sits while they pick the wake-up time; when they lie down it lies down facing the bed and falls asleep.
+12. **After death or a night's sleep:** it's back at its dog house, following (it then comes to the player).
+13. **Sounds** (`Data/Audio/Dogs.asset`, placeholders): bark (the collie's own), whine, yelp, pant, sniff, howl, growl, bite (a short snappy bark: the packs have no dog bite). `DogVoice` keeps them rare: one sound per 1.2 s; barks once per 6 s (the rest of a raid's burst skips that gap) and at most 3 a minute; whines once per 8 s.
 
 ## Fighting (Phase 2)
 
 1. **Stats:** every fighting number is a `DogStat` read through `DogManager.Stats` (`DogStatSheet`).
    - The base values are in `Data/Dogs/DogStatBlock.asset`. A levelling system adds an `IDogUpgradeSource`; nothing else changes.
-   - Weight classes are `DogSettings.Classes` (the stagger profiles Light, Medium, Heavy, Boss). It starts able to bite Light only.
+   - Weight classes are `DogSettings.Classes` (the stagger profiles Light, Medium, Heavy, Boss). It starts able to bite Light only. An enemy whose stagger profile isn't in the list (or has none) counts as the heaviest (`DogCombat.ClassOf`), so a new kind is never bitten until it's given a class.
 2. **Early warning:** an enemy within 25 m that hasn't noticed the player, with no fight on: it gets up, faces it and growls (spatial), at most once per 30 s.
 3. **Who it fights:**
    - **Active** (the default): enemies aware of the player within 15 m of the player. Ranged first, then those attacking the player, then the nearest. It never bites an unaware one (no spoiled sneaks).
@@ -66,7 +72,7 @@ Loki, a Border Collie, lives at its dog house in the WorldMap yard and comes exp
    - **On a takedown:** the enemy is killed with the push pointing back at the dog, so it falls toward it, dragged down. The dog pins it for 1.5 s (the Pin bite loop), with a tiny hit-stop.
    - **Testing:** `dog.takedown 0.05 0.25` turns it on.
 7. **Enemies fight back only when provoked:**
-   - A bite gives the bitten enemy, and enemies within 3 m, 2.5 s of `EnemyBrain.Retaliate`: they may pick the dog (`TargetKind.Dog`, at most 2 attackers).
+   - A bite gives the bitten enemy, and enemies within 3 m (`RetaliationRadius`, flat), 2.5 s of `EnemyBrain.Retaliate`: they may pick the dog (`TargetKind.Dog`, at most 2 attackers).
    - That holds only while it's within their melee reach (+0.5 m) or a thrower's range. A bitten archer shoots from where it stands.
    - They never chase. The dog is not in `TargetRegistry`, so nothing picks it by weight.
 8. **Getting hurt:**
@@ -87,14 +93,14 @@ Loki, a Border Collie, lives at its dog house in the WorldMap yard and comes exp
    - It rings the herd home (`HerdOrders.Call`, like the bell).
    - It runs behind the animal farthest from the pen (from the pen's side, 3 m back), barks within the budget, and hurries it (`Animal.Hurry`).
    - It skips an animal that hasn't got closer for 20 s.
-   - When all are home, or after 3 min, it stays at home.
+   - When all are home, or after 3 min, it stays at home. A save keeps how long it had been herding: after a load it carries on with the time it had left.
 2. **Robots:** a free robot within 4 m (`Robot.IsFree`: not asleep, called, chatting, stepping aside, working…) greets it once per 90 s (`Robot.TryGreetVisitor`: it faces it, waves, heart eyes, a happy beep), only while the dog is in home life. The dog trots over and sniffs it.
 3. **Sheep chase:** at home by day, every 3–6 min, it runs at the nearest sheep within 25 m (never one going home or asleep).
    - It startles the sheep every 0.5 s for 5 s (`Animal.Startle`, run), then comes back happy.
    - The cheat is `dog.chase`.
-4. **Howl:** at most once a night, a 20% roll between 22:00 and 02:00 at home, never in a raid, as it goes to its house. The cheat is `dog.howl`.
+4. **Howl:** at most once a night, a `HowlChance` (20%) roll between 22:00 and 02:00 while it sleeps in its house, never in a raid: it backs out to the door, howls, and goes back in. The night whose roll is used is saved. The cheat is `dog.howl`.
 5. **Raids at home** (user's rule):
-   - **Barking:** it barks toward raiders in bursts of 2–3, 8–15 s apart.
+   - **Barking:** it barks toward raiders in bursts of 2–3 (1.3 s apart), 8–15 s apart, within the 3-a-minute cap.
    - **Active:** it goes for raiders that got inside the yard, aware of the player or not, by the Phase 2 rules. While it's in the yard it leaves raiders outside the fence alone (barks only), even when following the player.
    - **Passive:** it keeps 6 m away from raiders, running to the far side of the yard, and never bites.
    - It doesn't sleep during a raid: at home it stands alert where it is, facing the nearest raider it sees (`DogWatchRaid`).
@@ -117,7 +123,9 @@ DogHouse, DogRoster, DogInstaller, DogSaveSection ("dog": order, position, facin
 UI/Wheel             CommandWheelPresenter (time 0.3, UI input, closes on death / raid), CommandWheel view, WheelMath, CommandWheelStyle
 ```
 
-Tree (priority): down → over the fence → come when whistled → petted → sad (just told to stay) → catch up → keep away from raiders (Passive at home) → back off (hurt) → fight → warn → stay close to a hurt player → herd → follow → stay out in the world → a raid at home: watch → night at home: sleep in its house → home life.
+Tree (priority): down → over the fence → come when whistled → petted → sad (just told to stay) → catch up → keep away from raiders (Passive at home) → back off (hurt) → fight → warn → stay close to a hurt player → welcome home → herd → bedtime → follow → stay out in the world → a raid at home: watch → night at home: sleep in its house → home life.
+
+Behavior Designer calls `OnEnd` a second time on a finished task when a later abort interrupts the tree, so a task whose `OnEnd` changes shared state guards it with a `_started` flag (`DogWelcome`, `DogWarn`, `DogSkirmish`, `DogFollowPlayer`, `DogStayHere`, `DogSleepInHouse`, `DogHomeLife`; `DogScramble` guards on `Scrambling`). Unguarded, home life's would pop it out of its house mid-sleep. A welcome home still pending is called off once it stops staying home (told to follow, a raid).
 
 ## In WorldMap
 
@@ -139,6 +147,7 @@ Also:
 - **Following:** the zone radii, delays, lead, side swap, aim cone, sniff radius, settle times, check-ins, swim depth, look.
 - **Whistle:** range and spam.
 - **Stay:** radius and go-home distance.
+- **Turning, rain, welcome home:** turn rate and step speed, how heavy rain soaks it and for how long, how long the player is away before a welcome and how long it lasts.
 - **Wheel:** time scale.
 - **Voice:** gaps.
 - **Sounds:** the SoundIDs.
@@ -148,8 +157,9 @@ Also:
 - **Setup:** `AgentScripts/Dogs/DogSetup.cs`: `Data`, `Model` (a look-only copy of the Malbers Border Collie PolyArt, no Malbers scripts, root motion off), `Controller`, `Prefabs`, `Hud` (the wheel in HUD.prefab, the paw icon), `World`, `Audio`; `All` runs the first five.
 - **Clips:** the collie's clips move their Root bone forward, so `DogSetup` writes in-place copies to `Content/Dogs/BorderCollie/Animations` (loops: the Root's drift removed; jumps and ledges: the Root held, the code moves the body).
 - **Previews:** `AgentScripts/Dogs/DogPreview.cs` renders review sheets (colours, poses, a prop from four sides) to a path outside Assets.
-- **Play probes:** `AgentScripts/Dogs/DogPlayCheck.cs`: Ready, Follow, Scout, CatchUp, Fence, Scramble, Indoors, Stay, HomeLife, Whistle, WhistleSpam, WhistleRobot, Pet, HeadTilt, Wheel, WheelInterrupted, NightHouse, FriendlyFire, AfterLoad, Swim, Shot, LookAtDog; fighting: Skirmish, Takedown, Sic, BackOff, Down, Warn (spawn goblins with `enemy.spawn`, the player invulnerable); the farm: Herd, RobotGreet, SheepChase, RaidHome active / passive.
-  - All passed on 2026-11-23 (Phases 1–3). NightHouse stops a raid if one starts at 23:00.
+- **Play probes:** `AgentScripts/Dogs/DogPlayCheck.cs`: Ready, Follow, Scout, CatchUp, Fence, Scramble, Indoors, Stay, HomeLife, Whistle, WhistleSpam, WhistleRobot, Pet, HeadTilt, Wheel, WheelInterrupted, NightHouse, FriendlyFire, AfterLoad, Swim, Shot, LookAtDog; fighting: Skirmish, Takedown, Sic, WhistleAtDogNearEnemy, BackOff, Down, Warn, WarnInterrupted (spawn goblins with `enemy.spawn`, the player invulnerable); the farm: Herd, RobotGreet, RobotGreetBusy, SheepChase, RaidHome active / passive, RaidNight; polish: TurnInPlace, RainShake, WelcomeHome, Bedtime, SpuriousEnd (each guarded task's `OnEnd` called without a start changes nothing), NightHowl, HerdAfterLoad.
+  - Probe traps: Follow takes 20 m (12 m ends under the house floor: `Ground()` keeps terrain hits only); Swim needs a radius of about 350 m to find a wadeable stream; WarnInterrupted needs 30 s since the last warning (WarnGap); SheepChase needs the herd out; Herd needs 90 s when the animals are far out; a real raid at 21:00 kills an idle player (a dead one isn't looked at or followed): probes that need the player start at 10:00 with enemies cleared; Follow, HeadTilt and Takedown wait for it to get up (a still player has a dog dozing off within seconds); RainShake holds the weather with the console's `weather.set` (the weather rules replace a plain `WeatherService.Set`).
+  - All passed on 2026-11-23 (Phases 1–3, then the polish and fix passes). NightHouse stops a raid if one starts at 23:00.
 
 ## Known gaps
 
