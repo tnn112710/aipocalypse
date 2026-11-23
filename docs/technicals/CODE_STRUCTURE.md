@@ -144,15 +144,15 @@ Assets/_Game/
 │  │  ├─ DogManager.cs                      ITickable + IWhistleFallback: night, the player into the roster, follow plans, swim, head tilt, wheel slices, whistles, sounds, home after death / sleep
 │  │  ├─ Dog.cs                             the entity bridge: IInteractable (wheel), IHoldInteractable (pet), IWhistleTarget, INameTagged, IDamageable (flinch only); animator; model offset into its house; swim float
 │  │  ├─ DogState.cs                        plain C#: welcome home (player away and back), order (sad after Stay), call, whistle spam, pet, head tilt, settle pose; stance, toughness, Hit → DogHit, down / help up / limp, regen, retreat, takedown rolls, bite cooldown (DogStateTests, DogCombatTests)
-│  │  ├─ DogFollow.cs                       plain C#: FollowInput → FollowPlan (comfort zone, reaction delay, scout, side, aim cone, catch up, separated) (DogFollowTests)
+│  │  ├─ DogFollow.cs                       plain C#: FollowInput → FollowPlan (comfort zone, reaction delay, the sprint reaction, scout, side, aim cone, catch up, separated, a gait ramp up one gait at a time) (DogFollowTests)
 │  │  ├─ DogVoice.cs                        plain C#: the noise budget (DogStateTests)
 │  │  ├─ DogJumpArc.cs                      plain C#: JumpKind pick, body path, duration (DogTests)
 │  │  ├─ DogStats.cs                        DogStat enum, DogStatBlock SO (Data/Dogs/DogStatBlock: base values), IDogUpgradeSource, DogStatSheet (base + upgrades, class index) (DogCombatTests)
-│  │  ├─ DogTurn.cs                         plain C#: a quick turn on the spot plays a slow walk (DogStateTests)
+│  │  ├─ DogTurn.cs                         plain C#: a big turn to face something is a walked arc (WantsArc, Landing, KeepsNear: DogTurnTests); a quick turn on the spot plays a slow walk (DogStateTests)
 │  │  ├─ DogWetness.cs                      plain C#: rain soaks it; out of it after a soaking, one shake (DogStateTests)
 │  │  ├─ DogCombat.cs                       plain C#: HerdView, FoeView; PickTarget (stance, sent, ranged first, home defence), CanBite, IsOpening, WarnTarget (DogCombatTests)
 │  │  ├─ DogTasks.cs                        Behavior Designer tasks of AgentScripts/Dogs/Dog.tree.txt (down, scramble, come, petted, sad stay, catch up, avoid raiders, back off, skirmish, warn, hurt player, welcome home, herd, lie by the bed, follow, stay here, raid watch, sleep in house, home life)
-│  │  ├─ DogLegs.cs                         EnemyMover wrapper on every nav tag; gaits
+│  │  ├─ DogLegs.cs                         EnemyMover wrapper on every nav tag; gaits; Face (an arc when CanStep and the turn is big, else on the spot), FaceInPlace, TryArc, Arcing
 │  │  ├─ DogHouse.cs, DogLinkInfo.cs        the dog house (door, bed); an off-mesh link's obstacle height and Via point
 │  │  ├─ DogRoster.cs                       scene service: the dog, house, yard, visits, night, the player
 │  │  ├─ DogSettings.cs, DogEnums.cs        tuning SO (Data/Dogs/DogSettings); DogOrder, DogStance, DogGait, DogPose, DogAct, DogSound, DogWhistle
@@ -525,17 +525,18 @@ Assets/_Game/
 │  │  ├─ Widgets/MinimapView.cs             passive heading-up radar disc: SetHeading (N / E / S / W around the rim), SetEnemies (pooled dots), SetMarker / HideMarkersFrom (pooled icons by MapMarkerKind), Show, ApplyStyle
 │  │  ├─ Widgets/MinimapStyle.cs            SO: Enabled, Range (m to the rim), EdgeInset, disc / ring / player / view cone sprites + colours, enemy dot sprite / colour / size, letter font / size / colours (N apart), LetterOffset; asset Data/UI/MinimapStyle
 │  │  ├─ Widgets/ClockStyle.cs              ScriptableObject: fonts + underlay materials, sizes, colors, backing panel, Phases (DayPhase → PhaseLabel: text, colour; Phase(phase))
-│  │  ├─ Widgets/DeathScreenView.cs         passive: eyelids + darkness (CloseEyes from the style's steps), menu (ShowMenu / HideMenu fades), SetStatus (pulse), HideAll, Illustration slot
-│  │  ├─ Widgets/DeathScreenStyle.cs        ScriptableObject: eyelid texture + EyelidSolidAt, EyeStep timeline (lids, darkness, ease), menu colors / glow / fonts / texts, fades, MinLoadingTime, continue pulse
+│  │  ├─ Widgets/DeathScreenView.cs         passive: eyelids + darkness (CloseEyes from the style's steps), the "Walk it off!" menu (sky gradient drawn as a runtime texture, sun, drifting clouds, mountains, trees, ground, dog, title / subtitle, ShowMenu / HideMenu fades), SetStatus (pulse), FillBar / SetProgress (clipped progress bar), HideAll
+│  │  ├─ Widgets/DeathScreenStyle.cs        ScriptableObject: eyelid texture + EyelidSolidAt, EyeStep timeline (lids, darkness, ease), scene colours (Sky Gradient, layer tints, ground), cloud drift, fonts / sizes / texts, progress bar tints and fill shares, fades, MinLoadingTime, continue pulse
 │  │  ├─ Widgets/QteView.cs                 replaceable QTE widget contract: PresentationId, CanDisplay / Display(session), Flash, DisplaySuccess
 │  │  ├─ Widgets/TimingQteView.cs           draws a timing session as a circle or a bar, with no weapon or input knowledge
 │  │  ├─ Widgets/QteStyle.cs                ScriptableObject: QTE sprites, colors, key cap; Success (color, duration, hold, pop / burst scales and shares) and Miss (color, duration, shake, squash) result looks; EndFadeDuration
 │  │  ├─ Widgets/RaidBannerStyle.cs         ScriptableObject: font, the three banners' words / colours / SoundIDs ({0} = night; only characters already in the font's atlas), fade / hold / punch timing
 │  │  ├─ Widgets/BreachAlertStyle.cs        ScriptableObject: the breach line's words (fence / gate, ahead / behind / left / right), colour, timing
-│  │  ├─ Widgets/MenuStyle.cs             SO: menu fonts (buttons, titles, small text), tape strip + corner scale, shade sprite, colours (backdrop, button states, accent for the current slot, tape, panel, danger), hover / click / back SoundIDs; Colors(normal), TextColors() → ColorBlock; asset Data/UI/MenuStyle
+│  │  ├─ Widgets/MenuStyle.cs             SO: menu fonts (buttons, titles, small text), tape strip + corner scale, shade sprite, colours (backdrop, Button, Highlight = the one orange knob: hover / pressed / the current slot's Accent derive from it, tape, panel, danger), hover / click / back SoundIDs; Colors(normal), TextColors() → ColorBlock; asset Data/UI/MenuStyle
 │  │  ├─ Menus/ConfirmDialog.cs           yes / no question over a dimmed screen (Ask(message, yes, onYes), Close); No is selected first, closing gives the focus back to the asker
 │  │  ├─ Menus/LanguageButton.cs          a menu button (main and pause menus): each press switches to the next language; label "LANGUAGE: <its own name>", refreshed on LanguageChanged; hidden while only one language is offered
 │  │  ├─ Menus/MenuButton.cs              on every menu button: mouse over → selected, focus → hover tick, click → click sound (MenuSounds above), labels dimmed while not interactable; SelectSilently
+│  │  ├─ Menus/MenuButtonColors.cs        on every menu / inventory-menu button: puts MenuStyle's Button / Highlight colours on the Button when it wakes (Look: Filled, Text, Keep), so the theme changes in one asset; Apply() also bakes it in the editor (AgentScripts/UI/MenuTheme.cs)
 │  │  ├─ Menus/MenuSounds.cs              on a menu's root: MenuStyle's hover / click / back sounds through AudioService
 │  │  ├─ Menus/MenuSelectionKeeper.cs     next to a menu's EventSystem: gives the focus back to the last button when it's cleared (gamepad)
 │  │  ├─ Menus/SaveSlotRow.cs             one slot: "Save N" / "Editor Save", day / hour / play time and date (or Empty / the problem), Delete; the current game's slot in the accent colour
@@ -571,7 +572,7 @@ Assets/_Game/
 │  │  ├─ Hud/QteHud.cs                      shows any running QTE from QteStarted / QteAttempted (Miss → shake) / QteEnded (Success → burst, else fade over EndFadeDuration); key label from GetKeyLabel(Button); hidden (session kept) while paused or when gameplay input is off (QteStyle)
 │  │  ├─ Hud/ClockHud.cs                    WorldClock (TryResolve; hidden without one) → ClockView (LateUpdate, view skips repeats)
 │  │  ├─ Hud/HudVisibilityHud.cs            PlayerHudView on the HUD root: fades the HUD's CanvasGroup out on PlayerDied, back in on PlayerRevived (the death screen ignores it)
-│  │  ├─ Hud/DeathScreenHud.cs              PlayerHudView presenting PlayerRespawnFlow: PlayerRespawnFading → eyes close, menu "Loading..."; PlayerRespawning → at least MinLoadingTime; RespawnStageChanged Ready → "Click to continue", None → fade out
+│  │  ├─ Hud/DeathScreenHud.cs              PlayerHudView presenting PlayerRespawnFlow: PlayerRespawnFading → eyes close, menu "Recovering to Base..." with the bar filling to BarBeforeReady; PlayerRespawning → at least MinLoadingTime; RespawnStageChanged Ready → bar to full + "Click to continue", None → fade out
 │  │  ├─ Prefabs/HUD.prefab                 standalone overlay canvas 1920×1080, HurtFeedback edges, SafeFrame + regions, HudScope (placed in the scene), SaveToast, PauseMenu (built by AgentScripts/Save/SaveSetup)
 │  │  ├─ Prefabs/Widgets/StatBar.prefab     the bar widget
 │  │  ├─ Prefabs/Widgets/Reticles/          hip reticle designs (HipReticle): HipReticle_Cross (dot + four lines), the HUD's default
@@ -711,7 +712,7 @@ Assets/_Game/
 │  ├─ Map/Home.asset, Objective.asset      MapMarkerKinds: the home (yellow tag, house icon) and a generic objective, both pinned to the minimap rim
 │  └─ UI/HealthBarStyle.asset, StaminaBarStyle.asset, HotbarSlotStyle.asset, InventoryStyle.asset, InteractPromptStyle.asset, BreachAlertStyle.asset, CrosshairStyle.asset, HitFeedbackStyle.asset, HurtFeedbackStyle.asset, ClockStyle.asset, MinimapStyle.asset,
 │        RepairQteStyle.asset (QteStyle) + RepairQteFont.asset, DamageNumberFont.asset, DeathScreenStyle.asset;
-│        DeathScreen/ (Eyelid.png, Glow.png, VarelaRound-Regular.ttf + OFL licence, DeathScreenFont.asset, DeathScreenFont_Title.mat)
+│        DeathScreen/ (Eyelid.png, Glow.png (no longer used), VarelaRound-Regular.ttf + OFL licence, DeathScreenFont.asset, DeathScreenFont_Title.mat)
 ├─ _Editor/                                asmdef MB13.Aipocalypse.Editor (editor only), namespace MB13.Aipocalypse.Editor.<Folder>
 │  ├─ Localization/                         LOCALIZATION.md
 │  │  ├─ LocalizationCsv.cs                 the CSVs in Data/Localization/Csv → their string tables (add, rename by Id, update, remove; Ids written back), auto on import (AssetPostprocessor) + Aipocalypse/Localization/Import All CSVs; Compare (for tests), Parse / Write (RFC 4180)

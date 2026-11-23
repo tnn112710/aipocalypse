@@ -117,6 +117,14 @@ namespace MB13.Aipocalypse.Tests
         }
 
         [Test]
+        public void Call_SittingWhereCalledEndsWhenThePlayerReachesItOrAfterTheWait()
+        {
+            Assert.That(DogState.CallOver(sittingFor: 1f, playerDistance: 2.5f, _settings), Is.False, "still waiting");
+            Assert.That(DogState.CallOver(sittingFor: 1f, playerDistance: _settings.ReachMe, _settings), Is.True, "the player came");
+            Assert.That(DogState.CallOver(sittingFor: _settings.CallWait, playerDistance: 2.5f, _settings), Is.True, "waited long enough");
+        }
+
+        [Test]
         public void Call_LastsUntilEndedOrTimedOut()
         {
             _state.Call(0f, annoyed: false);

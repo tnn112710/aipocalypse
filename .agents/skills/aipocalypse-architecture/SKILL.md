@@ -5,7 +5,7 @@ description: How aipocalypse wires its code — VContainer scopes and installers
 
 # Architecture rules in aipocalypse
 
-Project layer on top of the library skills. Read those for the API: **unity-vcontainer** (VContainer 1.19), **unity-messagepipe** (MessagePipe 1.8.2), **unity-unitask** (UniTask 2.5.11), **unity-6-new-apis** (Unity 6.4–6.6). Where they and this file disagree, this file and `docs/technicals/` win. Enemy wiring: **aipocalypse-enemy-ai**.
+Project layer on top of the library skills. This file is enough for most tasks; open a library skill only for API detail it lacks: **unity-vcontainer** (VContainer 1.19), **unity-messagepipe** (MessagePipe 1.8.2), **unity-unitask** (UniTask 2.5.11), **unity-6-new-apis** (Unity 6.4–6.6). Where they and this file disagree, this file and `docs/technicals/` win. Enemy wiring: **aipocalypse-enemy-ai**.
 
 Already documented. Read it, don't re-derive it:
 - `AGENTS.md` → Key tech choices (input, DI, no singletons), Code style (base convention `oss-unity:csharp-unity` with the project's overrides: `_camelCase` fields, no `this.`/`private`, `[SerializeField] _field` + read-only property and never `[field: SerializeField]`; Dictionary serialization, no Odin serialization).

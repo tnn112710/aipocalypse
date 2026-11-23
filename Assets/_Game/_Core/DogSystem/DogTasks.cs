@@ -38,13 +38,21 @@ namespace MB13.Aipocalypse.Core.DogSystem
             return Go(dog, point, gait);
         }
 
-        // Stops and settles into `pose` facing `look`.
-        public static void Settle(Dog dog, DogPose pose, Vector3 look)
+        // Stops and settles into `pose` facing `look`. Standing and facing well away from `look`, it first steps round in
+        // an arc (kept near `keepNear`, e.g. its stay spot) and settles when the arc ends.
+        public static void Settle(Dog dog, DogPose pose, Vector3 look, Vector3? keepNear = null)
         {
-            dog.Legs.Halt();
             dog.SetSniffing(false);
+            if (dog.Pose == DogPose.Stand && dog.Legs.TryArc(look, keepNear))
+            {
+                if (pose == DogPose.Stand)
+                    return;
+                dog.PendingPose = pose;
+                return;
+            }
+            dog.Legs.Halt();
             if (pose == DogPose.Stand || dog.Pose == DogPose.Stand)
-                dog.Legs.Face(look);
+                dog.Legs.FaceInPlace(look);
             dog.SetPose(pose);
         }
 
@@ -697,9 +705,11 @@ namespace MB13.Aipocalypse.Core.DogSystem
     [Category("Aipocalypse/Dogs")]
     public sealed class DogWelcome : ActionNode
     {
-        enum Phase { Run, Circle, Sit }
+        enum Phase { Run, Circle, Greet, Sit }
 
         const float Reach = 3f;
+        // A greeting act (a bounce, a roll, a bark) has this long to start before the sit.
+        const float GreetStart = 0.5f;
         const float CircleRadius = 2.4f;
         // The lap's target runs this far ahead of the dog (radians); a slow lap (the happy act, a detour) ends here so
         // the sit still fits in the welcome.
@@ -709,7 +719,9 @@ namespace MB13.Aipocalypse.Core.DogSystem
 
         Dog _dog;
         Phase _phase;
+        DogWelcomeStyle _style;
         float _phaseStart;
+        float _greetAt;
         float _angle;
         float _turned;
         float _nextGo;
@@ -727,6 +739,9 @@ namespace MB13.Aipocalypse.Core.DogSystem
             _phase = Phase.Run;
             _phaseStart = Time.time;
             _nextGo = 0f;
+            _greetAt = float.NaN;
+            if (!_dog.Settings.Welcomes.TryPick(_dog.Manager.Roll(), out _style))
+                _style = DogWelcomeStyle.Circle;
         }
 
         public override TaskStatus OnUpdate()
@@ -740,13 +755,20 @@ namespace MB13.Aipocalypse.Core.DogSystem
                 case Phase.Run:
                     if (DogWalk.Near(_dog, player, Reach))
                     {
-                        _phase = Phase.Circle;
                         _phaseStart = now;
                         Vector3 away = _dog.transform.position - player;
                         _angle = Mathf.Atan2(away.x, away.z);
                         _turned = 0f;
-                        if (_dog.Manager.TryPlay(_dog, DogSound.Bark) && _dog.Standing)
-                            _dog.Act(DogAct.Happy);
+                        if (_style == DogWelcomeStyle.Circle)
+                        {
+                            _phase = Phase.Circle;
+                            if (_dog.Manager.TryPlay(_dog, DogSound.Bark) && _dog.Standing)
+                                _dog.Act(DogAct.Happy);
+                            return TaskStatus.Running;
+                        }
+                        _phase = Phase.Greet;
+                        DogWalk.Settle(_dog, DogPose.Stand, player);
+                        return TaskStatus.Running;
                     }
                     else if (now >= _nextGo)
                     {
@@ -781,6 +803,25 @@ namespace MB13.Aipocalypse.Core.DogSystem
                     DogWalk.Go(_dog, next, DogGait.Trot);
                     return TaskStatus.Running;
                 }
+                case Phase.Greet:
+                    // Facing them (an arc first, when it ran up from the side), the act, then the sit once it's over.
+                    if (_dog.Legs.Arcing)
+                        return TaskStatus.Running;
+                    if (float.IsNaN(_greetAt))
+                    {
+                        _greetAt = now + GreetStart;
+                        _dog.Legs.Halt();
+                        if (_style == DogWelcomeStyle.Bark)
+                            _dog.Manager.TryPlay(_dog, DogSound.Bark);
+                        _dog.Act(_style == DogWelcomeStyle.Roll ? DogAct.Roll : _style == DogWelcomeStyle.Bark ? DogAct.Bark : DogAct.Happy);
+                        return TaskStatus.Running;
+                    }
+                    if (now < _greetAt || !_dog.Standing)
+                        return TaskStatus.Running;
+                    _phase = Phase.Sit;
+                    _phaseStart = now;
+                    DogWalk.Settle(_dog, DogPose.Sit, player);
+                    return TaskStatus.Running;
                 default:
                     if (now - _phaseStart < SitTime)
                         return TaskStatus.Running;
@@ -888,12 +929,12 @@ namespace MB13.Aipocalypse.Core.DogSystem
         public override TaskStatus OnUpdate() => _dog.State.Called(Time.time) && _dog.Roster.HasPlayer ? TaskStatus.Success : TaskStatus.Failure;
     }
 
-    // Runs (walks, when annoyed, after a head shake) to the player's side, sits facing them for a moment, done.
+    // Runs (walks, when annoyed, after a head shake) to CallDistance in front of the player and sits facing them, until
+    // they come to it (ReachMe) or CallWait passes; done.
     [Category("Aipocalypse/Dogs")]
     public sealed class DogComeToHeel : ActionNode
     {
-        const float Heel = 1.6f;
-        const float WaitTime = 2.5f;
+        const float Slack = 0.5f;
 
         Dog _dog;
         float _arrivedAt;
@@ -913,19 +954,20 @@ namespace MB13.Aipocalypse.Core.DogSystem
         {
             float now = Time.time;
             DogRoster roster = _dog.Roster;
+            DogSettings settings = _dog.Settings;
             Vector3 player = roster.PlayerPosition;
             if (!float.IsNaN(_arrivedAt))
             {
-                if (!DogWalk.Near(_dog, player, Heel + 2.5f))
+                if (!DogWalk.Near(_dog, player, settings.CallDistance + 2.5f))
                     _arrivedAt = float.NaN;
-                else if (now - _arrivedAt >= WaitTime)
+                else if (DogState.CallOver(now - _arrivedAt, DogWalk.Flat(player - _dog.transform.position), settings))
                 {
                     _dog.State.EndCall();
                     return TaskStatus.Success;
                 }
                 return TaskStatus.Running;
             }
-            if (DogWalk.Near(_dog, player, Heel + 0.4f))
+            if (DogWalk.Near(_dog, player, settings.CallDistance + Slack))
             {
                 _arrivedAt = now;
                 DogWalk.Settle(_dog, DogPose.Sit, player);
@@ -934,12 +976,12 @@ namespace MB13.Aipocalypse.Core.DogSystem
             if (now >= _nextGo)
             {
                 _nextGo = now + 0.4f;
-                Vector3 side = _dog.transform.position - player;
-                side.y = 0f;
-                Vector3 heel = player + (side.sqrMagnitude > 0.01f ? side.normalized : Vector3.right) * Heel;
-                float distance = DogWalk.Flat(heel - _dog.transform.position);
+                Vector3 forward = roster.PlayerForward;
+                forward.y = 0f;
+                Vector3 front = player + (forward.sqrMagnitude > 0.01f ? forward.normalized : Vector3.forward) * settings.CallDistance;
+                float distance = DogWalk.Flat(front - _dog.transform.position);
                 DogGait gait = _dog.State.CallAnnoyed ? DogGait.Walk : distance > 12f ? DogGait.Sprint : DogGait.Canter;
-                DogWalk.Go(_dog, heel, gait);
+                DogWalk.Go(_dog, front, gait);
             }
             return TaskStatus.Running;
         }
@@ -960,8 +1002,6 @@ namespace MB13.Aipocalypse.Core.DogSystem
     [Category("Aipocalypse/Dogs")]
     public sealed class DogBePetted : ActionNode
     {
-        const float Front = 1.6f;
-
         Dog _dog;
         bool _acted;
         float _sitAt;
@@ -980,11 +1020,12 @@ namespace MB13.Aipocalypse.Core.DogSystem
             Vector3 player = roster.PlayerPosition;
             if (!_acted)
             {
-                if (!DogWalk.Near(_dog, player, Front + 0.5f))
+                float front = _dog.Settings.PetDistance;
+                if (!DogWalk.Near(_dog, player, front + 0.5f))
                 {
                     Vector3 forward = roster.PlayerForward;
                     forward.y = 0f;
-                    DogWalk.Go(_dog, player + forward.normalized * Front, DogGait.Trot);
+                    DogWalk.Go(_dog, player + forward.normalized * front, DogGait.Trot);
                     return TaskStatus.Running;
                 }
                 DogWalk.Settle(_dog, DogPose.Stand, player);
@@ -1178,7 +1219,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
                 ahead.y = 0f;
                 if (ahead.sqrMagnitude > 0.01f && Vector3.Angle(_dog.transform.forward, ahead) > SquareUp)
                 {
-                    _dog.Legs.Face(_to);
+                    _dog.Legs.FaceInPlace(_to);
                     return TaskStatus.Running;
                 }
                 _dog.Legs.Halt();
@@ -1469,7 +1510,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
                 return TaskStatus.Running;
             }
             DogPose pose = roll < 0.6f ? DogPose.Sit : roll < 0.9f ? DogPose.Lie : DogPose.Sleep;
-            DogWalk.Settle(_dog, pose, look);
+            DogWalk.Settle(_dog, pose, look, spot);
             _until = now + Random.Range(8f, 20f);
             return TaskStatus.Running;
         }

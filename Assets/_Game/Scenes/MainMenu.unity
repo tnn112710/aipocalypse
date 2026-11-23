@@ -133,6 +133,7 @@ GameObject:
   - component: {fileID: 32339971}
   - component: {fileID: 32339974}
   - component: {fileID: 32339970}
+  - component: {fileID: 32339975}
   m_Layer: 5
   m_Name: Load
   m_TagString: Untagged
@@ -254,9 +255,9 @@ MonoBehaviour:
   m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 0, g: 0, b: 0, a: 0}
-    m_HighlightedColor: {r: 0.11372549, g: 0.56078434, b: 0.76862746, a: 0.9411765}
-    m_PressedColor: {r: 0.54901963, g: 0.9019608, b: 1, a: 1}
-    m_SelectedColor: {r: 0.11372549, g: 0.56078434, b: 0.76862746, a: 0.9411765}
+    m_HighlightedColor: {r: 0.933, g: 0.451, b: 0.078, a: 0.94}
+    m_PressedColor: {r: 0.96315, g: 0.69805, b: 0.49289998, a: 0.967}
+    m_SelectedColor: {r: 0.933, g: 0.451, b: 0.078, a: 0.94}
     m_DisabledColor: {r: 0, g: 0, b: 0, a: 0}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.06
@@ -276,6 +277,20 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &32339975
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 32339968}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bf7079ee6208bc46a63234f5bfcfcce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.UI.MenuButtonColors
+  _style: {fileID: 11400000, guid: 649e81cbbf244054fba3be5d13a48014, type: 2}
+  _look: 1
 --- !u!1 &157553577
 GameObject:
   m_ObjectHideFlags: 0
@@ -1205,6 +1220,7 @@ GameObject:
   - component: {fileID: 573043139}
   - component: {fileID: 573043142}
   - component: {fileID: 573043138}
+  - component: {fileID: 573043143}
   m_Layer: 5
   m_Name: Settings
   m_TagString: Untagged
@@ -1326,9 +1342,9 @@ MonoBehaviour:
   m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 0, g: 0, b: 0, a: 0}
-    m_HighlightedColor: {r: 0.11372549, g: 0.56078434, b: 0.76862746, a: 0.9411765}
-    m_PressedColor: {r: 0.54901963, g: 0.9019608, b: 1, a: 1}
-    m_SelectedColor: {r: 0.11372549, g: 0.56078434, b: 0.76862746, a: 0.9411765}
+    m_HighlightedColor: {r: 0.933, g: 0.451, b: 0.078, a: 0.94}
+    m_PressedColor: {r: 0.96315, g: 0.69805, b: 0.49289998, a: 0.967}
+    m_SelectedColor: {r: 0.933, g: 0.451, b: 0.078, a: 0.94}
     m_DisabledColor: {r: 0, g: 0, b: 0, a: 0}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.06
@@ -1348,6 +1364,20 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &573043143
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 573043136}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bf7079ee6208bc46a63234f5bfcfcce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.UI.MenuButtonColors
+  _style: {fileID: 11400000, guid: 649e81cbbf244054fba3be5d13a48014, type: 2}
+  _look: 1
 --- !u!1 &647379304
 GameObject:
   m_ObjectHideFlags: 0
@@ -1499,6 +1529,7 @@ GameObject:
   - component: {fileID: 729699737}
   - component: {fileID: 729699740}
   - component: {fileID: 729699736}
+  - component: {fileID: 729699741}
   m_Layer: 5
   m_Name: Quit
   m_TagString: Untagged
@@ -1620,9 +1651,9 @@ MonoBehaviour:
   m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 0, g: 0, b: 0, a: 0}
-    m_HighlightedColor: {r: 0.11372549, g: 0.56078434, b: 0.76862746, a: 0.9411765}
-    m_PressedColor: {r: 0.54901963, g: 0.9019608, b: 1, a: 1}
-    m_SelectedColor: {r: 0.11372549, g: 0.56078434, b: 0.76862746, a: 0.9411765}
+    m_HighlightedColor: {r: 0.933, g: 0.451, b: 0.078, a: 0.94}
+    m_PressedColor: {r: 0.96315, g: 0.69805, b: 0.49289998, a: 0.967}
+    m_SelectedColor: {r: 0.933, g: 0.451, b: 0.078, a: 0.94}
     m_DisabledColor: {r: 0, g: 0, b: 0, a: 0}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.06
@@ -1642,6 +1673,20 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &729699741
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 729699734}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bf7079ee6208bc46a63234f5bfcfcce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.UI.MenuButtonColors
+  _style: {fileID: 11400000, guid: 649e81cbbf244054fba3be5d13a48014, type: 2}
+  _look: 1
 --- !u!1 &744853843
 GameObject:
   m_ObjectHideFlags: 0
@@ -2108,6 +2153,7 @@ GameObject:
   - component: {fileID: 827444465}
   - component: {fileID: 827444468}
   - component: {fileID: 827444464}
+  - component: {fileID: 827444469}
   m_Layer: 5
   m_Name: Prototype
   m_TagString: Untagged
@@ -2229,9 +2275,9 @@ MonoBehaviour:
   m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 0, g: 0, b: 0, a: 0}
-    m_HighlightedColor: {r: 0.11372549, g: 0.56078434, b: 0.76862746, a: 0.9411765}
-    m_PressedColor: {r: 0.54901963, g: 0.9019608, b: 1, a: 1}
-    m_SelectedColor: {r: 0.11372549, g: 0.56078434, b: 0.76862746, a: 0.9411765}
+    m_HighlightedColor: {r: 0.933, g: 0.451, b: 0.078, a: 0.94}
+    m_PressedColor: {r: 0.96315, g: 0.69805, b: 0.49289998, a: 0.967}
+    m_SelectedColor: {r: 0.933, g: 0.451, b: 0.078, a: 0.94}
     m_DisabledColor: {r: 0, g: 0, b: 0, a: 0}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.06
@@ -2251,6 +2297,20 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &827444469
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 827444462}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bf7079ee6208bc46a63234f5bfcfcce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.UI.MenuButtonColors
+  _style: {fileID: 11400000, guid: 649e81cbbf244054fba3be5d13a48014, type: 2}
+  _look: 1
 --- !u!1 &827723245
 GameObject:
   m_ObjectHideFlags: 0
@@ -2265,6 +2325,7 @@ GameObject:
   - component: {fileID: 827723248}
   - component: {fileID: 827723251}
   - component: {fileID: 827723247}
+  - component: {fileID: 827723252}
   m_Layer: 5
   m_Name: Continue
   m_TagString: Untagged
@@ -2386,9 +2447,9 @@ MonoBehaviour:
   m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 0, g: 0, b: 0, a: 0}
-    m_HighlightedColor: {r: 0.11372549, g: 0.56078434, b: 0.76862746, a: 0.9411765}
-    m_PressedColor: {r: 0.54901963, g: 0.9019608, b: 1, a: 1}
-    m_SelectedColor: {r: 0.11372549, g: 0.56078434, b: 0.76862746, a: 0.9411765}
+    m_HighlightedColor: {r: 0.933, g: 0.451, b: 0.078, a: 0.94}
+    m_PressedColor: {r: 0.96315, g: 0.69805, b: 0.49289998, a: 0.967}
+    m_SelectedColor: {r: 0.933, g: 0.451, b: 0.078, a: 0.94}
     m_DisabledColor: {r: 0, g: 0, b: 0, a: 0}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.06
@@ -2408,6 +2469,20 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &827723252
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 827723245}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bf7079ee6208bc46a63234f5bfcfcce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.UI.MenuButtonColors
+  _style: {fileID: 11400000, guid: 649e81cbbf244054fba3be5d13a48014, type: 2}
+  _look: 1
 --- !u!1 &834268544
 GameObject:
   m_ObjectHideFlags: 0
@@ -2979,6 +3054,7 @@ GameObject:
   - component: {fileID: 1096965500}
   - component: {fileID: 1096965499}
   - component: {fileID: 1096965498}
+  - component: {fileID: 1096965504}
   m_Layer: 5
   m_Name: Language
   m_TagString: Untagged
@@ -3053,9 +3129,9 @@ MonoBehaviour:
   m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 0, g: 0, b: 0, a: 0}
-    m_HighlightedColor: {r: 0.11372549, g: 0.56078434, b: 0.76862746, a: 0.9411765}
-    m_PressedColor: {r: 0.54901963, g: 0.9019608, b: 1, a: 1}
-    m_SelectedColor: {r: 0.11372549, g: 0.56078434, b: 0.76862746, a: 0.9411765}
+    m_HighlightedColor: {r: 0.933, g: 0.451, b: 0.078, a: 0.94}
+    m_PressedColor: {r: 0.96315, g: 0.69805, b: 0.49289998, a: 0.967}
+    m_SelectedColor: {r: 0.933, g: 0.451, b: 0.078, a: 0.94}
     m_DisabledColor: {r: 0, g: 0, b: 0, a: 0}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.06
@@ -3135,6 +3211,20 @@ MonoBehaviour:
   m_LayoutPriority: 1
   m_MaxWidth: -1
   m_MaxHeight: -1
+--- !u!114 &1096965504
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1096965496}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bf7079ee6208bc46a63234f5bfcfcce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.UI.MenuButtonColors
+  _style: {fileID: 11400000, guid: 649e81cbbf244054fba3be5d13a48014, type: 2}
+  _look: 1
 --- !u!1 &1141662840
 GameObject:
   m_ObjectHideFlags: 0
@@ -3601,6 +3691,7 @@ GameObject:
   - component: {fileID: 1220049960}
   - component: {fileID: 1220049963}
   - component: {fileID: 1220049959}
+  - component: {fileID: 1220049964}
   m_Layer: 5
   m_Name: Back
   m_TagString: Untagged
@@ -3722,9 +3813,9 @@ MonoBehaviour:
   m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 0, g: 0, b: 0, a: 0}
-    m_HighlightedColor: {r: 0.11372549, g: 0.56078434, b: 0.76862746, a: 0.9411765}
-    m_PressedColor: {r: 0.54901963, g: 0.9019608, b: 1, a: 1}
-    m_SelectedColor: {r: 0.11372549, g: 0.56078434, b: 0.76862746, a: 0.9411765}
+    m_HighlightedColor: {r: 0.933, g: 0.451, b: 0.078, a: 0.94}
+    m_PressedColor: {r: 0.96315, g: 0.69805, b: 0.49289998, a: 0.967}
+    m_SelectedColor: {r: 0.933, g: 0.451, b: 0.078, a: 0.94}
     m_DisabledColor: {r: 0, g: 0, b: 0, a: 0}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.06
@@ -3744,6 +3835,20 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1220049964
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1220049957}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bf7079ee6208bc46a63234f5bfcfcce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.UI.MenuButtonColors
+  _style: {fileID: 11400000, guid: 649e81cbbf244054fba3be5d13a48014, type: 2}
+  _look: 1
 --- !u!1 &1226776469
 GameObject:
   m_ObjectHideFlags: 0
@@ -4237,7 +4342,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.023529412, g: 0.0627451, b: 0.10980392, a: 0.92}
+  m_Color: {r: 0.10980392, g: 0.0627451, b: 0.023529412, a: 0.92}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -5003,6 +5108,7 @@ GameObject:
   - component: {fileID: 1565056286}
   - component: {fileID: 1565056285}
   - component: {fileID: 1565056287}
+  - component: {fileID: 1565056290}
   m_Layer: 5
   m_Name: No
   m_TagString: Untagged
@@ -5032,9 +5138,9 @@ MonoBehaviour:
   m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 0.05, g: 0.05, b: 0.06, a: 0.78}
-    m_HighlightedColor: {r: 0.11372549, g: 0.56078434, b: 0.76862746, a: 0.9411765}
-    m_PressedColor: {r: 0.54901963, g: 0.9019608, b: 1, a: 1}
-    m_SelectedColor: {r: 0.11372549, g: 0.56078434, b: 0.76862746, a: 0.9411765}
+    m_HighlightedColor: {r: 0.933, g: 0.451, b: 0.078, a: 0.94}
+    m_PressedColor: {r: 0.96315, g: 0.69805, b: 0.49289998, a: 0.967}
+    m_SelectedColor: {r: 0.933, g: 0.451, b: 0.078, a: 0.94}
     m_DisabledColor: {r: 0.05, g: 0.05, b: 0.06, a: 0.45}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.06
@@ -5124,6 +5230,20 @@ RectTransform:
   m_AnchoredPosition: {x: 150, y: 38}
   m_SizeDelta: {x: 260, y: 66}
   m_Pivot: {x: 0.5, y: 0}
+--- !u!114 &1565056290
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1565056284}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bf7079ee6208bc46a63234f5bfcfcce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.UI.MenuButtonColors
+  _style: {fileID: 11400000, guid: 649e81cbbf244054fba3be5d13a48014, type: 2}
+  _look: 2
 --- !u!1 &1589134637
 GameObject:
   m_ObjectHideFlags: 0
@@ -5350,6 +5470,7 @@ GameObject:
   - component: {fileID: 1607852047}
   - component: {fileID: 1607852049}
   - component: {fileID: 1607852046}
+  - component: {fileID: 1607852050}
   m_Layer: 5
   m_Name: CopyPath
   m_TagString: Untagged
@@ -5449,9 +5570,9 @@ MonoBehaviour:
   m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 0.05, g: 0.05, b: 0.06, a: 0.78}
-    m_HighlightedColor: {r: 0.11372549, g: 0.56078434, b: 0.76862746, a: 0.9411765}
-    m_PressedColor: {r: 0.54901963, g: 0.9019608, b: 1, a: 1}
-    m_SelectedColor: {r: 0.11372549, g: 0.56078434, b: 0.76862746, a: 0.9411765}
+    m_HighlightedColor: {r: 0.933, g: 0.451, b: 0.078, a: 0.94}
+    m_PressedColor: {r: 0.96315, g: 0.69805, b: 0.49289998, a: 0.967}
+    m_SelectedColor: {r: 0.933, g: 0.451, b: 0.078, a: 0.94}
     m_DisabledColor: {r: 0.05, g: 0.05, b: 0.06, a: 0.45}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.06
@@ -5471,6 +5592,20 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1607852050
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1607852044}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bf7079ee6208bc46a63234f5bfcfcce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.UI.MenuButtonColors
+  _style: {fileID: 11400000, guid: 649e81cbbf244054fba3be5d13a48014, type: 2}
+  _look: 2
 --- !u!1 &1612250898
 GameObject:
   m_ObjectHideFlags: 0
@@ -5524,7 +5659,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.047058824, g: 0.09411765, b: 0.15686275, a: 0.96}
+  m_Color: {r: 0.15686275, g: 0.09411765, b: 0.047058824, a: 0.96}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -5562,6 +5697,7 @@ GameObject:
   - component: {fileID: 1659043638}
   - component: {fileID: 1659043640}
   - component: {fileID: 1659043637}
+  - component: {fileID: 1659043641}
   m_Layer: 5
   m_Name: Yes
   m_TagString: Untagged
@@ -5661,9 +5797,9 @@ MonoBehaviour:
   m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 0.72, g: 0.22, b: 0.18, a: 0.95}
-    m_HighlightedColor: {r: 0.11372549, g: 0.56078434, b: 0.76862746, a: 0.9411765}
-    m_PressedColor: {r: 0.54901963, g: 0.9019608, b: 1, a: 1}
-    m_SelectedColor: {r: 0.11372549, g: 0.56078434, b: 0.76862746, a: 0.9411765}
+    m_HighlightedColor: {r: 0.933, g: 0.451, b: 0.078, a: 0.94}
+    m_PressedColor: {r: 0.96315, g: 0.69805, b: 0.49289998, a: 0.967}
+    m_SelectedColor: {r: 0.933, g: 0.451, b: 0.078, a: 0.94}
     m_DisabledColor: {r: 0.05, g: 0.05, b: 0.06, a: 0.45}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.06
@@ -5683,6 +5819,20 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1659043641
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1659043635}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bf7079ee6208bc46a63234f5bfcfcce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.UI.MenuButtonColors
+  _style: {fileID: 11400000, guid: 649e81cbbf244054fba3be5d13a48014, type: 2}
+  _look: 2
 --- !u!1 &1666690837
 GameObject:
   m_ObjectHideFlags: 0
@@ -5790,7 +5940,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.047058824, g: 0.09411765, b: 0.15686275, a: 0.9411765}
+  m_Color: {r: 0.15686275, g: 0.09411765, b: 0.047058824, a: 0.9411765}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -6192,6 +6342,7 @@ GameObject:
   - component: {fileID: 2023423070}
   - component: {fileID: 2023423072}
   - component: {fileID: 2023423069}
+  - component: {fileID: 2023423073}
   m_Layer: 5
   m_Name: Button
   m_TagString: Untagged
@@ -6292,9 +6443,9 @@ MonoBehaviour:
   m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 0.05, g: 0.05, b: 0.06, a: 0.78}
-    m_HighlightedColor: {r: 0.11372549, g: 0.56078434, b: 0.76862746, a: 0.9411765}
-    m_PressedColor: {r: 0.54901963, g: 0.9019608, b: 1, a: 1}
-    m_SelectedColor: {r: 0.11372549, g: 0.56078434, b: 0.76862746, a: 0.9411765}
+    m_HighlightedColor: {r: 0.933, g: 0.451, b: 0.078, a: 0.94}
+    m_PressedColor: {r: 0.96315, g: 0.69805, b: 0.49289998, a: 0.967}
+    m_SelectedColor: {r: 0.933, g: 0.451, b: 0.078, a: 0.94}
     m_DisabledColor: {r: 0.05, g: 0.05, b: 0.06, a: 0.45}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.06
@@ -6314,6 +6465,20 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &2023423073
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2023423067}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bf7079ee6208bc46a63234f5bfcfcce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.UI.MenuButtonColors
+  _style: {fileID: 11400000, guid: 649e81cbbf244054fba3be5d13a48014, type: 2}
+  _look: 2
 --- !u!1 &2035908174
 GameObject:
   m_ObjectHideFlags: 0
@@ -6464,6 +6629,7 @@ GameObject:
   - component: {fileID: 2124533733}
   - component: {fileID: 2124533732}
   - component: {fileID: 2124533734}
+  - component: {fileID: 2124533737}
   m_Layer: 5
   m_Name: Delete
   m_TagString: Untagged
@@ -6493,9 +6659,9 @@ MonoBehaviour:
   m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 0.72, g: 0.22, b: 0.18, a: 0.95}
-    m_HighlightedColor: {r: 0.11372549, g: 0.56078434, b: 0.76862746, a: 0.9411765}
-    m_PressedColor: {r: 0.54901963, g: 0.9019608, b: 1, a: 1}
-    m_SelectedColor: {r: 0.11372549, g: 0.56078434, b: 0.76862746, a: 0.9411765}
+    m_HighlightedColor: {r: 0.933, g: 0.451, b: 0.078, a: 0.94}
+    m_PressedColor: {r: 0.96315, g: 0.69805, b: 0.49289998, a: 0.967}
+    m_SelectedColor: {r: 0.933, g: 0.451, b: 0.078, a: 0.94}
     m_DisabledColor: {r: 0.05, g: 0.05, b: 0.06, a: 0.45}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.06
@@ -6585,6 +6751,20 @@ RectTransform:
   m_AnchoredPosition: {x: 676, y: -15}
   m_SizeDelta: {x: 124, y: 56}
   m_Pivot: {x: 0, y: 1}
+--- !u!114 &2124533737
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2124533731}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bf7079ee6208bc46a63234f5bfcfcce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.UI.MenuButtonColors
+  _style: {fileID: 11400000, guid: 649e81cbbf244054fba3be5d13a48014, type: 2}
+  _look: 2
 --- !u!1 &2145581889
 GameObject:
   m_ObjectHideFlags: 0

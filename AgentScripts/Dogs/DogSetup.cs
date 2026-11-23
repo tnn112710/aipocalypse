@@ -7,6 +7,7 @@ using MB13.Aipocalypse.Editor.Localization;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
+using UnityEngine.Animations.Rigging;
 using Object = UnityEngine.Object;
 
 // Builds the companion dog: Data/Dogs/DogSettings, a first-party copy of the Malbers Border Collie model (no Malbers
@@ -59,6 +60,10 @@ public static class DogSetup
     const float MaxTurnSpeed = 260f;
     const float OnSpotTurnSpeed = 160f;
     const float TurnSmoothing = 0.2f;
+    const float SlowdownTime = 0.9f;
+    // Ears and tail lag the body a little (DampedTransform down each chain): 0 none, 1 all damping.
+    const float EarDamp = 0.3f;
+    const float TailDamp = 0.35f;
 
     public static string All()
     {
@@ -137,6 +142,7 @@ public static class DogSetup
             foreach (Transform child in root.GetComponentsInChildren<Transform>(true))
                 child.gameObject.layer = layer;
             root.name = "BorderCollie_Model";
+            Jiggle(root);
             PrefabUtility.SaveAsPrefabAsset(root, ModelPath, out bool saved);
             return saved ? "model: " + ModelPath : "model FAILED";
         }
@@ -190,6 +196,39 @@ public static class DogSetup
         }
         float speed = loop ? new Vector2(drift.x, drift.z).magnitude / clip.length * ModelScale * Cadence : 0f;
         return (copy, speed);
+    }
+
+    // Secondary motion on the model's Animator: each ear tip and tail bone follows the bone above it with a lag (the
+    // constraints run in hierarchy order, root to tip). A unique character, so a RigBuilder is fine (animation-rigging skill).
+    static void Jiggle(GameObject model)
+    {
+        Transform old = model.transform.Find("Jiggle");
+        if (old != null)
+            Object.DestroyImmediate(old.gameObject);
+        foreach (RigBuilder stale in model.GetComponents<RigBuilder>())
+            Object.DestroyImmediate(stale);
+        var rigObject = new GameObject("Jiggle");
+        rigObject.transform.SetParent(model.transform, false);
+        Rig rig = rigObject.AddComponent<Rig>();
+        Transform[] bones = model.GetComponentsInChildren<Transform>(true);
+        Transform Bone(string name) => bones.FirstOrDefault(b => b.name == name) ?? throw new Exception("no bone " + name);
+        void Damp(string constrained, string source, float damp)
+        {
+            var go = new GameObject(constrained);
+            go.transform.SetParent(rigObject.transform, false);
+            var damped = go.AddComponent<DampedTransform>();
+            damped.data.constrainedObject = Bone(constrained);
+            damped.data.sourceObject = Bone(source);
+            damped.data.dampPosition = damp;
+            damped.data.dampRotation = damp;
+            damped.data.maintainAim = true;
+        }
+        Damp("Ear02 L", "Ear01 L", EarDamp);
+        Damp("Ear02 R", "Ear01 R", EarDamp);
+        for (int i = 2; i <= 6; i++)
+            Damp($"Tail{i:00}", $"Tail{i - 1:00}", TailDamp);
+        var builder = model.AddComponent<RigBuilder>();
+        builder.layers.Add(new RigLayer(rig, true));
     }
 
     static Vector3 RootDrift(AnimationClip clip)
@@ -403,6 +442,11 @@ public static class DogSetup
             (DogAct.Alert, "Actions/Dog_Alert", null, 0.4f),
             (DogAct.Yawn, "Idle/Dog_Idle_Yawn", null, 0.95f),
             (DogAct.Growl, "Stances/Combat/Dog_Combat_Idle_Growl", null, 0.9f),
+            (DogAct.LookAround, "Idle/Dog_Idle_Look_Around", null, 0.95f),
+            (DogAct.LookLeft, "Idle/Dog_Idle Look Left", null, 0.95f),
+            (DogAct.LookRight, "Idle/Dog_Idle Look Right", null, 0.95f),
+            (DogAct.ScratchEarL, "Idle/Dog_Idle_Scratch_Ear_L", null, 0.95f),
+            (DogAct.ScratchEarR, "Idle/Dog_Idle_Scratch_Ear_R", null, 0.95f),
         };
         foreach ((DogAct act, string file, string take, float exit) in acts)
         {
@@ -564,6 +608,8 @@ public static class DogSetup
             agent.FindProperty("movement.follower.rotationSpeed").floatValue = TurnSpeed;
             agent.FindProperty("movement.follower.maxRotationSpeed").floatValue = MaxTurnSpeed;
             agent.FindProperty("movement.follower.maxOnSpotRotationSpeed").floatValue = OnSpotTurnSpeed;
+            // A dog eases into a stop over a couple of steps (and sets off the same way).
+            agent.FindProperty("movement.follower.slowdownTime").floatValue = SlowdownTime;
             agent.FindProperty("movement.follower.allowRotatingOnSpotBacking").boolValue = false;
             agent.FindProperty("movement.rotationSmoothing").floatValue = TurnSmoothing;
             agent.ApplyModifiedPropertiesWithoutUndo();

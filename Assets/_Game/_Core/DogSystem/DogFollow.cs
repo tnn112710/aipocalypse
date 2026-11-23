@@ -81,6 +81,8 @@ namespace MB13.Aipocalypse.Core.DogSystem
         float _lead;
         float _reappear;
         bool _sideChosen;
+        DogGait _gait;
+        float _nextGaitAt;
 
         // +1: the player's right, −1: their left.
         public int Side { get; private set; } = 1;
@@ -100,6 +102,8 @@ namespace MB13.Aipocalypse.Core.DogSystem
             _noPathSince = float.NaN;
             _sideChosen = false;
             _sideSwapAt = now + Roll(_settings.SideSwap);
+            _gait = DogGait.Still;
+            _nextGaitAt = now;
         }
 
         public FollowPlan Plan(in FollowInput input)
@@ -124,7 +128,10 @@ namespace MB13.Aipocalypse.Core.DogSystem
             FollowMode raw = Raw(input);
             Advance(raw, input.Now);
             Vector3 goal = Goal(input, forward, right);
-            return new FollowPlan(_mode, goal, Gait(_mode, Flat(goal - input.Dog).magnitude, Flat(input.PlayerVelocity).magnitude));
+            DogGait target = Gait(_mode, Flat(goal - input.Dog).magnitude, Flat(input.PlayerVelocity).magnitude);
+            // Out of the line of fire at once; everything else a gait at a time.
+            _gait = _mode == FollowMode.ClearAim ? target : Ramp(target, input.Now);
+            return new FollowPlan(_mode, goal, _gait);
         }
 
         // The nearest point outside the cone round the camera's (flat) forward, `clearance` further out.
@@ -175,7 +182,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
                 return;
             }
             if (float.IsNaN(_pendingAt))
-                _pendingAt = now + Roll(_settings.ReactionDelay);
+                _pendingAt = now + Roll(raw == FollowMode.Alongside ? _settings.SprintReaction : _settings.ReactionDelay);
             _pending = raw;
             if (now >= _pendingAt)
                 Enter(_pending);
@@ -220,6 +227,21 @@ namespace MB13.Aipocalypse.Core.DogSystem
             if (distance < 2f)
                 return DogGait.Walk;
             return distance < 10f ? DogGait.Trot : DogGait.Canter;
+        }
+
+        // Speeding up goes one gait at a time (from a standstill it sets off at a trot), GaitRamp apart, the way a dog
+        // accelerates; slowing down is immediate.
+        DogGait Ramp(DogGait target, float now)
+        {
+            if (target <= _gait)
+            {
+                _nextGaitAt = now;
+                return target;
+            }
+            if (now < _nextGaitAt)
+                return _gait;
+            _nextGaitAt = now + _settings.GaitRamp;
+            return _gait <= DogGait.Walk ? (DogGait)Mathf.Min((int)DogGait.Trot, (int)target) : _gait + 1;
         }
 
         bool InAim(in FollowInput input)

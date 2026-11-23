@@ -130,6 +130,8 @@ MonoBehaviour:
   ReappearMin: 10
   ReappearMax: 15
   ReactionDelay: {x: 0.3, y: 0.8}
+  SprintReaction: {x: 0.6, y: 1.2}
+  GaitRamp: 0.4
   SteadyTime: 2
   Lead: {x: 4, y: 7}
   SideSwap: {x: 20, y: 40}
@@ -145,15 +147,63 @@ MonoBehaviour:
   LookRange: 10
   LookTime: 1
   HeadTiltGap: 20
+  IdleActAfter: 8
+  IdleActGap: {x: 10, y: 20}
+  IdleActs:
+    Entries:
+    - Value: 13
+      Weight: 3
+      Units: 0
+    - Value: 14
+      Weight: 2
+      Units: 0
+    - Value: 15
+      Weight: 2
+      Units: 0
+    - Value: 16
+      Weight: 1
+      Units: 0
+    - Value: 17
+      Weight: 1
+      Units: 0
+    - Value: 11
+      Weight: 1
+      Units: 0
+    NothingWeight: 0
+    Count: {x: 1, y: 1}
+    NoRepeat: 0
   TurnMinRate: 50
   TurnStillBelow: 0.25
   TurnStepSpeed: 1
   FaceTurnSpeed: 150
+  ArcTurnAngle: 35
+  ArcTurnStep: 1.2
   RainWetsAbove: 0.15
   WetToShake: 20
   WelcomeAfter: 60
   WelcomeTime: 25
+  Welcomes:
+    Entries:
+    - Value: 0
+      Weight: 4
+      Units: 0
+    - Value: 1
+      Weight: 3
+      Units: 0
+    - Value: 2
+      Weight: 1
+      Units: 0
+    - Value: 3
+      Weight: 2
+      Units: 0
+    NothingWeight: 0
+    Count: {x: 1, y: 1}
+    NoRepeat: 0
   HearWhistleRange: 60
+  CallDistance: 2.5
+  ReachMe: 1.5
+  CallWait: 6
+  PetDistance: 2.5
   SpamWhistles: 4
   SpamWindow: 5
   AnnoyedTime: 6

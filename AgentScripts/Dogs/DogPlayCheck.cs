@@ -125,7 +125,8 @@ public static class DogPlayCheck
             if (caughtAt < 0f && Flat(dog.transform.position - Player.transform.position) < 16f)
                 caughtAt = Time.time - t0;
         });
-        bool ok = caughtAt >= 0f && caughtAt <= 4f;
+        // Getting up from a sit and a gait at a time to the sprint take a moment.
+        bool ok = caughtAt >= 0f && caughtAt <= 6f;
         return $"{Pass(ok)} catch up from {before:0} m: within 16 m after {caughtAt:0.0} s, now {Flat(dog.transform.position - Player.transform.position):0.0} m; {Line(dog)}";
     }
 
@@ -271,11 +272,13 @@ public static class DogPlayCheck
         float t0 = Time.time;
         await Seconds(20f, () =>
         {
-            if (arrivedAt < 0f && Flat(dog.transform.position - Player.transform.position) < 2.6f)
+            // It sits CallDistance in front of the player and waits for them to come.
+            if (arrivedAt < 0f && dog.Pose == DogPose.Sit && Flat(dog.transform.position - Player.transform.position) < dog.Settings.CallDistance + 0.7f)
                 arrivedAt = Time.time - t0;
         });
-        bool ok = answered && arrivedAt >= 0f && dog.State.Order == DogOrder.Follow;
-        return $"{Pass(ok)} whistle from {metres:0} m: answered {answered}, at heel after {arrivedAt:0.0} s, order {dog.State.Order}; {Line(dog)}";
+        float gap = Flat(dog.transform.position - Player.transform.position);
+        bool ok = answered && arrivedAt >= 0f && gap > dog.Settings.CallDistance - 0.8f && dog.State.Order == DogOrder.Follow;
+        return $"{Pass(ok)} whistle from {metres:0} m: answered {answered}, sat in front after {arrivedAt:0.0} s at {gap:0.0} m, order {dog.State.Order}; {Line(dog)}";
     }
 
     // Four whistles in a row annoy it (the next is ignored); a pet forgives.
@@ -327,7 +330,8 @@ public static class DogPlayCheck
             sat |= dog.Pose == DogPose.Sit;
             closest = Mathf.Min(closest, Flat(dog.transform.position - Player.transform.position));
         });
-        return $"{Pass(petting && sat && closest < 2.2f)} pet: petting {petting}, came to {closest:0.0} m, sat {sat}; {Line(dog)}";
+        // It stops PetDistance in front (the player walks the last bit).
+        return $"{Pass(petting && sat && closest < dog.Settings.PetDistance + 0.7f)} pet: petting {petting}, came to {closest:0.0} m, sat {sat}; {Line(dog)}";
     }
 
     // Looked at from 4 m for 1.5 s while it stands: a head tilt.
@@ -1269,9 +1273,10 @@ public static class DogPlayCheck
                 if (d < closest)
                     closeAt = $"{d:0.0} m at {Time.time - welcomeFrom:0.0} s, pose {dog.Pose}, v {dog.Legs.Velocity.magnitude:0.0}";
                 closest = Mathf.Min(closest, d);
-                sat |= closest < 2.6f && dog.Pose == DogPose.Sit;
+                // A lap ends at 2.4 m; a bounce, roll or bark at about 3 m (it greets from there, like a call).
+                sat |= closest < 3.3f && dog.Pose == DogPose.Sit;
             });
-            bool ok = closest < 2.6f && closest > 0.6f && sat && dog.State.Order == DogOrder.Stay;
+            bool ok = closest < 3.3f && closest > 0.6f && sat && dog.State.Order == DogOrder.Stay;
             return $"{Pass(ok)} welcome home: came to {closest:0.0} m ({closeAt}), sat by the player {sat}, order {dog.State.Order}; {Line(dog)}";
         }
         finally

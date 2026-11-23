@@ -120,11 +120,7 @@ public static class LayerLabSetup
         _oldMenu = Object.Instantiate(menu);
         menu.ButtonSprite = _chamfer;
         menu.CornerScale = ButtonCorners;
-        menu.Button = WithAlpha(Slot, 0.9f);
-        menu.ButtonHover = Hover;
-        menu.ButtonPressed = Pressed;
-        menu.Accent = WithAlpha(Hex("1D6E96"), 0.92f);
-        menu.Panel = WithAlpha(Navy, 0.96f);
+        // Menu colours (Button, Highlight, Panel) are now owned by MenuStyle / MenuTheme.cs: not reset here.
         Save(menu, log);
         return string.Join("\n", log);
     }

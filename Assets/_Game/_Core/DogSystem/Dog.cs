@@ -154,6 +154,8 @@ namespace MB13.Aipocalypse.Core.DogSystem
         public bool InHouse => _bodyRotation.HasValue;
         // Mid-scramble over the fence (the body on its arc, the agent waiting on the near side).
         public bool Scrambling { get; set; }
+        // A settle asked for mid-arc: taken up once the arc ends (DogWalk.Settle).
+        public DogPose? PendingPose { get; set; }
         // Getting out after a bite: a swing at it may miss (DodgeChance).
         public bool Escaping { get; set; }
         // The side the last hit came from (it falls that way when knocked down).
@@ -195,6 +197,14 @@ namespace MB13.Aipocalypse.Core.DogSystem
         {
             if (!_active || _animator == null)
                 return;
+            Legs.CanStep = Pose == DogPose.Stand && !Swimming && !InHouse && !Scrambling && !State.Down && Standing;
+            if (PendingPose.HasValue && !Legs.Arcing)
+            {
+                DogPose pose = PendingPose.Value;
+                PendingPose = null;
+                Legs.Halt();
+                SetPose(pose);
+            }
             Vector3 velocity = Legs.Velocity;
             float yaw = transform.eulerAngles.y;
             float yawRate = dt > 0f ? Mathf.DeltaAngle(_lastYaw, yaw) / dt : 0f;
@@ -239,6 +249,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
 
         public void SetPose(DogPose pose)
         {
+            PendingPose = null;
             Pose = pose;
             if (_animator == null)
                 return;

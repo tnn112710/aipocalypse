@@ -11,8 +11,8 @@ using VContainer;
 
 namespace MB13.Aipocalypse.Core.UI
 {
-    // Presents PlayerRespawnFlow: the eyes close, the death menu shows "Loading..." while the respawn is prepared (at least the
-    // style's MinLoadingTime), "Click to continue" once it's ready, and fades away when the player is back.
+    // Presents PlayerRespawnFlow: the eyes close, the death menu shows "Recovering to Base..." with a filling bar while the respawn
+    // is prepared (at least the style's MinLoadingTime), "Click to continue" once it's ready, and fades away when the player is back.
     public sealed class DeathScreenHud : PlayerHudView
     {
         [SerializeField] DeathScreenView _view;
@@ -49,6 +49,7 @@ namespace MB13.Aipocalypse.Core.UI
                 return;
             _view.SetStatus(_view.Style.LoadingText.Text(), pulse: false);
             _view.ShowMenu();
+            _view.FillBar(_view.Style.BarBeforeReady, _view.Style.MinLoadingTime, Ease.InOutSine);
         }
 
         UniTask OnRespawningAsync(PlayerRespawning _, CancellationToken cancellation) => _open
@@ -58,7 +59,10 @@ namespace MB13.Aipocalypse.Core.UI
         void OnStageChanged(RespawnStageChanged change)
         {
             if (change.Stage == RespawnStage.Ready && _open)
+            {
+                _view.FillBar(1f, _view.Style.BarFinishTime, Ease.OutSine);
                 _view.SetStatus(_view.Style.ContinueText.Text(), pulse: true);
+            }
             else if (change.Stage == RespawnStage.None)
                 Close(fade: true);
         }

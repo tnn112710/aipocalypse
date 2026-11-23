@@ -136,6 +136,30 @@ namespace MB13.Aipocalypse.Core.EnemySystem
             Lock(false);
         }
 
+        // Walks to `destination` and ends up facing `facing` (A* leads in on an arc): a dog stepping round to face something.
+        public void MoveTo(Vector3 destination, Vector3 facing, float timeout)
+        {
+            _agent.SetDestination(destination, facing);
+            _facing = Vector3.zero;
+            _deadline = Time.time + timeout;
+            _movedAt = Time.time;
+            _agent.isStopped = false;
+            MaxTurn(_walkTurnSpeed);
+            Lock(false);
+        }
+
+        // The navmesh point under `point` when one is within `tolerance` of it (flat).
+        public bool OnGround(Vector3 point, float tolerance, out Vector3 onMesh)
+        {
+            var nearest = _navigation.GetNearest(point, NearestNodeConstraint.Walkable);
+            onMesh = nearest.position;
+            if (nearest.node == null || !NavTags.Allows(_traversableTags, nearest.node.Tag))
+                return false;
+            Vector3 off = onMesh - point;
+            off.y = 0f;
+            return off.magnitude <= tolerance;
+        }
+
         // Stands where it is and turns towards `point` (A* turns an agent in place toward the facing of a destination it's on).
         public void Face(Vector3 point)
         {

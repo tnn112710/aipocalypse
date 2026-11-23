@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Ami.BroAudio;
 using MB13.Aipocalypse.Core.EnemySystem;
+using MB13.Aipocalypse.Core.RandomSystem;
 using MB13.Aipocalypse.Core.WorldTimeSystem;
 using UnityEngine;
 using UnityEngine.Localization;
@@ -38,6 +39,8 @@ namespace MB13.Aipocalypse.Core.DogSystem
         [Min(0f), Tooltip("It reappears this far behind the player (m)")] public float ReappearMin = 10f;
         [Min(0f)] public float ReappearMax = 15f;
         [Tooltip("Seconds before it reacts to the player starting or stopping (min, max)")] public Vector2 ReactionDelay = new(0.3f, 0.8f);
+        [Tooltip("Seconds before it matches the player breaking into a sprint (min, max)")] public Vector2 SprintReaction = new(0.6f, 1.2f);
+        [Min(0f), Tooltip("Speeding up goes one gait at a time (trot, canter, sprint), this many seconds each")] public float GaitRamp = 0.4f;
         [Min(0f), Tooltip("Seconds of walking one way before it scouts ahead")] public float SteadyTime = 2f;
         [Tooltip("How far ahead it scouts (m, min, max)")] public Vector2 Lead = new(4f, 7f);
         [Tooltip("Seconds before it swaps sides (min, max)")] public Vector2 SideSwap = new(20f, 40f);
@@ -55,19 +58,43 @@ namespace MB13.Aipocalypse.Core.DogSystem
         [Min(0f), Tooltip("Looked at within this (m)...")] public float LookRange = 10f;
         [Min(0f), Tooltip("...for this long (s): a head tilt")] public float LookTime = 1f;
         [Min(0f), Tooltip("Seconds between head tilts")] public float HeadTiltGap = 20f;
+        [Min(0f), Tooltip("Standing about this long (s)...")] public float IdleActAfter = 8f;
+        [Tooltip("...it does one of IdleActs every so often (s, min, max)")] public Vector2 IdleActGap = new(10f, 20f);
+        [Tooltip("What it does while standing about (a look round, a scratch, a yawn), by weight")] public WeightedTable<DogAct> IdleActs = new()
+        {
+            Entries =
+            {
+                new() { Value = DogAct.LookAround, Weight = 3f }, new() { Value = DogAct.LookLeft, Weight = 2f }, new() { Value = DogAct.LookRight, Weight = 2f },
+                new() { Value = DogAct.ScratchEarL, Weight = 1f }, new() { Value = DogAct.ScratchEarR, Weight = 1f }, new() { Value = DogAct.Yawn, Weight = 1f },
+            },
+        };
 
         [Header("Turning, rain, welcome home")]
         [Min(0f), Tooltip("Turning on the spot faster than this (degrees/s)...")] public float TurnMinRate = 50f;
         [Min(0f), Tooltip("...while slower than this (m/s)...")] public float TurnStillBelow = 0.25f;
         [Min(0f), Tooltip("...plays the walk at this speed so its legs step round (m/s)")] public float TurnStepSpeed = 1f;
         [Min(1f), Tooltip("Turning on the spot to face something (degrees/s): about what the walk step turns it")] public float FaceTurnSpeed = 150f;
+        [Range(0f, 180f), Tooltip("Facing something further round than this, it steps round in an arc instead of turning on the spot (degrees)")] public float ArcTurnAngle = 35f;
+        [Min(0.1f), Tooltip("The arc lands this far from where it stood (m)")] public float ArcTurnStep = 1.2f;
         [Range(0f, 1f), Tooltip("Rain heavier than this soaks it (the weather's rain amount)")] public float RainWetsAbove = 0.15f;
         [Min(0f), Tooltip("Seconds in the rain before it shakes itself dry once out of it (a roof, indoors, or the rain stops)")] public float WetToShake = 20f;
         [Min(0f), Tooltip("Staying at home: the player out of the yard this long (s)...")] public float WelcomeAfter = 60f;
-        [Min(0f), Tooltip("...then back: it runs over happy, circles them and sits, for at most this long (s)")] public float WelcomeTime = 25f;
+        [Min(0f), Tooltip("...then back: it runs over happy, greets them (Welcomes) and sits, for at most this long (s)")] public float WelcomeTime = 25f;
+        [Tooltip("How it greets them once it's there, by weight")] public WeightedTable<DogWelcomeStyle> Welcomes = new()
+        {
+            Entries =
+            {
+                new() { Value = DogWelcomeStyle.Circle, Weight = 4f }, new() { Value = DogWelcomeStyle.Bounce, Weight = 3f },
+                new() { Value = DogWelcomeStyle.Roll, Weight = 1f }, new() { Value = DogWelcomeStyle.Bark, Weight = 2f },
+            },
+        };
 
         [Header("Whistle")]
         [Min(0f), Tooltip("A plain whistle within this calls it (m)")] public float HearWhistleRange = 60f;
+        [Min(0.5f), Tooltip("Called, it comes to this far in front of the player and sits (m)")] public float CallDistance = 2.5f;
+        [Min(0f), Tooltip("...until the player comes within this of it (m)...")] public float ReachMe = 1.5f;
+        [Min(0f), Tooltip("...or this long (s)")] public float CallWait = 6f;
+        [Min(0.5f), Tooltip("To be petted it comes to this far in front of the player (m)")] public float PetDistance = 2.5f;
         [Min(2), Tooltip("This many plain whistles...")] public int SpamWhistles = 4;
         [Min(0f), Tooltip("...within this many seconds annoy it (never in a fight)")] public float SpamWindow = 5f;
         [Min(0f), Tooltip("Seconds it ignores plain whistles once annoyed")] public float AnnoyedTime = 6f;

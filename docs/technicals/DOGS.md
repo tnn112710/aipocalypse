@@ -21,7 +21,10 @@ Loki, a Border Collie, lives at its dog house in the WorldMap yard and comes exp
    - **Rain:** 20 s in rain heavier than 0.15 (the weather's rain amount) with nothing over it soaks it. Out of it (indoors, its dog house, any roof or canopy over it, or the rain stopping), it shakes itself dry the same way, once. A shorter shower dries off by itself (`DogWetness`).
    - **The shake** (after a swim or rain) waits up to 20 s for it to stand still, and counts as done only once the act plays: a sit or lie in the same moment would swallow the trigger.
    - **Acts** (bark, happy, head tilt, howl…) only play on its feet: `Dog.Act` drops one asked for while it sits or lies, and settling cancels one still waiting (it would otherwise go off seconds later once it's up, e.g. a happy wag holding it back from following). Sent off mid-act faster than 1.5 m/s, once the act has played 0.5 s, it cross-fades to its legs instead of sliding along in the pose (`WalkOff`; earlier it is still slowing into the act).
-   - **Turning on the spot:** the collie has no turn clips, so a turn faster than 50°/s while standing plays the walk at 1 m/s and its legs step round (`DogTurn`). Facing something (`Face`) turns it at `FaceTurnSpeed` 150°/s (A* would turn a standing agent at its max rate).
+   - **Turning to face something** (`DogLegs.Face`): further round than `ArcTurnAngle` 35°, it walks a short arc, `ArcTurnStep` 1.2 m ahead in the new direction, arriving facing it (A* leads in on an arc), the way a dog steps round instead of pivoting; only on its feet with navmesh to land on, and never farther from a spot it's keeping near (its stay point: `DogTurn.KeepsNear`). A settle asked for mid-arc (sit, lie) waits for the arc (`Dog.PendingPose`). Smaller turns, or ones with nowhere to step, are on the spot: the collie has no turn clips, so a turn faster than 50°/s while standing plays the walk at 1 m/s and its legs step round (`DogTurn.AnimatorSpeed`), at `FaceTurnSpeed` 150°/s (A* would turn a standing agent at its max rate). The fence scramble squares up on the spot (`FaceInPlace`).
+   - **Stopping and setting off:** the agent eases over 0.9 s (`slowdownTime`), and the legs follow the real speed, so it takes a slower step or two instead of braking. Following, it speeds up a gait at a time (trot, canter, sprint), `GaitRamp` 0.4 s each; slowing down is immediate (`DogFollow.Ramp`).
+   - **Standing about** for `IdleActAfter` 8 s (nothing going on: no fight, raid, call, pet or welcome), every `IdleActGap` 10–20 s it does one of `IdleActs` (by weight: a look round, a look left or right, an ear scratch, a yawn) (`DogManager.IdleActs`).
+   - **Ears and tail** lag the body a little: an Animation Rigging `DampedTransform` per ear tip and tail bone on the model's Animator (`DogSetup.Jiggle`, a RigBuilder on the model prefab: one unique character, so it's allowed).
    - **Turning while moving:** 200°/s, at most 260°/s, the drawn rotation smoothed over 0.2 s: a big dog turns in arcs. Link jumps and the fence scramble turn it at 360°/s at most, and it squares up to the fence before the leap (`DogScramble`).
 4. **Jumping:**
    - **The fence:** cut off from a player within 25 m by the fence, it scrambles over by a crossing point: at once with no walkable way round, else after 2.5 s (a gap nearby gets used first).
@@ -38,12 +41,12 @@ Loki, a Border Collie, lives at its dog house in the WorldMap yard and comes exp
    - **Told to stay:** it's a little sad for 6 s: a whine, it sits, then lies down watching the player go.
    - **In the yard,** Stay is home life: it strolls, sniff-walks and digs, trots over to its spots (by Bolt's garden, the house door, the gate, the herd's corner, the middle), sits or lies looking round, naps in its dog house doorway, and now and then does zoomies. It's never idle long.
    - **Outside the yard** it keeps within 4 m of the spot. At night, or when the player is over 150 m away, it walks home.
-   - **Welcome home:** staying at home, with the player out of the yard for 60 s or more, when they come back in it runs over (canter, to 1.4 m in front of them), happy with a bark, trots one lap round them (it stops short if the lap runs into a wall), then sits facing them for 2.5 s. At most 25 s; in a raid, never.
+   - **Welcome home:** staying at home, with the player out of the yard for 60 s or more, when they come back in it runs over (canter) and greets them one of the `Welcomes` ways, by weight: a lap (a happy bark, one trot round them, stopping short if the lap runs into a wall; it ends 2.4 m away), a happy bounce, a roll, or a bark (these from about 3 m, facing them); then it sits facing them for 2.5 s. At most 25 s; in a raid, never.
 7. **Night at home:** a yawn, then into its dog house to sleep with its head out until morning. Only the model goes in; the agent waits at the door, because the house is cut out of the navmesh.
 8. **The whistle (Q):**
-   - **Aimed at Loki,** or a plain whistle with nothing callable under the aim or heard (the robots come first) within 60 m: it comes to heel and follows. The fallback shows no prompt; aiming at Loki shows "[Q] Call Loki".
+   - **Aimed at Loki,** or a plain whistle with nothing callable under the aim or heard (the robots come first) within 60 m: it comes to `CallDistance` 2.5 m in front of the player and sits facing them (a dog this size right at their feet was in their face), until they come within `ReachMe` 1.5 m of it or `CallWait` 6 s pass; then it follows. The fallback shows no prompt; aiming at Loki shows "[Q] Call Loki".
    - **Spam:** 4 plain whistles in 5 s annoy it. It shakes its head and walks over grumbling, then ignores plain whistles for 6 s. A pet forgives it. Whistles in a fight never count (Phase 2).
-9. **Pet (hold E or the wheel):** it comes in front of the player, happy (a roll 1 in 4, or a head tilt), then sits.
+9. **Pet (hold E or the wheel):** it comes to `PetDistance` 2.5 m in front of the player, happy (a roll 1 in 4, or a head tilt), then sits; the player walks up to it.
 10. **Shot by the player:** a yelp and a flinch by side. No damage, no hit marker.
 11. **Bedtime:** following, when the player uses the bed it trots (canters from over 4 m) to the floor beside it and sits while they pick the wake-up time; when they lie down it lies down facing the bed and falls asleep.
 12. **After death or a night's sleep:** it's back at its dog house, following (it then comes to the player).
@@ -145,10 +148,10 @@ Also:
 
 `Data/Dogs/DogSettings.asset`:
 - **Speeds:** walk 1, trot 2.4, canter 4.8, sprint 9.5 m/s. The clips' own paces at its size are 0.95 / 2.31 / 5.95 / 7.5 / 9.83 (the blend thresholds), and the sprint plays up to 12.3 m/s faster.
-- **Following:** the zone radii, delays, lead, side swap, aim cone, sniff radius, settle times, check-ins, swim depth, look.
-- **Whistle:** range and spam.
+- **Following:** the zone radii, delays (the sprint one `SprintReaction` 0.6–1.2 s before it matches the player breaking into a sprint), the gait ramp, lead, side swap, aim cone, sniff radius, settle times, check-ins, idle acts, swim depth, look.
+- **Whistle:** range, the call distance, reach and wait, the pet distance, spam.
 - **Stay:** radius and go-home distance.
-- **Turning, rain, welcome home:** turn rate and step speed, how heavy rain soaks it and for how long, how long the player is away before a welcome and how long it lasts.
+- **Turning, rain, welcome home:** turn rate and step speed, the face turn speed, the arc turn angle and step, how heavy rain soaks it and for how long, how long the player is away before a welcome, how long it lasts and the greeting weights.
 - **Wheel:** time scale.
 - **Voice:** gaps.
 - **Sounds:** the SoundIDs.

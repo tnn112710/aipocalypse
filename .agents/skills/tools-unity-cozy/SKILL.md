@@ -5,7 +5,7 @@ description: COZY 4 Stylized Weather in aipocalypse — how COZY draws the sky, 
 
 # COZY 4 in aipocalypse
 
-Library facts, API and vendor bugs: the user-scope **`unity-cozy-weather`** skill (read it first; other agents: `~/.claude/skills/unity-cozy-weather/`, or the package source under `Packages/space.distantlands.cozyweather.*`). This file is only what is specific to this repo. The system doc is `docs/technicals/DAYNIGHT.md`; PLUGINS.md has the COZY row.
+Library facts, API and vendor bugs: the user-scope **`unity-cozy-weather`** skill (open it only for API or vendor-bug detail this file lacks; other agents: `~/.claude/skills/unity-cozy-weather/`, or the package source under `Packages/space.distantlands.cozyweather.*`). This file is only what is specific to this repo. The system doc is `docs/technicals/DAYNIGHT.md`; PLUGINS.md has the COZY row.
 
 Installed: COZY 4 core (version in `Packages/space.distantlands.cozyweather.core/package.json`) with Blocks, Eclipse, Horizon, Resound. The empty `Packages/com.distantlands.cozy.*` folders are COZY 3 leftovers.
 

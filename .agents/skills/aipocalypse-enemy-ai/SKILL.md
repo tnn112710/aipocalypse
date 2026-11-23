@@ -5,7 +5,7 @@ description: How AI is built in aipocalypse — designing agent behaviour (reada
 
 # Enemy AI in aipocalypse
 
-Project layer on top of the library skills. Read those for the API: **unity-behavior-designer-pro** (BD Pro 3.3.4: tasks, trees, aborts, events, Manual mode) and **unity-astar** (A\* 5.4.7: FollowerEntity, graphs, queries, pooling). Where they and this file disagree, this file and `docs/technicals/` win.
+Project layer on top of the library skills. This file is enough for most tasks; open a library skill only for API detail it lacks: **unity-behavior-designer-pro** (BD Pro 3.3.4: tasks, trees, aborts, events, Manual mode) and **unity-astar** (A\* 5.4.7: FollowerEntity, graphs, queries, pooling). Where they and this file disagree, this file and `docs/technicals/` win.
 
 What exists, file by file, is already documented. Read it, don't re-derive it:
 - `docs/technicals/ARCHITECTURE.md` → **AI** (the wander slice, how a scene gets enemies, the tick budget, the Navigation prefab), **Entities** (crowd vs unique entities, `IPlayerTarget` / `PlayerRegistry`), **Performance** (allocation and central-tick rules), **Prototypes → main game**.

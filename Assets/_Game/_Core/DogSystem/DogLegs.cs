@@ -10,10 +10,14 @@ namespace MB13.Aipocalypse.Core.DogSystem
     public sealed class DogLegs : MonoBehaviour
     {
         const float StopDistance = 0.25f;
+        const float ArcTimeout = 3f;
+        const float ArcGround = 0.5f;
 
         EnemyMover _mover;
         AstarPath _navigation;
         DogSettings _settings;
+        bool _arcing;
+        Vector3 _arcDirection;
 
         [Inject]
         void Construct(AstarPath navigation) => _navigation = navigation;
@@ -23,6 +27,10 @@ namespace MB13.Aipocalypse.Core.DogSystem
         public Vector3 Velocity => Mover.Velocity;
         public bool Settled => Mover.Settled;
         public bool Arrived => Mover.Arrived;
+        // On its feet and free to step round (Dog sets it each frame: standing, not swimming, in its house or mid-jump).
+        public bool CanStep { get; set; }
+        // Walking an arc to face something; settling waits for it.
+        public bool Arcing => _arcing && !Mover.Settled;
 
         public void Begin(DogSettings settings)
         {
@@ -33,9 +41,62 @@ namespace MB13.Aipocalypse.Core.DogSystem
 
         public void SetGait(DogGait gait) => Mover.SetSpeed(Speed(gait));
         public void SetSpeed(float speed) => Mover.SetSpeed(speed);
-        public void MoveTo(Vector3 destination, float timeout) => Mover.MoveTo(destination, timeout);
-        public void Face(Vector3 point) => Mover.Face(point);
-        public void Halt() => Mover.Halt();
+        public void MoveTo(Vector3 destination, float timeout)
+        {
+            _arcing = false;
+            Mover.MoveTo(destination, timeout);
+        }
+
+        // Turns to face `point`: a big turn as a short walked arc (when it can step, there's ground to land on, and the
+        // landing keeps it near `keepNear` if given), a small one on the spot.
+        public void Face(Vector3 point) => Face(point, null);
+
+        public void Face(Vector3 point, Vector3? keepNear)
+        {
+            if (!TryArc(point, keepNear))
+                FaceInPlace(point);
+        }
+
+        public void FaceInPlace(Vector3 point)
+        {
+            _arcing = false;
+            Mover.Face(point);
+        }
+
+        public bool TryArc(Vector3 point, Vector3? keepNear)
+        {
+            Vector3 from = transform.position;
+            Vector3 direction = point - from;
+            direction.y = 0f;
+            if (direction.sqrMagnitude < 0.0001f)
+                return false;
+            direction.Normalize();
+            if (Arcing)
+            {
+                // The arc under way already points there: keep going.
+                if (Vector3.Angle(_arcDirection, direction) < DogTurn.ArcDone)
+                    return true;
+                _arcing = false;
+            }
+            if (!CanStep || !DogTurn.WantsArc(transform.forward, direction, _settings.ArcTurnAngle))
+                return false;
+            Vector3 landing = DogTurn.Landing(from, direction, _settings.ArcTurnStep);
+            if (keepNear.HasValue && !DogTurn.KeepsNear(from, landing, keepNear.Value))
+                return false;
+            if (!Mover.OnGround(landing, ArcGround, out Vector3 onMesh))
+                return false;
+            _arcing = true;
+            _arcDirection = direction;
+            Mover.SetSpeed(_settings.WalkSpeed);
+            Mover.MoveTo(onMesh, direction, ArcTimeout);
+            return true;
+        }
+
+        public void Halt()
+        {
+            _arcing = false;
+            Mover.Halt();
+        }
         public void Warp(Vector3 position) => Mover.Teleport(position);
 
         public bool TryFindDestination(Vector3 center, float radius, float minDistance, int attempts, out Vector3 destination) =>

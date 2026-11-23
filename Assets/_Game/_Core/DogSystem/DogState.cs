@@ -306,6 +306,10 @@ namespace MB13.Aipocalypse.Core.DogSystem
             _whistles.Clear();
         }
 
+        // Sitting where it was called to: done once the player comes to it, or after CallWait.
+        public static bool CallOver(float sittingFor, float playerDistance, DogSettings settings) =>
+            playerDistance <= settings.ReachMe || sittingFor >= settings.CallWait;
+
         public bool TryHeadTilt(float now)
         {
             if (now < _nextHeadTilt)

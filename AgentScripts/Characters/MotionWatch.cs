@@ -21,6 +21,7 @@ public static class MotionWatch
 {
     const string ReportPath = "Temp/MotionWatch.txt";
     const float SnapRate = 720f;
+    const float SlowFrame = 0.05f;
     const float TurningRate = 30f;
     const float WobbleWindow = 0.3f;
     const int FreezeFrames = 3;
@@ -35,6 +36,8 @@ public static class MotionWatch
         public Transform Body;
         public Animator Animator;
         public Renderer[] Renderers;
+        public Pathfinding.FollowerEntity Agent;
+        public Vector3 LastDestination;
         public Dictionary<int, string> States;
         public HashSet<int> Blends;
         public readonly Dictionary<string, float> Slides = new();
@@ -115,6 +118,7 @@ public static class MotionWatch
             // The animator's own transform: the body as drawn (a dog in its house or mid-jump turns its model, not its root).
             Body = p.Item2.transform,
             Renderers = p.Item2.GetComponentsInChildren<Renderer>(),
+            Agent = p.Item2.GetComponentInParent<Pathfinding.FollowerEntity>(),
             States = Names(p.Item2, out HashSet<int> blends),
             Blends = blends,
         }).ToList();
@@ -179,10 +183,12 @@ public static class MotionWatch
         float delta = Mathf.DeltaAngle(t.LastYaw, yaw);
         float rate = Mathf.Abs(delta) / dt;
         t.PeakTurn = Mathf.Max(t.PeakTurn, rate);
-        if (rate > SnapRate && step.magnitude < 3f)
+        // A slow frame (a hitch) turns it far in one step at a normal rate: not a snap.
+        if (rate > SnapRate && step.magnitude < 3f && dt < SlowFrame)
         {
             t.Snaps++;
-            t.Note($"snap {delta:0} deg in one frame ({t.State(info.shortNameHash)})");
+            string agent = t.Agent == null ? "" : $", dt {dt:0.000}, agent stopped {t.Agent.isStopped} reached {t.Agent.reachedDestination} dest moved {(t.Agent.destination - t.LastDestination).magnitude:0.00} maxRot {t.Agent.movementSettings.follower.maxRotationSpeed:0} v {t.Agent.velocity.magnitude:0.0}";
+            t.Note($"snap {delta:0} deg in one frame ({t.State(info.shortNameHash)}{agent})");
         }
         if (rate > TurningRate)
         {
@@ -230,6 +236,8 @@ public static class MotionWatch
         }
 
         t.PeakSpeedStep = Mathf.Max(t.PeakSpeedStep, Mathf.Abs(speed - t.LastSpeed));
+        if (t.Agent != null)
+            t.LastDestination = t.Agent.destination;
         t.LastYaw = yaw;
         t.LastPosition = position;
         t.LastState = info.shortNameHash;

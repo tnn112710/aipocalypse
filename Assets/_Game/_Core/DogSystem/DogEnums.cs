@@ -49,6 +49,20 @@ namespace MB13.Aipocalypse.Core.DogSystem
         Alert,
         Yawn,
         Growl,
+        LookAround,
+        LookLeft,
+        LookRight,
+        ScratchEarL,
+        ScratchEarR,
+    }
+
+    // How it greets the player home (DogSettings.Welcomes): a lap round them, a happy bounce, a roll, or a bark.
+    public enum DogWelcomeStyle
+    {
+        Circle,
+        Bounce,
+        Roll,
+        Bark,
     }
 
     // What a hit did to the dog (DogState.Hit).

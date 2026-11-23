@@ -84,7 +84,7 @@ namespace MB13.Aipocalypse.Tests
         public void Follow_FarBehindAWalkingPlayersGoalItSprints()
         {
             // Walking steadily: it scouts ahead; with the goal more than 8 m off a canter barely gains on a walker.
-            var plan = Run(0f, 3f, new Vector3(1f, 0f, -6f), new Vector3(0f, 0f, 3f));
+            var plan = Run(0f, 4.5f, new Vector3(1f, 0f, -6f), new Vector3(0f, 0f, 3f));
             Assert.That(plan.Mode, Is.EqualTo(FollowMode.Scout));
             Assert.That(plan.Gait, Is.EqualTo(DogGait.Sprint));
         }
@@ -102,7 +102,7 @@ namespace MB13.Aipocalypse.Tests
         [Test]
         public void Follow_PastSprintRadiusSprints()
         {
-            var plan = Run(0f, 1.5f, new Vector3(20f, 0f, 0f));
+            var plan = Run(0f, 2.5f, new Vector3(20f, 0f, 0f));
             Assert.That(plan.Mode, Is.EqualTo(FollowMode.Sprint));
             Assert.That(plan.Gait, Is.EqualTo(DogGait.Sprint));
         }
@@ -143,10 +143,39 @@ namespace MB13.Aipocalypse.Tests
         [Test]
         public void Follow_PlayerSprintingRunsAlongside()
         {
-            var plan = Run(0f, 1.5f, new Vector3(3f, 0f, 0f), new Vector3(0f, 0f, 6f), sprinting: true);
+            var plan = Run(0f, 2.5f, new Vector3(3f, 0f, 0f), new Vector3(0f, 0f, 6f), sprinting: true);
             Assert.That(plan.Mode, Is.EqualTo(FollowMode.Alongside));
             Assert.That(plan.Gait, Is.EqualTo(DogGait.Sprint));
             Assert.That(plan.Goal.x, Is.GreaterThan(0.5f), "beside the player on its side");
+        }
+
+        [Test]
+        public void Follow_MatchesASprintOnlyAfterTheSprintReaction()
+        {
+            var dog = new Vector3(3f, 0f, 0f);
+            var running = new Vector3(0f, 0f, 6f);
+            Assert.That(Run(0f, _settings.SprintReaction.x - 0.1f, dog, running, sprinting: true).Mode, Is.EqualTo(FollowMode.Free), "not yet");
+            Assert.That(Run(_settings.SprintReaction.x, _settings.SprintReaction.y + 0.1f, dog, running, sprinting: true).Mode, Is.EqualTo(FollowMode.Alongside));
+        }
+
+        [Test]
+        public void Follow_SpeedsUpOneGaitAtATime()
+        {
+            // Far out: a sprint back, reached a gait per GaitRamp from a standing start (trot first).
+            var dog = new Vector3(20f, 0f, 0f);
+            float start = _settings.ReactionDelay.y + 0.1f;
+            Assert.That(Run(0f, start, dog).Gait, Is.EqualTo(DogGait.Trot));
+            Assert.That(Run(start + Frame, start + _settings.GaitRamp, dog).Gait, Is.EqualTo(DogGait.Canter));
+            Assert.That(Run(start + _settings.GaitRamp + Frame, start + 2f * _settings.GaitRamp, dog).Gait, Is.EqualTo(DogGait.Sprint));
+        }
+
+        [Test]
+        public void Follow_SlowsDownAtOnce()
+        {
+            var far = new Vector3(20f, 0f, 0f);
+            Assert.That(Run(0f, 3f, far).Gait, Is.EqualTo(DogGait.Sprint));
+            // Back inside the zone: once the mode changes (the reaction delay) the gait drops straight down.
+            Assert.That(Run(3.1f, 3.1f + _settings.ReactionDelay.y + 0.1f, new Vector3(2f, 0f, 0f)).Gait, Is.EqualTo(DogGait.Still));
         }
 
         [Test]

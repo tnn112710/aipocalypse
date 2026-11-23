@@ -80,6 +80,8 @@ namespace MB13.Aipocalypse.Core.DogSystem
         float _lookedFor;
         bool _hasPath = true;
         float _nextPathCheck;
+        float _stillSince = float.NaN;
+        float _nextIdleAct;
         float _shakeUntil = float.NegativeInfinity;
         float _nextShakeTry;
         float _fencedFor;
@@ -174,6 +176,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
             Rain(dog, now, dt);
             Swim(dog, now);
             LookedAt(dog, player, now, dt);
+            IdleActs(dog, now);
             dog.Advance(dt);
             if (now < dog.NextThinkAt)
                 return;
@@ -382,6 +385,30 @@ namespace MB13.Aipocalypse.Core.DogSystem
                 return;
             dog.Legs.Face(_roster.PlayerPosition);
             dog.Act(DogAct.HeadTilt);
+        }
+
+        // Standing about (on its feet, still, nothing going on) for IdleActAfter: one of IdleActs every IdleActGap.
+        void IdleActs(Dog dog, float now)
+        {
+            bool still = dog.Standing && dog.Pose == DogPose.Stand && Flat(dog.Legs.Velocity) < 0.1f && !dog.Swimming && !dog.InHouse
+                && !dog.Scrambling && !dog.State.Down && !InFight && !_roster.Raid && !dog.State.Called(now) && !dog.State.Petting(now)
+                && !dog.State.Welcoming(now);
+            if (!still)
+            {
+                _stillSince = float.NaN;
+                return;
+            }
+            if (float.IsNaN(_stillSince))
+            {
+                _stillSince = now;
+                _nextIdleAct = now + _settings.IdleActAfter;
+                return;
+            }
+            if (now < _nextIdleAct)
+                return;
+            _nextIdleAct = now + Mathf.Lerp(_settings.IdleActGap.x, _settings.IdleActGap.y, Roll());
+            if (_settings.IdleActs.TryPick(Roll(), out DogAct act))
+                dog.Act(act);
         }
 
         // ---- The fight ----

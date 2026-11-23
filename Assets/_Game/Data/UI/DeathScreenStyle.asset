@@ -39,23 +39,67 @@ MonoBehaviour:
     Closed: 1
     Darkness: 1
     Ease: 1
-  BackgroundColor: {r: 0.17, g: 0.61, b: 0.71, a: 1}
-  GlowTexture: {fileID: 2800000, guid: 1d590987d79a61a46a6f470aec6547bb, type: 3}
-  GlowColor: {r: 0.55, g: 0.85, b: 0.89, a: 0.9}
-  FooterColor: {r: 0.04, g: 0.33, b: 0.45, a: 1}
-  FooterLineColor: {r: 0.6, g: 0.85, b: 0.9, a: 0.85}
+  Sky:
+    serializedVersion: 2
+    key0: {r: 0.937, g: 0.357, b: 0.239, a: 1}
+    key1: {r: 0.996, g: 0.545, b: 0.208, a: 1}
+    key2: {r: 1, g: 0.761, b: 0.29, a: 0}
+    key3: {r: 0, g: 0, b: 0, a: 0}
+    key4: {r: 0, g: 0, b: 0, a: 0}
+    key5: {r: 0, g: 0, b: 0, a: 0}
+    key6: {r: 0, g: 0, b: 0, a: 0}
+    key7: {r: 0, g: 0, b: 0, a: 0}
+    ctime0: 0
+    ctime1: 29491
+    ctime2: 65535
+    ctime3: 0
+    ctime4: 0
+    ctime5: 0
+    ctime6: 0
+    ctime7: 0
+    atime0: 0
+    atime1: 65535
+    atime2: 0
+    atime3: 0
+    atime4: 0
+    atime5: 0
+    atime6: 0
+    atime7: 0
+    m_Mode: 0
+    m_ColorSpace: -1
+    m_NumColorKeys: 3
+    m_NumAlphaKeys: 2
+  SunTint: {r: 1, g: 1, b: 1, a: 1}
+  CloudTint: {r: 1, g: 1, b: 1, a: 1}
+  MountainTint: {r: 1, g: 1, b: 1, a: 1}
+  TreeTint: {r: 1, g: 1, b: 1, a: 1}
+  GroundColor: {r: 0.17, g: 0.09, b: 0.06, a: 1}
+  DogTint: {r: 1, g: 1, b: 1, a: 1}
+  CloudDrift: 28
+  CloudDriftPeriod: 11
   TitleFont: {fileID: 11400000, guid: 3e26a0e98906ae4419e8ed36dfbc65c1, type: 2}
   TitleMaterial: {fileID: 2100000, guid: 172a76bb0985c28468c59fd09bb3fe9d, type: 2}
-  TitleSize: 230
-  TitleColor: {r: 0.93, g: 0.9, b: 0.88, a: 1}
+  TitleSize: 170
+  TitleColor: {r: 1, g: 0.945, b: 0.82, a: 1}
+  SubtitleSize: 52
+  SubtitleColor: {r: 1, g: 0.945, b: 0.82, a: 1}
   StatusFont: {fileID: 11400000, guid: 3e26a0e98906ae4419e8ed36dfbc65c1, type: 2}
-  StatusSize: 44
-  StatusColor: {r: 1, g: 1, b: 1, a: 1}
+  StatusSize: 40
+  StatusColor: {r: 1, g: 0.945, b: 0.82, a: 1}
   Title:
     m_TableReference:
       m_TableCollectionName: GUID:a375ad9719cf3eb468e82aaa4c479d10
     m_TableEntryReference:
       m_KeyId: 1944301592
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  Subtitle:
+    m_TableReference:
+      m_TableCollectionName: GUID:a375ad9719cf3eb468e82aaa4c479d10
+    m_TableEntryReference:
+      m_KeyId: 3933744332361728
       m_Key: 
     m_FallbackState: 0
     m_WaitForCompletion: 0
@@ -78,6 +122,11 @@ MonoBehaviour:
     m_FallbackState: 0
     m_WaitForCompletion: 0
     m_LocalVariables: []
+  BarFrameTint: {r: 1, g: 1, b: 1, a: 1}
+  BarTrackColor: {r: 1, g: 0.945, b: 0.82, a: 1}
+  BarFillTint: {r: 1, g: 1, b: 1, a: 1}
+  BarBeforeReady: 0.9
+  BarFinishTime: 0.3
   MenuFadeIn: 0.6
   MenuFadeOut: 0.5
   MinLoadingTime: 1.2

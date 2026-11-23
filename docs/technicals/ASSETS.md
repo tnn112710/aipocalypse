@@ -163,4 +163,4 @@ All sound plays through BroAudio entities in `Assets/_Game/Data/Audio/` (`tools-
 
 | Folder | Tag | Notes |
 | --- | --- | --- |
-| `Assets/_Placeholder/` | Avoid | Temporary storage for placeholder and AI-generated assets. Nothing ships from here and nothing new should point at it; replace these uses with real assets: `Audio/Weapons` (gun fire, equip, reload and bolt sounds, repair QTE mechanism/miss), `Audio/Music` (death music), `Audio/Voice` (death groans). |
+| `Assets/_Placeholder/` | Avoid | Temporary storage for placeholder and AI-generated assets. Nothing ships from here and nothing new should point at it; replace these uses with real assets: `Audio/Weapons` (gun fire, equip, reload and bolt sounds, repair QTE mechanism/miss), `Audio/Music` (death music), `Audio/Voice` (death groans), `UI/DeathScreen` (AI-generated art layers of the "Walk it off!" death screen: sun, clouds, mountains, trees, dog, progress bar; see its SOURCES.txt). |
