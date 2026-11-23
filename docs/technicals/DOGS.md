@@ -27,8 +27,9 @@ Loki, a Border Collie, lives at its dog house in the WorldMap yard and comes exp
    - **Ears and tail** lag the body a little: an Animation Rigging `DampedTransform` per ear tip and tail bone on the model's Animator (`DogSetup.Jiggle`, a RigBuilder on the model prefab: one unique character, so it's allowed).
    - **Turning while moving:** 200°/s, at most 260°/s, the drawn rotation smoothed over 0.2 s: a big dog turns in arcs. Link jumps and the fence scramble turn it at 360°/s at most, and it squares up to the fence before the leap (`DogScramble`).
 4. **Jumping:**
-   - **The fence:** cut off from a player within 25 m by the fence, it scrambles over by a crossing point: at once with no walkable way round, else after 2.5 s (a gap nearby gets used first).
-     - The crossing points are the 53 `DogLinkInfo` markers in `Home Dog/Fence Links`, one per segment and the gate.
+   - **The fence:** cut off from a player within 25 m by the fence, it scrambles over by a crossing point: at once with no walkable way round, else after 2.5 s.
+     - Only where the fence stands: each crossing knows its segment, and a fallen or not-yet-built segment or an open gate is a gap, never climbed. With a walkable way round, a gap at most `GapDetour` (10 m) longer than the way over is walked through instead of scrambling (`DogRoster.ScrambleCrossing`); a segment that falls while the dog trots to it ends the scramble.
+     - The crossing points are the 53 `DogLinkInfo` markers in `Home Dog/Fence Links`, one per segment and the gate, each linked to its `BarrierSegment`.
      - The scramble is scripted (`DogScramble`): the model on the arc, paws up the 2 m fence, climb, drop off the far side; then the agent is placed on the far side.
      - There are no NodeLink2s: a link would join the shut yard's navmesh island to the outside for every agent, so raiders would stop breaking in.
    - **The house door:** it uses the robots' door link, walking to the sill and hopping the 1 m step.
@@ -197,12 +198,11 @@ Updating or reimporting the pack (or changing its import settings) needs the dog
    states using the same take one looping and one not need their own `copyName` (the bite: Attack 0 and `Pin`).
 6. **Speeds:** the Move thresholds come from each locomotion clip's Root drift (`Controller` logs them: walk 0.96,
    trot 2.30, canter 5.95, run 7.50, sprint 9.82). If they change, retune `DogSettings` speeds.
-7. **Play check:** Follow, Whistle, Pet, TurnInPlace, Scramble, WelcomeHome (`DogPlayCheck`), and a look at the sit,
+7. **Play check:** Follow, Whistle, Pet, TurnInPlace, Scramble, Gap, WelcomeHome (`DogPlayCheck`), and a look at the sit,
    the roll, a hop and a ledge climb in game.
 
 ## Known gaps
 
-- **A new game's yard is open:** the front half of the fence starts as debris (DEFENSE.md), so until the player rebuilds it the dog walks in and out through the gaps; the scramble is for a rebuilt fence.
 - **Rolls:** dodges and takedowns use `RandomService`; behaviour flavour (feints, growls, activities) uses `UnityEngine.Random`.
 
 - **Colour:** the colour is Black 01; the user picks from `DogPreview.Colours`.

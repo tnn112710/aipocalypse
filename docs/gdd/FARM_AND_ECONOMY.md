@@ -40,6 +40,7 @@ The animals discussed include chickens, cows, sheep and pigs. Their availability
 - Crops and plants grow inside the fence. Harvests can contribute food or be sold for money.
 - Animal products and harvested ingredients support cooking, eating where applicable, and selling. Exact recipes, edible ingredients and meal effects are open.
 - Fishing provides fish that can be cooked or sold. Night fishing is a quiet-night activity.
+- **Monster on the hook (user, 2026-11-24):** fishing sometimes hooks a monster or a boss instead of a fish, and the player must fight it. Open: where and when it can happen, since ordinary days in the meadow are safe ([CORE.md](CORE.md#loop-rules)), and whether a short window lets the player cut the line. Suggestions in [IDEAS.md](IDEAS.md#gacha-and-random-fun-user-2026-11-24).
 - Crop selection, growth times, replanting, watering, feed crops and fertilizer are undecided. Adding farming to the core loop does not commit to every farming-simulator subsystem.
 
 ## Trading service
@@ -122,6 +123,7 @@ Deposits -> keep Tokens and items safe from death and raids
 | Animal progression | Starting species, pig products, animal acquisition and whether breeding exists |
 | Crops | Starter plants, growth, replanting and maintenance |
 | Food | Recipes, meal effects and whether cooked products can be sold |
+| Fishing | Where and when a monster or boss can be hooked, its chance, and whether the line can be cut |
 | Robots and crafting | Rescued-robot roster and where each is found, station functions, crafting tiers and recipes |
 | Tribute | Costs per level and per major event |
 | Economy balance | Income, daily costs, recovery and the relationship between Tokens and exploration materials |

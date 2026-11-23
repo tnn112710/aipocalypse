@@ -186,6 +186,47 @@ public static class DogPlayCheck
         return $"{Pass(outOk && inOk)} scramble: {outLine}; back: inside {yard.Contains(dog.transform.position)} by a link {linked}; {Line(dog)}";
     }
 
+    // Across a fallen (unbuilt) segment the dog walks through, never scrambling; across a standing one far from any gap it
+    // still scrambles. Picks the crossings itself (a new game: the front half of the fence is debris).
+    public static async Task<string> Gap()
+    {
+        Dog dog = Dog;
+        DogRoster roster = Scope.Resolve<DogRoster>();
+        RobotYard yard = Object.FindAnyObjectByType<RobotYard>();
+        Scope.Resolve<DogManager>().Order(dog, DogOrder.Follow);
+        DogLinkInfo gap = roster.Crossings.FirstOrDefault(c => !c.Standing);
+        if (gap == null)
+            return "FAIL gap: no fallen segment in this game (start a new game)";
+        float detour = roster.Settings.GapDetour + 8f;
+        DogLinkInfo wall = roster.Crossings.Where(c => c.Standing)
+            .FirstOrDefault(c => roster.Crossings.Where(g => !g.Standing).All(g => Flat(g.Inside - c.Inside) > detour));
+        var sb = new StringBuilder();
+        bool ok = true;
+        foreach ((DogLinkInfo crossing, bool walk) in new[] { (gap, true), (wall, false) })
+        {
+            if (crossing == null)
+            {
+                sb.Append("no standing segment far from a gap; ");
+                continue;
+            }
+            Vector3 across = (crossing.Outside - crossing.Inside).normalized;
+            Vector3 inside = Ground(crossing.Inside - across * 5f);
+            Vector3 beyond = Ground(crossing.Outside + across * 6f);
+            PlacePlayer(inside, beyond);
+            dog.Legs.Warp(Ground(crossing.Inside - across * 3f));
+            await Seconds(2f, null);
+            PlacePlayer(beyond, inside);
+            bool scrambled = false;
+            await Seconds(12f, () => scrambled |= dog.Scrambling);
+            bool outside = !yard.Contains(dog.transform.position);
+            bool pass = outside && scrambled != walk;
+            ok &= pass;
+            sb.Append($"{crossing.name} ({(walk ? "fallen" : "standing")}): out {outside}, scrambled {scrambled}, " +
+                      $"{Flat(dog.transform.position - beyond):0.0} m from the player {(pass ? "ok" : "WRONG")}; ");
+        }
+        return $"{Pass(ok)} gap: {sb}{Line(dog)}";
+    }
+
     // The player goes into the house: the dog follows through the door (the robots' link) and back out.
     public static async Task<string> Indoors()
     {

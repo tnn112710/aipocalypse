@@ -102,6 +102,8 @@ namespace MB13.Aipocalypse.Core.DogSystem
         [Header("Over the fence")]
         [Min(0f), Tooltip("Cut off by the fence from a player this close (m)...")] public float ScrambleRange = 25f;
         [Min(0f), Tooltip("...for this long (s, time to go through a gap nearby first): it scrambles over")] public float ScrambleAfter = 2.5f;
+        [Min(0f), Tooltip("A gap (fallen or unbuilt segment, open gate) at most this much longer way round (m) is walked through instead")]
+        public float GapDetour = 10f;
 
         [Header("The farm")]
         [Min(0f), Tooltip("Herding: it stands this far behind an animal (from home) and barks it on (m)")] public float HerdBehind = 3f;

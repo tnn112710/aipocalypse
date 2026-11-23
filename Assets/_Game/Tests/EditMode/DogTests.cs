@@ -72,6 +72,37 @@ namespace MB13.Aipocalypse.Tests
             Assert.That(DogJumpArc.Pick(0.3f, 0.5f), Is.EqualTo(JumpKind.Hop), "a low log is hopped");
         }
 
+        // Crossings along a fence on z = 0 (the dog at z = -3, the player at z = +10): near end, far end, whether it stands.
+        static (UnityEngine.Vector3 Near, UnityEngine.Vector3 Far, bool Standing) Crossing(float x, bool standing) =>
+            (new UnityEngine.Vector3(x, 0f, -2f), new UnityEngine.Vector3(x, 0f, 2f), standing);
+
+        static readonly UnityEngine.Vector3 DogAt = new(0f, 0f, -3f);
+        static readonly UnityEngine.Vector3 PlayerAt = new(0f, 0f, 10f);
+
+        [Test]
+        public void ScrambleOver_NeverPicksAFallenSegment()
+        {
+            var ways = new[] { Crossing(0f, false), Crossing(6f, true) };
+            Assert.That(DogRoster.ScrambleOver(DogAt, PlayerAt, ways, false, 0f), Is.EqualTo(1), "no way through: over the standing one");
+            Assert.That(DogRoster.ScrambleOver(DogAt, PlayerAt, new[] { Crossing(0f, false) }, false, 0f), Is.EqualTo(-1), "nothing standing");
+        }
+
+        [Test]
+        public void ScrambleOver_WalksThroughAGapCloseBy()
+        {
+            var ways = new[] { Crossing(0f, true), Crossing(4f, false) };
+            Assert.That(DogRoster.ScrambleOver(DogAt, PlayerAt, ways, true, 10f), Is.EqualTo(-1), "a gap 4 m along: walked through");
+            Assert.That(DogRoster.ScrambleOver(DogAt, PlayerAt, new[] { Crossing(0f, false) }, true, 10f), Is.EqualTo(-1), "the fence isn't built");
+        }
+
+        [Test]
+        public void ScrambleOver_ClimbsWhenTheGapIsFar()
+        {
+            var ways = new[] { Crossing(0f, true), Crossing(30f, false) };
+            Assert.That(DogRoster.ScrambleOver(DogAt, PlayerAt, ways, true, 10f), Is.EqualTo(0));
+            Assert.That(DogRoster.ScrambleOver(DogAt, PlayerAt, new[] { Crossing(0f, true) }, true, 10f), Is.EqualTo(0), "no gap at all");
+        }
+
         [Test]
         public void JumpArc_ScrambleClearsTheObstacle()
         {

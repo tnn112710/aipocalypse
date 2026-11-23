@@ -959,7 +959,7 @@ public static class DogSetup
             if (nodeLink != null)
                 Object.DestroyImmediate(nodeLink);
             var info = link.GetComponent<DogLinkInfo>() ?? link.gameObject.AddComponent<DogLinkInfo>();
-            info.Setup(FenceHeight, null, end);
+            info.Setup(FenceHeight, null, end, segment);
             EditorUtility.SetDirty(info);
             crossings.Add(info);
             count++;

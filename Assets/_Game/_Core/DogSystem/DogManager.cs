@@ -231,14 +231,16 @@ namespace MB13.Aipocalypse.Core.DogSystem
         public bool HasPathToPlayer => _hasPath;
 
         // The fence between it and a player within ScrambleRange: at once when there's no way round, else after ScrambleAfter
-        // (a gap close by gets used first): it scrambles over (DogScramble).
+        // (a gap close by gets used first): it scrambles over (DogScramble). A gap (unbuilt or fallen segment, open gate)
+        // within GapDetour of the way over is walked through instead.
         public bool WantsScramble { get; private set; }
 
         void Fenced(Dog dog, float dt)
         {
             Vector3 at = dog.transform.position;
-            bool fenced = _roster.HasPlayer && _roster.Yard != null && _roster.Crossings.Count > 0
-                && _roster.InYard(at) != _roster.InYard(_roster.PlayerPosition) && Flat(at - _roster.PlayerPosition) <= _settings.ScrambleRange;
+            bool fenced = _roster.HasPlayer && _roster.Yard != null
+                && _roster.InYard(at) != _roster.InYard(_roster.PlayerPosition) && Flat(at - _roster.PlayerPosition) <= _settings.ScrambleRange
+                && _roster.ScrambleCrossing(at, _roster.PlayerPosition, _hasPath) != null;
             _fencedFor = fenced ? _fencedFor + dt : 0f;
             WantsScramble = fenced && (!_hasPath || _fencedFor >= _settings.ScrambleAfter);
         }

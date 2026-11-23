@@ -1171,6 +1171,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
         const float SquareUp = 12f;
 
         Dog _dog;
+        DogLinkInfo _crossing;
         Vector3 _from, _to;
         float _startedAt;
         float _nextGo;
@@ -1183,19 +1184,13 @@ namespace MB13.Aipocalypse.Core.DogSystem
             _over = false;
             _nextGo = 0f;
             DogRoster roster = _dog.Roster;
-            bool inside = roster.InYard(_dog.transform.position);
-            float best = float.MaxValue;
-            foreach (DogLinkInfo crossing in roster.Crossings)
-            {
-                Vector3 near = inside ? crossing.Inside : crossing.Outside;
-                Vector3 far = inside ? crossing.Outside : crossing.Inside;
-                float cost = DogWalk.Flat(near - _dog.transform.position) + DogWalk.Flat(roster.PlayerPosition - far);
-                if (cost >= best)
-                    continue;
-                best = cost;
-                _from = near;
-                _to = far;
-            }
+            Vector3 at = _dog.transform.position;
+            _crossing = roster.ScrambleCrossing(at, roster.PlayerPosition, _dog.Manager.HasPathToPlayer);
+            if (_crossing == null)
+                return;
+            bool inside = roster.InYard(at);
+            _from = inside ? _crossing.Inside : _crossing.Outside;
+            _to = inside ? _crossing.Outside : _crossing.Inside;
         }
 
         public override TaskStatus OnUpdate()
@@ -1203,6 +1198,9 @@ namespace MB13.Aipocalypse.Core.DogSystem
             float now = Time.time;
             if (!_over)
             {
+                // Its segment fell or the gate opened on the way there: no fence to climb, it walks through.
+                if (_crossing == null || !_crossing.Standing)
+                    return TaskStatus.Failure;
                 if (!DogWalk.Near(_dog, _from, 0.5f))
                 {
                     if (now >= _nextGo)

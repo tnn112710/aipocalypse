@@ -40,7 +40,7 @@ Still suggested:
 
 - User: more gacha and random fun, even if awkward and stupidly fun: chances on when fights happen, fishing, reward boxes, looting, crates
 - Rule suggested: randomness the player sees before deciding (forecasts, box categories, tonight's modifier) makes plans and stories; randomness after committing (missed shots, random damage) feels unfair. Keep shooting predictable (jams are the deliberate exception), every random system gets bad-luck protection like the daily box, no real money, and the AI owns the randomness so it reads as a joke
-- **Monster on the hook (user):** fishing sometimes hooks a monster or a boss instead of a fish, and the player must fight it. Extends [Fishing up enemies](#fishing-up-enemies)
+- **Monster on the hook (user):** fishing sometimes hooks a monster or a boss instead of a fish, and the player must fight it. Extends [Fishing up enemies](#fishing-up-enemies). Decided (user, 2026-11-24): now in [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md#crops-plants-and-fishing); the suggestions below are not confirmed
   - Ref: Terraria — Blood Moon fishing can hook enemies; Duke Fishron is summoned by fishing in the ocean with a Truffle Worm
   - Suggested: a tell before it surfaces (the bobber sparks, the line pulls hard, the drone: "That is not a fish"); bosses only with a rare bait, so the player chooses when; the androids come out of the water short-circuiting
   - Conflict: ordinary days in the meadow are safe ([CORE.md](CORE.md#loop-rules)). Suggested: monsters only on night fishing and in outer-zone waters, or daytime home-pond hooks stay small and silly (???)
@@ -48,6 +48,19 @@ Still suggested:
 - **Bad box or jackpot (user):** a reward box can be a bad box or a jackpot
   - Ref: Call of Duty Zombies — the Mystery Box sometimes gives a joke weapon or the teddy bear that moves the box; Hades — Chaos gates give a curse first, then a strong boon
   - Suggested: a jackpot is a tiny chance in any box, with an oversized reveal; a cursed box flickers before the pick, so taking it is a choice: great or terrible inside. Bad results are mild and funny (a "box opening fee" invoice, a rubber chicken, a goblin popping out), never a big loss, and the bad-luck protection still applies
+- **Betting with the robots (user liked, 2026-11-24):** the home robots offer bets on how the player will do; not confirmed, design below is a proposal
+  - Fits what is built: the robots already watch raids from their shelter, dance on a win and cry on a loss ([ROBOTS.md](../technicals/ROBOTS.md)), so a bet gives those reactions stakes
+  - Flow: talk to a robot during the day, it offers a bet with odds on its screen face; stake Tokens; bets lock at dusk like the tribute bowls; it reacts live from its shelter; settled at the raid's end
+  - Raid bets, only on the player's success so nobody throws a raid: no fence breaks, no animal stolen, under N shots fired (fits "every bullet counts"), first wave melee only, N headshots
+  - Day dares: catch 3 fish before noon; shoot the can off my head (a shooting showcase)
+  - Robot race: Bolt and Pip race round the yard, the player bets on one; pure luck, pure silliness
+  - Personalities: each robot bets its own way, e.g. Bolt is a smug gambler who bets against the player at long odds, Pip a cautious one with short odds. Odds come from "a very confident AI model" and are sometimes wildly wrong, which a skilled player can exploit
+  - Payouts: Tokens, or the robot's own goods (more ammo stock tomorrow from the shop robot, a discount from the upgrade robot); losing: Tokens and the robot gloats (wears the player's hat, dances in their face)
+  - A tally board on the shed with the player vs each robot; robots remember streaks and trash-talk; after a long winning streak a robot refuses to bet ("suspicious")
+  - Limits: one bet per robot per day, a stake cap that grows with upgrades; never the best Token source. Blood Moon as the big betting night with higher stakes
+  - Differs from the tribute bowls: the bowls change the raid, a bet changes how the player plays it
+  - Ref: Cult of the Lamb — Knucklebones, wagering gold against NPCs with their own personalities; Hades — the Pact of Punishment, chosen constraints for more reward; Hitman — challenges as self-imposed goals; Final Fantasy VII — chocobo racing at the Gold Saucer
+  - Open (???): raid bets only, or day dares and races too; Tokens only or robot perks; real losses or a free bet that only costs pride; one robot as the bookie or each robot its own
 - Other places suggested (2026-11-23 review), not confirmed:
   - Tonight's raid as a chance in the morning ("Raid probability: 70%"), settled by the drone's wheel at dusk. Would change "known for sure in the morning" (user, 2026-10-31). Ref: Stardew Valley — the TV forecast plans the day
   - Raid modifiers rolled as the AI's patch for the night (balloons on goblins, low gravity, big heads); bad ones pay more. Ref: Deep Rock Galactic — mutators and warnings

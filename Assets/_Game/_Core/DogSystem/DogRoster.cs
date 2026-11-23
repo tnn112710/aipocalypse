@@ -10,6 +10,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
     {
         readonly List<Transform> _visits = new();
         readonly List<DogLinkInfo> _crossings = new();
+        readonly List<(Vector3 Near, Vector3 Far, bool Standing)> _ways = new();
 
         public DogRoster(DogSettings settings) => Settings = settings;
 
@@ -57,6 +58,41 @@ namespace MB13.Aipocalypse.Core.DogSystem
         }
 
         public bool InYard(Vector3 point) => Yard != null && Yard.Contains(point);
+
+        // The fence crossing to scramble over from `from` to `to`, or null: nothing standing, or (`canWalk`: there's a path)
+        // a gap no more than Settings.GapDetour m longer way round, walked through instead.
+        public DogLinkInfo ScrambleCrossing(Vector3 from, Vector3 to, bool canWalk)
+        {
+            bool inside = InYard(from);
+            _ways.Clear();
+            foreach (DogLinkInfo crossing in _crossings)
+                _ways.Add(inside ? (crossing.Inside, crossing.Outside, crossing.Standing) : (crossing.Outside, crossing.Inside, crossing.Standing));
+            int index = ScrambleOver(from, to, _ways, canWalk, Settings != null ? Settings.GapDetour : 0f);
+            return index >= 0 ? _crossings[index] : null;
+        }
+
+        // Index of the shortest way over a standing fence (near end, far end), or -1: none, or (`canWalk`) a gap at most
+        // `gapDetour` m longer.
+        public static int ScrambleOver(Vector3 from, Vector3 to, IReadOnlyList<(Vector3 Near, Vector3 Far, bool Standing)> ways,
+            bool canWalk, float gapDetour)
+        {
+            int best = -1;
+            float bestCost = float.MaxValue, gapCost = float.MaxValue;
+            for (int i = 0; i < ways.Count; i++)
+            {
+                float cost = Flat(ways[i].Near - from) + Flat(to - ways[i].Far);
+                if (!ways[i].Standing)
+                    gapCost = Mathf.Min(gapCost, cost);
+                else if (cost < bestCost)
+                {
+                    bestCost = cost;
+                    best = i;
+                }
+            }
+            return best >= 0 && canWalk && gapCost <= bestCost + gapDetour ? -1 : best;
+        }
+
+        static float Flat(Vector3 v) => new Vector2(v.x, v.z).magnitude;
 
         // Where "home" is: the house door, else where it started.
         public Vector3 Home(Dog dog) => House != null ? House.Door : dog.HomePosition;
