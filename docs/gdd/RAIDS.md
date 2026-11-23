@@ -18,6 +18,7 @@ Who raids the farm, how hard, and how that grows. Agreed 2026-11-07. [CORE.md](C
 
 ## Enemy types
 
+- **All enemies are androids in disguise**, built by the AI Lord ([STORY.md](STORY.md#agreed-premise)); some show electric sparks when killed.
 - Raids are triggered **per enemy type**, a kind of enemy such as goblins, zombies or robots, not per region faction, so the asset budget sets how many there are. Goblins may be swapped for another enemy later.
 - **Units:** each type has a few units (e.g. thieves, fence-breakers, fighters, shooters) and elite variants.
 - **Not tied to a region:** one type turns up in several regions, in different mixes ([CORE.md](CORE.md#day-dusk-and-exploration)).

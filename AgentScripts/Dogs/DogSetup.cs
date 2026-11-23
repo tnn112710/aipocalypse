@@ -155,35 +155,29 @@ public static class DogSetup
     // ---- Clips ----
 
     // The vendor clips move the Root bone forward (root motion the Animator would apply). We move the dog ourselves, so
-    // loops get a copy with the Root's straight-line drift taken out, and one-shots a copy with the Root held where it
-    // starts (jumps and ledges: the code moves the body). Returns the clip to use and the ground speed it was made for.
-    static (AnimationClip Clip, float Speed) Source(string file, string take = null, bool loop = true)
+    // every clip gets a copy with its Root placed by PlaceRoot (a vendor clip played as is drops its Root as root motion
+    // and the body lands wherever the Animator's default puts it). `keepRoot`: the Root as authored (the pose chain and
+    // the knockdown, where the body shifts over planted paws; they start and end on Standing).
+    // Returns the clip to use and the ground speed it was made for.
+    // `copyName`: when the same clip is also used the other way (looping or not), so the two copies don't overwrite each other.
+    static (AnimationClip Clip, float Speed) Source(string file, string take = null, bool loop = true, bool keepRoot = false,
+        string copyName = null)
     {
         string path = VendorAnims + file + ".fbx";
         AnimationClip clip = AssetDatabase.LoadAllAssetsAtPath(path).OfType<AnimationClip>()
             .FirstOrDefault(c => !c.name.StartsWith("__") && (take == null || c.name == take))
             ?? throw new Exception($"no clip {take ?? "(first)"} in {path}");
         Vector3 drift = RootDrift(clip);
-        if (drift.sqrMagnitude < 0.0025f && clip.isLooping == loop)
-            return (clip, 0f);
         Folder(ClipDir);
-        string name = (take ?? System.IO.Path.GetFileName(file)).Replace(' ', '_');
+        string name = copyName ?? (take ?? System.IO.Path.GetFileName(file)).Replace(' ', '_');
         string copyPath = $"{ClipDir}/{name}.anim";
         AnimationClip copy = Object.Instantiate(clip);
         copy.name = name;
         AnimationClipSettings settings = AnimationUtility.GetAnimationClipSettings(copy);
         settings.loopTime = loop;
         AnimationUtility.SetAnimationClipSettings(copy, settings);
-        foreach (EditorCurveBinding binding in AnimationUtility.GetCurveBindings(copy))
-        {
-            if (binding.path != RootBone || !binding.propertyName.StartsWith("m_LocalPosition."))
-                continue;
-            bool horizontal = binding.propertyName.EndsWith("x") || binding.propertyName.EndsWith("z");
-            if (loop && !horizontal)
-                continue;
-            AnimationCurve curve = AnimationUtility.GetEditorCurve(copy, binding);
-            AnimationUtility.SetEditorCurve(copy, binding, loop ? WithoutDrift(curve) : Held(curve));
-        }
+        if (!keepRoot)
+            PlaceRoot(copy, loop);
         Reduce(copy);
         var existing = AssetDatabase.LoadAssetAtPath<AnimationClip>(copyPath);
         if (existing == null)
@@ -230,6 +224,52 @@ public static class DogSetup
             Damp($"Tail{i:00}", $"Tail{i - 1:00}", TailDamp);
         var builder = model.AddComponent<RigBuilder>();
         builder.layers.Add(new RigLayer(rig, true));
+    }
+
+    // Where the vendor's standing pose has the Root (sitting down starts here, standing up ends here; the acts stand here):
+    // every clip puts the body on this spot over the agent, so nothing slides or jumps between clips.
+    static readonly Vector3 Standing = new(0f, 0f, 0.237f);
+
+    // Loops lose their drift and are centred on Standing, their bob kept; one-shots are held there (jumps and ledges: the
+    // code moves the body); a clip that doesn't animate the Root gets it pinned there. Height: loops keep theirs, one-shots
+    // hold their first frame's.
+    static void PlaceRoot(AnimationClip clip, bool loop)
+    {
+        for (int axis = 0; axis < 3; axis++)
+        {
+            EditorCurveBinding binding = EditorCurveBinding.FloatCurve(RootBone, typeof(Transform), "m_LocalPosition." + "xyz"[axis]);
+            AnimationCurve curve = AnimationUtility.GetEditorCurve(clip, binding);
+            float target = Standing[axis];
+            if (curve == null || curve.length == 0)
+                curve = AnimationCurve.Constant(0f, clip.length, target);
+            else if (axis == 1)
+                curve = loop ? curve : Held(curve);
+            else if (!loop)
+                curve = AnimationCurve.Constant(curve.keys[0].time, curve.keys[^1].time, target);
+            else
+            {
+                curve = WithoutDrift(curve);
+                curve = Shifted(curve, target - Mean(curve, clip.length));
+            }
+            AnimationUtility.SetEditorCurve(clip, binding, curve);
+        }
+    }
+
+    static float Mean(AnimationCurve curve, float length)
+    {
+        const int Samples = 64;
+        float sum = 0f;
+        for (int i = 0; i < Samples; i++)
+            sum += curve.Evaluate(length * i / Samples);
+        return sum / Samples;
+    }
+
+    static AnimationCurve Shifted(AnimationCurve curve, float by)
+    {
+        Keyframe[] keys = curve.keys;
+        for (int i = 0; i < keys.Length; i++)
+            keys[i].value += by;
+        return new AnimationCurve(keys);
     }
 
     static Vector3 RootDrift(AnimationClip clip)
@@ -462,16 +502,17 @@ public static class DogSetup
             Quick(from.AddTransition(swim), 0.3f).AddCondition(AnimatorConditionMode.If, 0f, "Swim");
         Quick(swim.AddTransition(move), 0.3f).AddCondition(AnimatorConditionMode.IfNot, 0f, "Swim");
 
-        // Poses: stand ↔ sit ↔ lie ↔ sleep, each step through its own clip.
-        AnimatorState sitDown = Once(machine, "SitDown", "Actions/Dog_Sit_From_Idle");
-        AnimatorState sit = Loop(machine, "Sit", "Actions/Dog_Sit_01");
-        AnimatorState sitUp = Once(machine, "SitUp", "Actions/Dog_Sit_to_Idle");
-        AnimatorState sitToLie = Once(machine, "SitToLie", "Actions/Dog_Sit_to_Lie");
-        AnimatorState lie = Loop(machine, "Lie", "Actions/Dog_Lie_01");
-        AnimatorState lieToSit = Once(machine, "LieToSit", "Actions/Dog_Lie_to_Sit");
-        AnimatorState lieToSleep = Once(machine, "LieToSleep", "Actions/Dog_Lie_to_Sleep");
-        AnimatorState sleep = Loop(machine, "Sleep", "Actions/Dog_Sleep_Pose1", "Dog_Sleep_P1");
-        AnimatorState sleepToLie = Once(machine, "SleepToLie", "Actions/Dog_Sleep_to_Lie");
+        // Poses: stand ↔ sit ↔ lie ↔ sleep, each step through its own clip. The Root keeps its authored offsets (sitting puts
+        // the body back with the paws planted): held, the paws slid forward on every sit and the body sat in the wrong spot.
+        AnimatorState sitDown = Once(machine, "SitDown", "Actions/Dog_Sit_From_Idle", keepRoot: true);
+        AnimatorState sit = Loop(machine, "Sit", "Actions/Dog_Sit_01", keepRoot: true);
+        AnimatorState sitUp = Once(machine, "SitUp", "Actions/Dog_Sit_to_Idle", keepRoot: true);
+        AnimatorState sitToLie = Once(machine, "SitToLie", "Actions/Dog_Sit_to_Lie", keepRoot: true);
+        AnimatorState lie = Loop(machine, "Lie", "Actions/Dog_Lie_01", keepRoot: true);
+        AnimatorState lieToSit = Once(machine, "LieToSit", "Actions/Dog_Lie_to_Sit", keepRoot: true);
+        AnimatorState lieToSleep = Once(machine, "LieToSleep", "Actions/Dog_Lie_to_Sleep", keepRoot: true);
+        AnimatorState sleep = Loop(machine, "Sleep", "Actions/Dog_Sleep_Pose1", "Dog_Sleep_P1", keepRoot: true);
+        AnimatorState sleepToLie = Once(machine, "SleepToLie", "Actions/Dog_Sleep_to_Lie", keepRoot: true);
         AnimatorStateTransition down = Quick(move.AddTransition(sitDown), 0.2f);
         down.AddCondition(AnimatorConditionMode.Greater, 0, "Pose");
         down.AddCondition(AnimatorConditionMode.Less, 0.15f, "Speed");
@@ -529,7 +570,7 @@ public static class DogSetup
             Exit(state.AddTransition(move), 0.85f, 0.15f);
         }
         // The takedown pin: biting and shaking over the body while Pin is on.
-        AnimatorState pin = Loop(machine, "Pin", "Attacks/Dog_Attack_Bite_Forward v2");
+        AnimatorState pin = Loop(machine, "Pin", "Attacks/Dog_Attack_Bite_Forward v2", copyName: "Dog_Attack_Bite_Pin");
         foreach (AnimatorState from in new[] { move, combat })
             Quick(from.AddTransition(pin), 0.1f).AddCondition(AnimatorConditionMode.If, 0f, "Pin");
         Quick(pin.AddTransition(move), 0.2f).AddCondition(AnimatorConditionMode.IfNot, 0f, "Pin");
@@ -547,12 +588,12 @@ public static class DogSetup
         // Knocked down (Side 0 left, 1 right): falls and stays down until Rise, then the recovery clip.
         for (int i = 0; i < 2; i++)
         {
-            AnimatorState fall = Once(machine, "Down " + dodgeSides[i], "Deaths/Dog_Death1_" + dodgeSides[i]);
+            AnimatorState fall = Once(machine, "Down " + dodgeSides[i], "Deaths/Dog_Death1_" + dodgeSides[i], keepRoot: true);
             AnimatorStateTransition into = Quick(machine.AddAnyStateTransition(fall), 0.1f);
             into.canTransitionToSelf = false;
             into.AddCondition(AnimatorConditionMode.If, 0f, "Down");
             into.AddCondition(AnimatorConditionMode.Equals, i, "Side");
-            AnimatorState rise = Once(machine, "Rise " + dodgeSides[i], "Deaths/Dog_Death_Recovery_" + dodgeSides[i]);
+            AnimatorState rise = Once(machine, "Rise " + dodgeSides[i], "Deaths/Dog_Death_Recovery_" + dodgeSides[i], keepRoot: true);
             Quick(fall.AddTransition(rise), 0.15f).AddCondition(AnimatorConditionMode.If, 0f, "Rise");
             Exit(rise.AddTransition(move), 0.9f, 0.2f);
         }
@@ -659,17 +700,18 @@ public static class DogSetup
         return tree;
     }
 
-    static AnimatorState Once(AnimatorStateMachine machine, string name, string file, string take = null)
+    static AnimatorState Once(AnimatorStateMachine machine, string name, string file, string take = null, bool keepRoot = false)
     {
         AnimatorState state = machine.AddState(name);
-        state.motion = Source(file, take, loop: false).Clip;
+        state.motion = Source(file, take, loop: false, keepRoot).Clip;
         return state;
     }
 
-    static AnimatorState Loop(AnimatorStateMachine machine, string name, string file, string take = null)
+    static AnimatorState Loop(AnimatorStateMachine machine, string name, string file, string take = null, bool keepRoot = false,
+        string copyName = null)
     {
         AnimatorState state = machine.AddState(name);
-        state.motion = Source(file, take).Clip;
+        state.motion = Source(file, take, keepRoot: keepRoot, copyName: copyName).Clip;
         return state;
     }
 

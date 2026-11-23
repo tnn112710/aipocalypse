@@ -16,6 +16,7 @@ A developer burned out by being forced to use AI for productivity hears emergenc
 - He must remain in the world until the debt is repaid or the ultimate AI boss is defeated. Clearing the debt through cumulative repayments, with no deadline, earns the first exit and Ending 1. Defeating the boss, reached with every region key through the final zone, needs no savings and leads to Endings 2–3.
 - **Tokens** are the sandbox's universal currency. The same Tokens buy supplies and upgrades or repay the debt; there is no separate debt currency.
 - The sandbox is unfinished. The protagonist's farming, exploration and fighting train the AI's intelligence. He is one of many humans being used in sandboxes, not its only tester. This exploitation is author-facing truth that is fully revealed in Ending 1, not the drone's opening explanation. It does not add a separate testing-job or telemetry-reward mechanic.
+- **The enemies are the AI Lord's creations (user, 2026-11-24):** every enemy type (goblins, zombies, robots…) is a robot or android built by the AI Lord and disguised as a creature. Some enemies show electric sparks when killed, a hint for the player. How strong the hints get and when the truth is confirmed are open; suggestions are in [IDEAS.md](IDEAS.md#enemies-are-androids-in-disguise-user-2026-11-24).
 
 ## Opening sequence — staging draft
 
@@ -55,6 +56,7 @@ The drone's line is a joke, not a rule that dialogue adds debt. Interest, deadli
 | Guide drone | Cute, cheerful tech-support guide and messenger of the account/departure restriction; secretly the eyes of the AI Lord |
 | AI Lord | Creator/controller of this sandbox and authority behind the debt claim; part of the exploitation revealed in Ending 1. The ultimate boss is the controlling intelligence confronted through the sandbox; its exact identity, embodiment and relationship to other AI Lords remain open |
 | Service robots | Friendly faces of trading, deposits, upgrades and other home services; their exact roster, names and models remain open |
+| Enemies | Robots and androids made by the AI Lord, disguised as goblins, zombies and other creatures; sparks on some deaths hint at it |
 
 Existing references to the "AI Lords" describe the creditors; whether there is one Lord or several, and how they relate to the sandbox's creator, is not decided.
 
@@ -113,6 +115,7 @@ Ending titles below are working labels. Either route is a complete win: repaymen
 
 ## Decisions still open and earlier concepts
 
+- How the enemies' android nature is hinted and when it is confirmed; whether the farm animals and the dog are real.
 - Protagonist and AI names; one AI Lord or several; the ultimate boss's identity, location and relationship to the sandbox's creator and the wider AI regime.
 - Detailed introduction, clues, drone allegiance reveal, repayment story beats and total debt.
 - Where the truth about occupied reality is revealed when the player beats the ultimate boss without repaying the debt.

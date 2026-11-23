@@ -151,7 +151,7 @@ See [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md) for confirmed decisions, presenta
 - **Limited ammunition:** buy it from the trading robot within its daily stock, loot it from enemies or craft it from gunpowder. Melee and tools such as an axe are what the player falls back on when the guns run dry; melee can get more weight than a bare fallback.
 - **Guns** will get rarity and attachments later.
 - **Fight rewards:** enemy loot, plus a better daily box after a defended raid or a won major event.
-- **Enemies:** behavior archetypes with different appearances; their objectives include stealing and attacking. Refined with the enemy-system revision.
+- **Enemies:** behavior archetypes with different appearances; their objectives include stealing and attacking. Refined with the enemy-system revision. All of them are androids made by the AI Lord and disguised as creatures; some spark when killed ([STORY.md](STORY.md#agreed-premise)).
 
 ### HUD earned back
 

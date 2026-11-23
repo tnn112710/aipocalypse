@@ -161,12 +161,44 @@ Also:
 - **Size:** the model at `DogSetup.ModelScale` 2 (user, 2026-11-23): 1.3 m to the ear tips standing (0.66 m at 1×, a real collie's size). The clip ground speeds (the Move / Sniff / Combat / Swim / Limp blend thresholds), the agent, the body collider, the dog house (its door and bed spot) and the fence crossing points scale with it; body heights in code (name tag, swim float `SwimBodyDepth`, look and sound points), `SwimDepth` and `TurnStepSpeed` are set for 2.
   - **Cadence:** a bigger animal steps slower, so every moving clip plays at `DogSetup.Cadence` 0.85 with its threshold scaled to match (its feet's ground speed: no sliding). The walk is in the Move blend twice, the second at a crawl (0.3×), so the long idle mixes in only near a standstill (a blend syncs its clips' cycles: the idle dragged the walking legs slower than the body). A new size: change `ModelScale`, rerun `Controller`, `Prefabs`, `World` (WorldMap freshly opened: a scene saved after play mode keeps the sky's runtime ambient and sun colours), and scale those values.
 - **Setup:** `AgentScripts/Dogs/DogSetup.cs`: `Data`, `Model` (a look-only copy of the Malbers Border Collie PolyArt, no Malbers scripts, root motion off), `Controller`, `Prefabs`, `Hud` (the wheel in HUD.prefab, the paw icon), `World`, `Audio`; `All` runs the first five.
-- **Clips:** the collie's clips move their Root bone forward, so `DogSetup` writes in-place copies to `Content/Dogs/BorderCollie/Animations` (loops: the Root's drift removed; jumps and ledges: the Root held, the code moves the body). The vendor imports them uncompressed (a key per bone and frame), so the copies are thinned (`DogSetup.Reduce`): a key goes when the curve from its neighbours' own values and slopes stays within 0.0015 (quaternion component) / 1 mm of the original, checked at every key and halfway between. That took the folder from 1.1 GB of YAML to 123 MB (Look Around: 194 MB → 5 MB); against the vendor clips every bone but Root stays within 0.34° and 1.5 mm. Most of what's left is the editor-only float and Euler copies Unity writes into every text `.anim`.
+- **Clips:** the collie's clips move their Root bone (the whole body) as root motion. Played as they are, the Animator drops that and puts the body wherever its default lands (it was 2 cm forward and 7 cm sideways of standing at Loki's size), so `DogSetup` writes a copy of every clip to `Content/Dogs/BorderCollie/Animations` with the body placed on one spot over the agent: `Standing`, the vendor's standing Root offset (z 0.237; sitting down starts there, standing up ends there, the acts stand there). Loops lose their forward drift and are centred on it, their bob kept; one-shots are held on it (jumps and ledges: the code moves the body); a clip that doesn't move the Root is pinned on it (`PlaceRoot`). The pose chain (sit, lie, sleep and their transitions) and the knockdown (fall, get up) keep the Root as authored (`keepRoot`): sitting puts the body back over planted paws and the knockdown shifts it sideways, each clip starting where the last ended, from and back to `Standing`. Before, locomotion clips sat up to 5 cm off standing, a hop's landing 4.8 m forward and the climb-up 43 cm back, and sitting slid the paws forward. The bite used both ways has two copies (`Dog_Attack_Bite_Pin` for the loop).
+  - **Size:** the vendor imports the clips uncompressed (a key per bone and frame), so the copies are thinned (`DogSetup.Reduce`): a key goes when the curve from its neighbours' own values and slopes stays within 0.0015 (quaternion component) / 1 mm of the original, checked at every key and halfway between. The folder is 169 MB (1.1 GB unthinned; Look Around 194 MB → 5 MB); every bone but Root stays within 0.34° and 1.5 mm of the vendor clips. Most of what's left is the editor-only float and Euler copies Unity writes into every text `.anim`.
+- **Clip check:** `AgentScripts/Dogs/DogClipCheck.cs` (editor, no Play): `Roots` lists where every state's clip puts the body and flags `OFF` any non-pose clip off `Standing` or played straight from the vendor; `Accuracy` samples every copy against its vendor clip (every bone but Root; 2026-11-24: within 0.34° and 1.5 mm); `Paws` measures paw slide through the sit / lie transitions with the Root kept against held.
 - **Previews:** `AgentScripts/Dogs/DogPreview.cs` renders review sheets (colours, poses, a prop from four sides) to a path outside Assets.
 - **Play probes:** `AgentScripts/Dogs/DogPlayCheck.cs`: Ready, Follow, Scout, CatchUp, Fence, Scramble, Indoors, Stay, HomeLife, Whistle, WhistleSpam, WhistleRobot, Pet, HeadTilt, Wheel, WheelInterrupted, NightHouse, FriendlyFire, AfterLoad, Swim, Shot, LookAtDog; fighting: Skirmish, Takedown, Sic, WhistleAtDogNearEnemy, BackOff, Down, Warn, WarnInterrupted (spawn goblins with `enemy.spawn`, the player invulnerable); the farm: Herd, RobotGreet, RobotGreetBusy, SheepChase, RaidHome active / passive, RaidNight; polish: TurnInPlace, RainShake, WelcomeHome, Bedtime, SpuriousEnd (each guarded task's `OnEnd` called without a start changes nothing), NightHowl, HerdAfterLoad.
   - Probe traps: Follow takes 20 m (12 m ends under the house floor: `Ground()` keeps terrain hits only); Swim needs a radius of about 350 m to find a wadeable stream; WarnInterrupted needs 30 s since the last warning (WarnGap); SheepChase needs the herd out; Herd needs 90 s when the animals are far out; a real raid at 21:00 kills an idle player (a dead one isn't looked at or followed): probes that need the player start at 10:00 with enemies cleared; Follow, HeadTilt and Takedown wait for it to get up (a still player has a dog dozing off within seconds); RainShake holds the weather with the console's `weather.set` (the weather rules replace a plain `WeatherService.Set`).
   - All passed on 2026-11-23 (Phases 1–3, then the polish and fix passes). NightHouse stops a raid if one starts at 23:00.
 - **Motion check:** `AgentScripts/Characters/MotionWatch.cs` (dog, animals, robots) records every frame while probes run: the fastest turn as drawn, snaps, turn wobble, animation freezes, cuts without a blend, and travelling in a single-clip state.
+
+## Vendor update (Malbers Border Collie)
+
+Updating or reimporting the pack (or changing its import settings) needs the dog's clips rebuilt and rechecked. What
+`DogSetup` assumes about the pack, and how to check each:
+
+1. **Rebuild:** `DogSetup.Model` (look-only copy + ear / tail rig), `Controller` (every clip copy and the controller),
+   `Prefabs`. The copies are regenerated from the vendor clips, so nothing in `Content/Dogs/BorderCollie/Animations` needs
+   keeping by hand. Delete copies a renamed or removed vendor clip leaves behind.
+2. **Body placement:** `DogClipCheck.Roots` must show no `OFF` line. It relies on:
+   - **`Standing` (z 0.237):** the vendor's standing Root offset, read off `Dog_Sit_From_Idle`'s first frame (also
+     `Dog_Sit_to_Idle`'s last, the acts', `Dog_Death1_*`'s first). A pack whose standing offset moved needs `Standing`
+     updated, or every clip lands off the sit chain.
+   - **The pose chain and knockdown** keep their Root (`keepRoot`), so each must start where the last ended. Check the
+     start / end pairs in `Roots`: SitDown ends where Sit starts, Sit where SitToLie starts, and so on, and the standing
+     ends sit on `Standing`.
+   - **Root motion:** the clips' Root is the motion node, so a vendor clip played as is drops its Root position. That's
+     why every state uses a copy. A clip added to `DogSetup.Controller` without `Source` brings the problem back.
+3. **Size and accuracy:** the vendor imports with animation compression off and resampled curves (a key per bone and
+   frame). `Reduce` thins the copies; `DogClipCheck.Accuracy` should stay within about 0.35° and 1.5 mm. A pack that
+   imports compressed or sparse curves is fine: `Reduce` keeps their slopes and checks between keys. Check the folder
+   size (169 MB on 2026-11-24); a 100 MB+ file means `Reduce` didn't run.
+4. **Bone names:** `Root` (the motion node), `Ear01/02 L/R`, `Tail01`–`Tail06` (`DogSetup.Jiggle`: it throws on a
+   missing bone), `L/R Finger0`, `L/R Toe0` (`DogClipCheck.Paws`).
+5. **Clip names and loops:** the states name vendor files and takes (`Source`); a renamed take throws "no clip". Two
+   states using the same take one looping and one not need their own `copyName` (the bite: Attack 0 and `Pin`).
+6. **Speeds:** the Move thresholds come from each locomotion clip's Root drift (`Controller` logs them: walk 0.96,
+   trot 2.30, canter 5.95, run 7.50, sprint 9.82). If they change, retune `DogSettings` speeds.
+7. **Play check:** Follow, Whistle, Pet, TurnInPlace, Scramble, WelcomeHome (`DogPlayCheck`), and a look at the sit,
+   the roll, a hop and a ledge climb in game.
 
 ## Known gaps
 

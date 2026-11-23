@@ -25,6 +25,39 @@ Still suggested:
 - Faction slots per raid set by Threat or bosses beaten, not by day
 - Gunpowder as the scarce input, so crafted ammo doesn't erode "every bullet counts"
 
+### Enemies are androids in disguise (user, 2026-11-24)
+
+- Decided (user): every enemy is a robot or android made by the AI Lord, disguised as goblins, zombies and other creatures; some spark when killed as a hint. Now in [STORY.md](STORY.md#agreed-premise), [RAIDS.md](RAIDS.md#enemy-types) and [CORE.md](CORE.md#player-combat--progression)
+- Still suggested:
+  - Hints that grow over the run: early, a few sparks on death and a metallic ping on headshots; later, bodies "despawn" at dawn with a glitch and the drone says "Garbage collection complete"; on Blood Moons, skins flicker and damaged enemies show metal under the skin; the first region boss's skin peels off mid-fight to confirm it
+  - Robot enemies are androids that didn't bother with a disguise
+  - It explains the strange enemy mix (the AI's "skins") and gives kills a reason to drop scrap and circuit parts for crafting
+  - Oil and sparks instead of blood
+  - Later hooks, each to confirm: water or rain short-circuits them; an EMP weapon; rescued service robots are discarded enemy builds
+  - Keep the farm animals and Loki real, so Ending 3's "I built this" keeps its weight (???)
+
+### Gacha and random fun (user, 2026-11-24)
+
+- User: more gacha and random fun, even if awkward and stupidly fun: chances on when fights happen, fishing, reward boxes, looting, crates
+- Rule suggested: randomness the player sees before deciding (forecasts, box categories, tonight's modifier) makes plans and stories; randomness after committing (missed shots, random damage) feels unfair. Keep shooting predictable (jams are the deliberate exception), every random system gets bad-luck protection like the daily box, no real money, and the AI owns the randomness so it reads as a joke
+- **Monster on the hook (user):** fishing sometimes hooks a monster or a boss instead of a fish, and the player must fight it. Extends [Fishing up enemies](#fishing-up-enemies)
+  - Ref: Terraria — Blood Moon fishing can hook enemies; Duke Fishron is summoned by fishing in the ocean with a Truffle Worm
+  - Suggested: a tell before it surfaces (the bobber sparks, the line pulls hard, the drone: "That is not a fish"); bosses only with a rare bait, so the player chooses when; the androids come out of the water short-circuiting
+  - Conflict: ordinary days in the meadow are safe ([CORE.md](CORE.md#loop-rules)). Suggested: monsters only on night fishing and in outer-zone waters, or daytime home-pond hooks stay small and silly (???)
+  - Open (???): a short window to cut the line and lose the bait, or always a fight?
+- **Bad box or jackpot (user):** a reward box can be a bad box or a jackpot
+  - Ref: Call of Duty Zombies — the Mystery Box sometimes gives a joke weapon or the teddy bear that moves the box; Hades — Chaos gates give a curse first, then a strong boon
+  - Suggested: a jackpot is a tiny chance in any box, with an oversized reveal; a cursed box flickers before the pick, so taking it is a choice: great or terrible inside. Bad results are mild and funny (a "box opening fee" invoice, a rubber chicken, a goblin popping out), never a big loss, and the bad-luck protection still applies
+- Other places suggested (2026-11-23 review), not confirmed:
+  - Tonight's raid as a chance in the morning ("Raid probability: 70%"), settled by the drone's wheel at dusk. Would change "known for sure in the morning" (user, 2026-10-31). Ref: Stardew Valley — the TV forecast plans the day
+  - Raid modifiers rolled as the AI's patch for the night (balloons on goblins, low gravity, big heads); bad ones pay more. Ref: Deep Rock Galactic — mutators and warnings
+  - A rare treasure goblin that sprints off with a loot bag. Ref: Diablo 3 — treasure goblins
+  - Mimic crates. Ref: Enter the Gungeon — mimic chests
+  - A broken gacha vending robot in the world: pay Tokens, maybe win, maybe it errors or falls on you. Ref: Risk of Rain 2 — Shrine of Chance
+  - Looted guns with one "AI-generated" trait and a confidently wrong description. Ref: Borderlands — Tediore guns thrown on reload
+  - Glitched fish worth 10×, treasure in the catch. Ref: Stardew Valley — fishing treasure chests; DREDGE — aberrant fish
+  - Rare golden or glitched produce; a robot merchant on random days with random stock. Ref: Terraria — Traveling Merchant
+
 ### Valheim / Enshrouded + Escape from Duckov mix (user, 2026-11-07)
 
 **Status (2026-11-07):** the confirmed decisions below, plus tribute levels, boss drops, weaker bosses only on Blood Moons and eclipses, the night-2 first raid and later gun rarity/attachments, now live in [CORE.md](CORE.md), [RAIDS.md](RAIDS.md) and [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md). This section is the discussion history; unconfirmed suggestions are listed in RAIDS.md → Proposals.
