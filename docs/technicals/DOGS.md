@@ -17,7 +17,7 @@ Loki, a Border Collie, lives at its dog house in the WorldMap yard and comes exp
    - **Check-in** every 30–60 s: trots in front of the player and looks up happy, panting.
    - **Settling** while the player stands still: sits after 3–6 s, lies after 15–25 s, yawns and naps after 60 s.
    - **Head tilt:** looked at within 10 m for 1 s, it tilts its head (at most once per 20 s).
-3. **Water:** in water deeper than 0.45 m (the streams; the spawn system's `IWaterLevel`) it swims, the model floating up so its back is at the surface; out again, it stops and shakes itself dry.
+3. **Water:** in water deeper than 0.85 m (the streams; the spawn system's `IWaterLevel`) it swims, the model floating up so its back is at the surface; out again, it stops and shakes itself dry.
    - **Rain:** 20 s in rain heavier than 0.15 (the weather's rain amount) with nothing over it soaks it. Out of it (indoors, its dog house, any roof or canopy over it, or the rain stopping), it shakes itself dry the same way, once. A shorter shower dries off by itself (`DogWetness`).
    - **The shake** (after a swim or rain) waits up to 20 s for it to stand still, and counts as done only once the act plays: a sit or lie in the same moment would swallow the trigger.
    - **Acts** (bark, happy, head tilt, howl…) only play on its feet: `Dog.Act` drops one asked for while it sits or lies, and settling cancels one still waiting (it would otherwise go off seconds later once it's up, e.g. a happy wag holding it back from following).
@@ -154,6 +154,7 @@ Also:
 
 ## Setup and checks
 
+- **Size:** the model at `DogSetup.ModelScale` 1.9 (user, 2026-11-23): 1.25 m to the ear tips standing (0.66 m at 1×, a real collie's size). The clip ground speeds (the Move / Sniff / Combat / Swim / Limp blend thresholds), the agent, the body collider, the dog house (its door and bed spot) and the fence crossing points scale with it; body heights in code (name tag, swim float `SwimBodyDepth`, look and sound points), `SwimDepth` and `TurnStepSpeed` are set for 1.9. A new size: change `ModelScale`, rerun `Controller`, `Prefabs`, `World` (WorldMap freshly opened: a scene saved after play mode keeps the sky's runtime ambient and sun colours), and scale those values.
 - **Setup:** `AgentScripts/Dogs/DogSetup.cs`: `Data`, `Model` (a look-only copy of the Malbers Border Collie PolyArt, no Malbers scripts, root motion off), `Controller`, `Prefabs`, `Hud` (the wheel in HUD.prefab, the paw icon), `World`, `Audio`; `All` runs the first five.
 - **Clips:** the collie's clips move their Root bone forward, so `DogSetup` writes in-place copies to `Content/Dogs/BorderCollie/Animations` (loops: the Root's drift removed; jumps and ledges: the Root held, the code moves the body).
 - **Previews:** `AgentScripts/Dogs/DogPreview.cs` renders review sheets (colours, poses, a prop from four sides) to a path outside Assets.

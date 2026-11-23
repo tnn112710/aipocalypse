@@ -37,7 +37,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
         static readonly int SwimState = Animator.StringToHash("Swim");
         static readonly int ShakeState = Animator.StringToHash("Act ShakeWater");
         const float SpeedDamping = 0.12f;
-        const float NameTagHeight = 1.05f;
+        const float NameTagHeight = 1.9f;
         const float LiftSpeed = 1.5f;
 
         [SerializeField, Tooltip("The Model's Animator (BorderCollie.controller's parameters)")] Animator _animator;

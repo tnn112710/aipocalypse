@@ -699,8 +699,8 @@ namespace MB13.Aipocalypse.Core.DogSystem
     {
         enum Phase { Run, Circle, Sit }
 
-        const float Reach = 2.2f;
-        const float CircleRadius = 1.6f;
+        const float Reach = 3f;
+        const float CircleRadius = 2.4f;
         // The lap's target runs this far ahead of the dog (radians); a slow lap (the happy act, a detour) ends here so
         // the sit still fits in the welcome.
         const float LapLead = 0.8f;
@@ -754,7 +754,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
                         _nextGo = now + 0.3f;
                         Vector3 toDog = _dog.transform.position - player;
                         toDog.y = 0f;
-                        DogWalk.Go(_dog, player + (toDog.sqrMagnitude > 0.01f ? toDog.normalized : Vector3.forward) * 1.4f, DogGait.Canter);
+                        DogWalk.Go(_dog, player + (toDog.sqrMagnitude > 0.01f ? toDog.normalized : Vector3.forward) * 2f, DogGait.Canter);
                     }
                     return TaskStatus.Running;
                 case Phase.Circle:
@@ -960,7 +960,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
     [Category("Aipocalypse/Dogs")]
     public sealed class DogBePetted : ActionNode
     {
-        const float Front = 1.2f;
+        const float Front = 1.6f;
 
         Dog _dog;
         bool _acted;

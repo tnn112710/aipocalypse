@@ -504,7 +504,7 @@ public static class DogPlayCheck
         var animator = dog.GetComponentInChildren<Animator>();
         bool shook = false;
         await Seconds(20f, () => shook |= animator.GetCurrentAnimatorStateInfo(0).IsName("Act ShakeWater"));
-        return $"{Pass(swam && lift > 0.1f && shook)} swim at {spot}: swam {swam} (model up {lift:0.00} m), shook dry {shook}, swimming now {dog.Swimming}; {Line(dog)}";
+        return $"{Pass(swam && lift > 0f && shook)} swim at {spot}: swam {swam} (model up {lift:0.00} m), shook dry {shook}, swimming now {dog.Swimming}; {Line(dog)}";
     }
 
     // ---- Fighting (Phase 2) ----

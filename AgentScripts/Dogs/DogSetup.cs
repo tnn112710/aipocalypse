@@ -46,8 +46,11 @@ public static class DogSetup
     const string AnimalLayer = "Animal";
     const string RootBone = "Root";
 
-    const float AgentRadius = 0.3f;
-    const float AgentHeight = 0.7f;
+    // The collie at 1.9× stands 1.25 m tall (ear tips, idle; 0.66 m at 1×): the user's size, 2026-11-23. Clip ground speeds,
+    // the agent, the body collider and the dog house scale with it.
+    public const float ModelScale = 1.9f;
+    const float AgentRadius = 0.3f * ModelScale;
+    const float AgentHeight = 0.7f * ModelScale;
     const float TurnSpeed = 300f;
     const float OnSpotTurnSpeed = 240f;
     const float TurnSmoothing = 0.1f;
@@ -180,7 +183,7 @@ public static class DogSetup
             copy = existing;
             Save(copy);
         }
-        float speed = loop ? new Vector2(drift.x, drift.z).magnitude / clip.length : 0f;
+        float speed = loop ? new Vector2(drift.x, drift.z).magnitude / clip.length * ModelScale : 0f;
         return (copy, speed);
     }
 
@@ -252,10 +255,10 @@ public static class DogSetup
             fastest = clip;
         }
         // Past the sprint clip's own pace (the player sprints at 6 m/s): the same clip, played faster.
-        const float Fastest = 8f;
-        moveTree.AddChild(fastest, Fastest);
+        float topSpeed = Mathf.Max(8f, top * 1.2f);
+        moveTree.AddChild(fastest, topSpeed);
         ChildMotion[] children = moveTree.children;
-        children[^1].timeScale = Fastest / top;
+        children[^1].timeScale = topSpeed / top;
         moveTree.children = children;
         AnimatorState move = machine.AddState("Move");
         move.motion = moveTree;
@@ -529,9 +532,9 @@ public static class DogSetup
 
             var body = root.GetComponent<CapsuleCollider>();
             body.direction = 2;
-            body.radius = 0.2f;
-            body.height = 1f;
-            body.center = new Vector3(0f, 0.45f, 0.05f);
+            body.radius = 0.2f * ModelScale;
+            body.height = 1f * ModelScale;
+            body.center = new Vector3(0f, 0.45f, 0.05f) * ModelScale;
 
             var agent = new SerializedObject(root.GetComponent<Pathfinding.FollowerEntity>());
             agent.FindProperty("shape.radius").floatValue = AgentRadius;
@@ -568,7 +571,7 @@ public static class DogSetup
             }
             modelRoot.localPosition = Vector3.zero;
             modelRoot.localRotation = Quaternion.identity;
-            modelRoot.localScale = Vector3.one;
+            modelRoot.localScale = Vector3.one * ModelScale;
             var animator = modelRoot.GetComponent<Animator>();
             animator.runtimeAnimatorController = Load<AnimatorController>(ControllerPath);
 
@@ -614,8 +617,8 @@ public static class DogSetup
     const string WorldMapPath = "Assets/_Game/Scenes/Prototypes/WorldMap.unity";
     const string DogHousePrefab = "Assets/_StoreAssets/Env/SICS/Toon Series/Toon Farm Pack/Prefabs/Buildings/Farm Structures/TFP_Dog_House_01B.prefab";
     const float FenceHeight = 2f;
-    const float LinkReach = 1.1f;
-    const float DoorDistance = 1.45f;
+    const float LinkReach = 1.1f * ModelScale;
+    const float DoorDistance = 1.45f * ModelScale;
 
     // In WorldMap: the "Home Dog" root with the dog house (its door and bed, a navmesh cut), Loki at its door, the spots it
     // visits, a DogOnly NodeLink2 across every fence segment and the gate (scrambled over, DogLinkInfo), the sill as the
@@ -649,12 +652,14 @@ public static class DogSetup
             house.SetPositionAndRotation(spot, Quaternion.LookRotation(away.sqrMagnitude > 0.01f ? away.normalized : Vector3.forward));
             log.Add($"dog house at {spot} (score {score:0.0})");
         }
+        // Sized to the dog (its navmesh cut scales with it: useRotationAndScale).
+        house.localScale = Vector3.one * ModelScale;
         Vector3 opening = -house.forward;
         Transform door = Child(house, "Door");
         door.position = Ground(house.position + opening * DoorDistance);
         door.rotation = Quaternion.LookRotation(-opening);
         Transform bed = Child(house, "Bed");
-        bed.position = house.position + opening * 0.12f;
+        bed.position = house.position + opening * 0.12f * ModelScale;
         bed.rotation = Quaternion.LookRotation(opening);
         var dogHouse = house.GetComponent<DogHouse>() ?? house.gameObject.AddComponent<DogHouse>();
         dogHouse.Setup(door, bed);

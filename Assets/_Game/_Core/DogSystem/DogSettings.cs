@@ -51,7 +51,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
         [Min(0f), Tooltip("Then it naps (s)")] public float NapAfter = 60f;
         [Tooltip("Seconds between check-ins (min, max)")] public Vector2 CheckIn = new(30f, 60f);
         [Min(0f), Tooltip("A check-in stops this far in front of the player (m)")] public float CheckInDistance = 1.5f;
-        [Min(0f), Tooltip("Water deeper than this (m) and it swims")] public float SwimDepth = 0.45f;
+        [Min(0f), Tooltip("Water deeper than this (m) and it swims")] public float SwimDepth = 0.85f;
         [Min(0f), Tooltip("Looked at within this (m)...")] public float LookRange = 10f;
         [Min(0f), Tooltip("...for this long (s): a head tilt")] public float LookTime = 1f;
         [Min(0f), Tooltip("Seconds between head tilts")] public float HeadTiltGap = 20f;
@@ -59,7 +59,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
         [Header("Turning, rain, welcome home")]
         [Min(0f), Tooltip("Turning on the spot faster than this (degrees/s)...")] public float TurnMinRate = 50f;
         [Min(0f), Tooltip("...while slower than this (m/s)...")] public float TurnStillBelow = 0.25f;
-        [Min(0f), Tooltip("...plays the walk at this speed so its legs step round (m/s)")] public float TurnStepSpeed = 0.6f;
+        [Min(0f), Tooltip("...plays the walk at this speed so its legs step round (m/s)")] public float TurnStepSpeed = 1.05f;
         [Range(0f, 1f), Tooltip("Rain heavier than this soaks it (the weather's rain amount)")] public float RainWetsAbove = 0.15f;
         [Min(0f), Tooltip("Seconds in the rain before it shakes itself dry once out of it (a roof, indoors, or the rain stops)")] public float WetToShake = 20f;
         [Min(0f), Tooltip("Staying at home: the player out of the yard this long (s)...")] public float WelcomeAfter = 60f;

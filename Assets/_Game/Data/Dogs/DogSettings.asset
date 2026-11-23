@@ -141,10 +141,17 @@ MonoBehaviour:
   NapAfter: 60
   CheckIn: {x: 30, y: 60}
   CheckInDistance: 1.5
-  SwimDepth: 0.45
+  SwimDepth: 0.85
   LookRange: 10
   LookTime: 1
   HeadTiltGap: 20
+  TurnMinRate: 50
+  TurnStillBelow: 0.25
+  TurnStepSpeed: 1.05
+  RainWetsAbove: 0.15
+  WetToShake: 20
+  WelcomeAfter: 60
+  WelcomeTime: 25
   HearWhistleRange: 60
   SpamWhistles: 4
   SpamWindow: 5
@@ -156,6 +163,7 @@ MonoBehaviour:
   ChaseRange: 25
   AvoidRange: 6
   RaidBarkGap: {x: 8, y: 15}
+  HowlChance: 0.2
   StayRadius: 4
   StayGoHomeDistance: 150
   WheelTimeScale: 0.3
