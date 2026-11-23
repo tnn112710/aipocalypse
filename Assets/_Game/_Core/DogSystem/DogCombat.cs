@@ -1,0 +1,113 @@
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace MB13.Aipocalypse.Core.DogSystem
+{
+    // What the dog knows about one enemy (DogManager fills these from the EnemyRegistry each think).
+    public readonly struct FoeView
+    {
+        public readonly int Id;
+        public readonly Vector3 Position, Forward;
+        public readonly bool Ranged, AwareOfPlayer, AttackingPlayer, Swinging;
+        public readonly float HealthFraction;
+        // Its weight class (index into DogSettings.Classes).
+        public readonly int Class;
+        public readonly bool Alive;
+        // Inside the home yard (a raider that got in).
+        public readonly bool InYard;
+
+        public FoeView(int id, Vector3 position, Vector3 forward, bool ranged, bool awareOfPlayer, bool attackingPlayer, bool swinging,
+            float healthFraction, int @class, bool alive, bool inYard = false)
+        {
+            Id = id;
+            Position = position;
+            Forward = forward;
+            Ranged = ranged;
+            AwareOfPlayer = awareOfPlayer;
+            AttackingPlayer = attackingPlayer;
+            Swinging = swinging;
+            HealthFraction = healthFraction;
+            Class = @class;
+            Alive = alive;
+            InYard = inYard;
+        }
+    }
+
+    // The dog's fight rules in plain C# (tested): which enemy it goes for, whether it may bite it, when there's an opening.
+    public static class DogCombat
+    {
+        // Sent (`sentId`): that one, while alive and within SentChaseRange of the player. Passive: nothing else. Active: enemies
+        // aware of the player within EngageRange of the player (with `homeDefence`, also raiders inside the yard): ranged
+        // first, then those attacking the player, then the nearest to the player. −1: none.
+        public static int PickTarget(IReadOnlyList<FoeView> foes, Vector3 player, DogStance stance, int sentId, bool homeDefence, DogStatSheet stats)
+        {
+            if (sentId >= 0)
+            {
+                float chase = stats.Get(DogStat.SentChaseRange);
+                for (int i = 0; i < foes.Count; i++)
+                    if (foes[i].Id == sentId && foes[i].Alive && Flat(foes[i].Position - player) <= chase)
+                        return sentId;
+                return -1;
+            }
+            if (stance == DogStance.Passive)
+                return -1;
+            float engage = stats.Get(DogStat.EngageRange);
+            int best = -1;
+            float bestScore = float.MaxValue;
+            for (int i = 0; i < foes.Count; i++)
+            {
+                FoeView foe = foes[i];
+                if (!foe.Alive)
+                    continue;
+                float distance = Flat(foe.Position - player);
+                bool engageable = (foe.AwareOfPlayer && distance <= engage) || (homeDefence && foe.InYard);
+                if (!engageable)
+                    continue;
+                // Lower is better: ranged, then attacking the player, then near the player.
+                float score = (foe.Ranged ? 0f : 1000f) + (foe.AttackingPlayer ? 0f : 500f) + distance;
+                if (score < bestScore)
+                {
+                    bestScore = score;
+                    best = foe.Id;
+                }
+            }
+            return best;
+        }
+
+        public static bool CanBite(in FoeView foe, DogStatSheet stats) => foe.Class <= stats.GetClass(DogStat.MaxBiteClass);
+
+        // A moment to dart in: the target faces away (more than `openingAngle`), is swinging at someone else, or the dog has
+        // circled long enough (`circleWait` × the cooldown).
+        public static bool IsOpening(in FoeView foe, Vector3 dog, float circledFor, float cooldown, float openingAngle, float circleWait)
+        {
+            if (foe.Swinging || circledFor >= circleWait * cooldown)
+                return true;
+            Vector3 toDog = dog - foe.Position;
+            toDog.y = 0f;
+            Vector3 forward = foe.Forward;
+            forward.y = 0f;
+            return toDog.sqrMagnitude > 1e-4f && Vector3.Angle(forward, toDog) > openingAngle;
+        }
+
+        // The nearest enemy within `range` of the dog that hasn't noticed the player (a warning growl), or −1.
+        public static int WarnTarget(IReadOnlyList<FoeView> foes, Vector3 dog, float range)
+        {
+            int best = -1;
+            float bestDistance = range;
+            for (int i = 0; i < foes.Count; i++)
+            {
+                if (!foes[i].Alive || foes[i].AwareOfPlayer)
+                    continue;
+                float distance = Flat(foes[i].Position - dog);
+                if (distance <= bestDistance)
+                {
+                    bestDistance = distance;
+                    best = foes[i].Id;
+                }
+            }
+            return best;
+        }
+
+        static float Flat(Vector3 v) => new Vector2(v.x, v.z).magnitude;
+    }
+}

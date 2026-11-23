@@ -29,7 +29,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
         const float SwimBodyDepth = 0.55f;
         const float StillSpeed = 0.2f;
         const float ShakeWindow = 20f;
-        const float FloorStep = 0.6f;
+
 
         readonly DogRoster _roster;
         readonly DogSettings _settings;
@@ -47,6 +47,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
         bool _hasPath = true;
         float _nextPathCheck;
         float _shakeUntil = float.NegativeInfinity;
+        float _fencedFor;
 
         public DogManager(DogRoster roster, DogSettings settings, WorldClock clock, PlayerRegistry players, AudioService audio,
             CommandWheelPresenter wheel, IObjectResolver resolver, ISubscriber<PlayerRevived> revived, ISubscriber<TimeSkipEnded> skipEnded,
@@ -90,6 +91,12 @@ namespace MB13.Aipocalypse.Core.DogSystem
             if (dog.State.Order == DogOrder.Stay && !_roster.InYard(dog.State.StayPoint) && _roster.House != null
                 && (_roster.Night || (_roster.HasPlayer && Flat(dog.State.StayPoint - _roster.PlayerPosition) > _settings.StayGoHomeDistance)))
                 dog.State.SetOrder(DogOrder.Stay, _roster.House.Door);
+            if (_roster.HasPlayer && now >= _nextPathCheck)
+            {
+                _nextPathCheck = now + PathCheckInterval;
+                _hasPath = HasPath(dog.transform.position, _roster.PlayerPosition);
+            }
+            Fenced(dog, dt);
             Swim(dog, now);
             LookedAt(dog, player, now, dt);
             dog.Advance(dt);
@@ -125,21 +132,41 @@ namespace MB13.Aipocalypse.Core.DogSystem
 
         FollowInput FollowInput(Dog dog, IPlayer player, float now)
         {
-            if (now >= _nextPathCheck)
-            {
-                _nextPathCheck = now + PathCheckInterval;
-                _hasPath = HasPath(dog.transform.position, _roster.PlayerPosition);
-            }
             bool aiming = player.HeldItem != null && player.HeldItem.IsAiming;
+            _roster.PlayerAiming = aiming;
             return new FollowInput(_roster.PlayerPosition, _roster.PlayerVelocity, _roster.PlayerForward, player.IsSprinting, aiming,
                 player.View.position, player.View.forward, dog.transform.position, _hasPath, now, Separated(dog.transform.position));
         }
 
-        // A wall between them: one in the yard and the other not (the fence), or on another floor (the house is 1 m up).
+        // Whether it can walk to the player (checked every PathCheckInterval); false across the shut fence or into an island.
+        public bool HasPathToPlayer => _hasPath;
+
+        // The fence between it and a player within ScrambleRange: at once when there's no way round, else after ScrambleAfter
+        // (a gap close by gets used first): it scrambles over (DogScramble).
+        public bool WantsScramble { get; private set; }
+
+        void Fenced(Dog dog, float dt)
+        {
+            Vector3 at = dog.transform.position;
+            bool fenced = _roster.HasPlayer && _roster.Yard != null && _roster.Crossings.Count > 0
+                && _roster.InYard(at) != _roster.InYard(_roster.PlayerPosition) && Flat(at - _roster.PlayerPosition) <= _settings.ScrambleRange;
+            _fencedFor = fenced ? _fencedFor + dt : 0f;
+            WantsScramble = fenced && (!_hasPath || _fencedFor >= _settings.ScrambleAfter);
+        }
+
+        // A wall between them: one in the yard and the other not (the fence), or one in the house and the other not (the house
+        // floor is tagged RobotsOnly).
         bool Separated(Vector3 dog)
         {
             Vector3 player = _roster.PlayerPosition;
-            return Mathf.Abs(dog.y - player.y) > FloorStep || (_roster.Yard != null && _roster.InYard(dog) != _roster.InYard(player));
+            return Indoors(dog) != Indoors(player) || (_roster.Yard != null && _roster.InYard(dog) != _roster.InYard(player));
+        }
+
+        static bool Indoors(Vector3 point)
+        {
+            AstarPath navigation = AstarPath.active;
+            GraphNode node = navigation != null ? navigation.GetNearest(point, NearestNodeConstraint.Walkable).node : null;
+            return node != null && node.Tag == EnemySystem.NavTags.RobotsOnly;
         }
 
         static bool HasPath(Vector3 from, Vector3 to)
@@ -147,8 +174,8 @@ namespace MB13.Aipocalypse.Core.DogSystem
             AstarPath navigation = AstarPath.active;
             if (navigation == null)
                 return true;
-            GraphNode a = navigation.GetNearest(from, NNConstraint.Walkable).node;
-            GraphNode b = navigation.GetNearest(to, NNConstraint.Walkable).node;
+            GraphNode a = navigation.GetNearest(from, NearestNodeConstraint.Walkable).node;
+            GraphNode b = navigation.GetNearest(to, NearestNodeConstraint.Walkable).node;
             return a == null || b == null || PathUtilities.IsPathPossible(a, b);
         }
 
@@ -156,12 +183,10 @@ namespace MB13.Aipocalypse.Core.DogSystem
         void Swim(Dog dog, float now)
         {
             Vector3 at = dog.transform.position;
-            bool deep = _water != null && _water.TryGetLevel(at, out float level) && level - at.y > _settings.SwimDepth;
+            float level = 0f;
+            bool deep = _water != null && _water.TryGetLevel(at, out level) && level - at.y > _settings.SwimDepth;
             if (deep)
-            {
-                _water.TryGetLevel(at, out level);
                 dog.TargetLift = Mathf.Max(0f, level - at.y - SwimBodyDepth);
-            }
             if (deep != dog.Swimming)
             {
                 dog.SetSwimming(deep);
@@ -310,18 +335,27 @@ namespace MB13.Aipocalypse.Core.DogSystem
                 SendHome(DogOrder.Follow);
         }
 
-        // A point out of the player's sight near `goal` (behind them), to appear at when it has fallen far behind.
+        // A point out of the player's sight near `goal` (behind them) that the PLAYER can walk to (the dog may be stranded on
+        // another island), to appear at when it has fallen far behind.
         public bool TryFindReappearPoint(Dog dog, Vector3 goal, out Vector3 point)
         {
-            IPlayer player = _players.Current;
-            for (int i = 0; i < 6; i++)
-            {
-                if (!dog.Legs.TryFindDestination(goal, 3f + i, 0f, 2, out point))
-                    continue;
-                if (player == null || !Visible(player.View, point))
-                    return true;
-            }
             point = default;
+            IPlayer player = _players.Current;
+            AstarPath navigation = AstarPath.active;
+            if (player == null || navigation == null)
+                return false;
+            GraphNode from = navigation.GetNearest(player.Transform.position, NearestNodeConstraint.Walkable).node;
+            if (from == null)
+                return false;
+            for (int i = 0; i < 12; i++)
+            {
+                Vector2 jitter = UnityEngine.Random.insideUnitCircle * (2f + i * 0.5f);
+                var nearest = navigation.GetNearest(goal + new Vector3(jitter.x, 0f, jitter.y), NearestNodeConstraint.Walkable);
+                if (nearest.node == null || !PathUtilities.IsPathPossible(from, nearest.node) || Visible(player.View, nearest.position))
+                    continue;
+                point = nearest.position;
+                return true;
+            }
             return false;
         }
 

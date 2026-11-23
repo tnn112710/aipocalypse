@@ -75,6 +75,9 @@ namespace MB13.Aipocalypse.Core.EnemySystem
             float distance = Mathf.Sqrt(MeleeHit.SqrFlatDistance(self, position));
             float standOff = _brain.StandOff(ranged);
             _brain.Engaged = distance <= ranged.MaxRange;
+            // Fighting back at the dog that bit it: it shoots from where it stands, never moves for it.
+            if (_brain.Retaliating)
+                return TaskStatus.Success;
 
             bool tooClose = ranged.MinRange > 0f && distance < ranged.MinRange;
             if (_retreating)

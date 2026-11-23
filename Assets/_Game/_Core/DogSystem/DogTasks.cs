@@ -177,6 +177,8 @@ namespace MB13.Aipocalypse.Core.DogSystem
                 float roll = Random.value;
                 _dog.Act(roll < 0.25f ? DogAct.Roll : roll < 0.6f ? DogAct.HeadTilt : DogAct.Happy);
                 _acted = true;
+                // The petting counts from here (getting up and coming over may take a while).
+                _dog.State.PetArrived(Time.time);
                 _sitAt = Time.time + 2.6f;
                 return TaskStatus.Running;
             }
@@ -250,34 +252,143 @@ namespace MB13.Aipocalypse.Core.DogSystem
             ? TaskStatus.Success : TaskStatus.Failure;
     }
 
-    // Fallen far behind or cut off: appears near the player out of their sight, then trots in.
+    // Fallen far behind or cut off: appears near the player out of their sight (tried every RetryTime until a spot is
+    // found), meanwhile running toward them.
     [Category("Aipocalypse/Dogs")]
     public sealed class DogCatchUp : ActionNode
     {
+        const float RetryTime = 0.5f;
+
         Dog _dog;
-        bool _warped;
+        float _nextTry;
 
         public override void OnAwake() => _dog = GetComponent<Dog>();
 
         public override void OnStart()
         {
-            _warped = false;
+            _nextTry = 0f;
             _dog.ResetBody();
-            if (!_dog.Manager.TryFindReappearPoint(_dog, _dog.Plan.Goal, out Vector3 point))
-                return;
-            _dog.SetPose(DogPose.Stand);
-            _dog.SetSniffing(false);
-            _dog.Legs.Warp(point);
-            _dog.Follow.Reset(Time.time);
-            _warped = true;
+            _dog.SpeedOverride = -1f;
         }
 
         public override TaskStatus OnUpdate()
         {
-            if (_warped)
+            float now = Time.time;
+            if (now < _nextTry)
+                return TaskStatus.Running;
+            _nextTry = now + RetryTime;
+            if (_dog.Manager.TryFindReappearPoint(_dog, _dog.Plan.Goal, out Vector3 point))
+            {
+                _dog.SetPose(DogPose.Stand);
+                _dog.SetSniffing(false);
+                _dog.Legs.Warp(point);
+                _dog.Follow.Reset(now);
                 return TaskStatus.Success;
+            }
             DogWalk.Go(_dog, _dog.Roster.PlayerPosition, DogGait.Sprint);
             return TaskStatus.Running;
+        }
+    }
+
+    // ---- Over the fence ----
+
+    [Category("Aipocalypse/Dogs")]
+    public sealed class DogMustScramble : ConditionalNode
+    {
+        Dog _dog;
+
+        public override void OnAwake() => _dog = GetComponent<Dog>();
+
+        public override TaskStatus OnUpdate()
+        {
+            bool wantsPlayer = _dog.State.Order == DogOrder.Follow || _dog.State.Called(Time.time);
+            return _dog.Scrambling || (wantsPlayer && _dog.Manager.WantsScramble) ? TaskStatus.Success : TaskStatus.Failure;
+        }
+    }
+
+    // Cut off by the shut fence: trots to the best crossing (the shortest way to the player over it), scrambles over by
+    // hand (the body on the arc, the agent waiting) and lands on the far side's navmesh.
+    [Category("Aipocalypse/Dogs")]
+    public sealed class DogScramble : ActionNode
+    {
+        Dog _dog;
+        Vector3 _from, _to;
+        float _startedAt;
+        float _nextGo;
+        bool _over;
+
+        public override void OnAwake() => _dog = GetComponent<Dog>();
+
+        public override void OnStart()
+        {
+            _over = false;
+            _nextGo = 0f;
+            DogRoster roster = _dog.Roster;
+            bool inside = roster.InYard(_dog.transform.position);
+            float best = float.MaxValue;
+            foreach (DogLinkInfo crossing in roster.Crossings)
+            {
+                Vector3 near = inside ? crossing.Inside : crossing.Outside;
+                Vector3 far = inside ? crossing.Outside : crossing.Inside;
+                float cost = DogWalk.Flat(near - _dog.transform.position) + DogWalk.Flat(roster.PlayerPosition - far);
+                if (cost >= best)
+                    continue;
+                best = cost;
+                _from = near;
+                _to = far;
+            }
+        }
+
+        public override TaskStatus OnUpdate()
+        {
+            float now = Time.time;
+            if (!_over)
+            {
+                if (!DogWalk.Near(_dog, _from, 0.5f))
+                {
+                    if (now >= _nextGo)
+                    {
+                        _nextGo = now + 0.5f;
+                        DogWalk.Go(_dog, _from, DogGait.Canter);
+                    }
+                    return TaskStatus.Running;
+                }
+                if (!_dog.Standing)
+                    return TaskStatus.Running;
+                _dog.Legs.Halt();
+                _over = true;
+                _dog.Scrambling = true;
+                _startedAt = now;
+                _dog.PlayJump(DogJumpArc.AnimatorKind(JumpKind.Scramble, 0f));
+            }
+            Vector3 start = _dog.transform.position;
+            float obstacle = 2f;
+            float peak = DogJumpArc.Peak(JumpKind.Scramble, start, _to, obstacle);
+            float duration = DogJumpArc.Duration(JumpKind.Scramble, DogWalk.Flat(_to - start));
+            float k = (now - _startedAt) / duration;
+            Vector3 across = _to - start;
+            across.y = 0f;
+            Quaternion facing = across.sqrMagnitude > 0.001f ? Quaternion.LookRotation(across) : _dog.transform.rotation;
+            if (k < 1f)
+            {
+                _dog.SetBody(DogJumpArc.Position(JumpKind.Scramble, start, _to, peak, k) - start, facing);
+                return TaskStatus.Running;
+            }
+            _dog.Legs.Warp(_to);
+            _dog.transform.rotation = facing;
+            _dog.ResetBody();
+            _dog.Scrambling = false;
+            return TaskStatus.Success;
+        }
+
+        public override void OnEnd()
+        {
+            if (_dog == null || !_dog.Scrambling)
+                return;
+            // Cut short mid-air: it lands on the far side at once (never stuck halfway over the fence).
+            _dog.Legs.Warp(_to);
+            _dog.ResetBody();
+            _dog.Scrambling = false;
         }
     }
 
@@ -412,7 +523,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
                     return;
             }
 
-            if (now >= _nextCheckIn)
+            if (now >= _nextCheckIn && !roster.PlayerAiming)
             {
                 _nextCheckIn = now + Random.Range(settings.CheckIn.x, settings.CheckIn.y);
                 Vector3 forward = roster.PlayerForward;
@@ -660,10 +771,12 @@ namespace MB13.Aipocalypse.Core.DogSystem
 
         public override void OnEnd()
         {
-            if (_dog == null || !_dog.InHouse)
+            if (_dog == null)
+                return;
+            _dog.SpeedOverride = -1f;
+            if (!_dog.InHouse)
                 return;
             // Woken or ordered out mid-way: the body is back on the agent at the door at once.
-            _dog.SpeedOverride = -1f;
             _dog.SetPose(DogPose.Stand);
             _dog.ResetBody();
         }
@@ -801,6 +914,8 @@ namespace MB13.Aipocalypse.Core.DogSystem
                     _until = now + Random.Range(6f, 14f);
                     break;
                 case Activity.Nap:
+                    if (roster.House == null)
+                        goto case Activity.Sit;
                     _until = now + Random.Range(20f, 45f);
                     _leaving = false;
                     break;
@@ -824,9 +939,9 @@ namespace MB13.Aipocalypse.Core.DogSystem
             if (_dog == null)
                 return;
             _dog.SetSniffing(false);
+            _dog.SpeedOverride = -1f;
             if (!_dog.InHouse)
                 return;
-            _dog.SpeedOverride = -1f;
             _dog.SetPose(DogPose.Stand);
             _dog.ResetBody();
         }

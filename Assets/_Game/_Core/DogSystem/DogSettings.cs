@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Ami.BroAudio;
+using MB13.Aipocalypse.Core.EnemySystem;
 using MB13.Aipocalypse.Core.WorldTimeSystem;
 using UnityEngine;
 using UnityEngine.Localization;
@@ -60,6 +61,10 @@ namespace MB13.Aipocalypse.Core.DogSystem
         [Min(0f), Tooltip("...within this many seconds annoy it (never in a fight)")] public float SpamWindow = 5f;
         [Min(0f), Tooltip("Seconds it ignores plain whistles once annoyed")] public float AnnoyedTime = 6f;
 
+        [Header("Over the fence")]
+        [Min(0f), Tooltip("Cut off by the fence from a player this close (m)...")] public float ScrambleRange = 25f;
+        [Min(0f), Tooltip("...for this long (s, time to go through a gap nearby first): it scrambles over")] public float ScrambleAfter = 2.5f;
+
         [Header("Stay")]
         [Min(0f), Tooltip("It keeps within this of where it was told to stay (m)")] public float StayRadius = 4f;
         [Min(0f), Tooltip("Player farther than this from a dog staying out in the world: it walks home (m)")] public float StayGoHomeDistance = 150f;
@@ -67,12 +72,37 @@ namespace MB13.Aipocalypse.Core.DogSystem
         [Header("Command wheel")]
         [Range(0.05f, 1f), Tooltip("Time scale while the wheel is open")] public float WheelTimeScale = 0.3f;
 
+        [Header("Fighting (the upgradable numbers are in Stats)")]
+        [Tooltip("Base fighting stats (upgrade sources add to them)")] public DogStatBlock Stats;
+        [Tooltip("Enemy weight classes in order (Light, Medium, Heavy, Boss): MaxBiteClass and MaxTakedownClass index this")]
+        public StaggerProfile[] Classes = new StaggerProfile[0];
+        [Min(0f), Tooltip("Seconds unhurt before toughness comes back")] public float RegenDelay = 10f;
+        [Min(0f), Tooltip("Down this long with nobody helping: it gets up by itself (s)")] public float SelfRiseTime = 90f;
+        [Min(0f), Tooltip("A bite also gives enemies this close to the dog a reason to swing at it (m)")] public float RetaliationRadius = 3f;
+        [Min(0f), Tooltip("An enemy keeps swinging at the dog while it's within its melee reach plus this (m)")] public float MeleeReachSlack = 0.5f;
+        [Range(0f, 180f), Tooltip("An opening: the target faces this far away from the dog (degrees)")] public float OpeningAngle = 60f;
+        [Min(1f), Tooltip("Or the dog has circled this many times its bite cooldown")] public float CircleWait = 1.5f;
+        [Min(3), Tooltip("Of this many points round the target...")] public int CirclePoints = 8;
+        [Min(1), Tooltip("...at least this many reachable to circle; else bite and back to the player")] public int CircleRoom = 3;
+        [Min(0f), Tooltip("Sent at an enemy: gives up after this long with no bite (s)")] public float SentGiveUp = 10f;
+        [Min(0f), Tooltip("The fight is over after this long with no enemy aware of the player within FightRange (s)")] public float FightOverTime = 5f;
+        [Min(0f)] public float FightRange = 20f;
+        [Min(0f), Tooltip("Seconds between warning growls at the same group")] public float WarnGap = 30f;
+        [Min(0f), Tooltip("Hit-stop on a takedown (s)")] public float TakedownHitStop = 0.06f;
+        [Min(0f), Tooltip("Push a bite gives (N·s, for the hit reaction side)")] public float BitePush = 2f;
+        [Range(0f, 1f), Tooltip("Player health below this: it whines and keeps close")] public float PlayerHurtBelow = 0.3f;
+
+        [Header("HUD")]
+        [Min(0f), Tooltip("The toughness bar shows while it follows within this (m) or fights")] public float HudRange = 40f;
+        [Range(0f, 1f), Tooltip("Warning colour below this share of toughness")] public float HudWarnBelow = 0.3f;
+
         [Header("Voice")]
         [Min(0f), Tooltip("At most one sound per this many seconds")] public float VoiceGap = 1.2f;
         [Min(0f)] public float BarkGap = 6f;
         [Min(1), Tooltip("Barks within any minute")] public int BarkPerMinute = 3;
         [Min(0f)] public float WhineGap = 8f;
         [Min(0f)] public float YelpGap = 1f;
+        [Min(0f)] public float GrowlGap = 4f;
         [SerializeField, Tooltip("One sound per moment (3D, at the dog)")] public Dictionary<DogSound, SoundID> Sounds = new();
     }
 }

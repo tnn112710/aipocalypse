@@ -10,6 +10,8 @@ namespace MB13.Aipocalypse.Core.Entities
         Fence,
         // The home's yard (the middle of the fence ring): what raiders go for before they notice the player. Can't be hurt.
         Farm,
+        // The companion dog: never chosen by weight, only fought back at when it provoked an enemy (EnemyBrain.Retaliate).
+        Dog,
     }
 
     // Something enemies may choose as a target (EnemySystem's TargetSelector) and hurt through DamageService.

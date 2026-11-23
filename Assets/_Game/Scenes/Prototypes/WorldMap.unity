@@ -1570,7 +1570,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8229049}
-  - component: {fileID: 8229051}
   - component: {fileID: 8229050}
   m_Layer: 0
   m_Name: DogLink Fence 0-14
@@ -1609,27 +1608,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &8229051
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8229048}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 8315919764573937714
-  end: {fileID: 579439698}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 579439698}
 --- !u!1 &8853818
 GameObject:
   m_ObjectHideFlags: 0
@@ -35164,7 +35143,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 108079562}
-  - component: {fileID: 108079564}
   - component: {fileID: 108079563}
   m_Layer: 0
   m_Name: DogLink Fence 2-05
@@ -35203,27 +35181,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &108079564
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 108079561}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 3094305367093237799
-  end: {fileID: 170097111}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 170097111}
 --- !u!1001 &108091521
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -35483,7 +35441,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 108813336}
-  - component: {fileID: 108813338}
   - component: {fileID: 108813337}
   m_Layer: 0
   m_Name: DogLink Fence 2-14
@@ -35522,27 +35479,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &108813338
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 108813335}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 5181763002840504907
-  end: {fileID: 2055585241}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 2055585241}
 --- !u!1001 &109092598
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -35634,7 +35571,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 109623258}
-  - component: {fileID: 109623260}
   - component: {fileID: 109623259}
   m_Layer: 0
   m_Name: DogLink Fence 1-11
@@ -35673,27 +35609,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &109623260
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 109623257}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 374649861014506426
-  end: {fileID: 419454429}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 419454429}
 --- !u!1 &109976054
 GameObject:
   m_ObjectHideFlags: 0
@@ -45636,7 +45552,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 148672629}
-  - component: {fileID: 148672631}
   - component: {fileID: 148672630}
   m_Layer: 0
   m_Name: DogLink Fence 0-08
@@ -45675,27 +45590,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &148672631
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 148672628}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 1819271465250739008
-  end: {fileID: 412539313}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 412539313}
 --- !u!1001 &148919445
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -46237,7 +46132,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 151910472}
-  - component: {fileID: 151910474}
   - component: {fileID: 151910473}
   m_Layer: 0
   m_Name: DogLink Fence 1-01
@@ -46276,27 +46170,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &151910474
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 151910471}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 6255930445996615782
-  end: {fileID: 696039366}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 696039366}
 --- !u!1001 &152203895
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -49716,7 +49590,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 164309949}
-  - component: {fileID: 164309951}
   - component: {fileID: 164309950}
   m_Layer: 0
   m_Name: DogLink Fence 3-04
@@ -49755,27 +49628,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &164309951
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 164309948}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 1862970690630284696
-  end: {fileID: 392390724}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 392390724}
 --- !u!1001 &164430657
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -51257,7 +51110,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 169634642}
-  - component: {fileID: 169634644}
   - component: {fileID: 169634643}
   m_Layer: 0
   m_Name: DogLink Fence 0-01
@@ -51296,27 +51148,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &169634644
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 169634641}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 2509214828122419834
-  end: {fileID: 86783325}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 86783325}
 --- !u!1001 &169700546
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -54102,7 +53934,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 180620167}
-  - component: {fileID: 180620169}
   - component: {fileID: 180620168}
   m_Layer: 0
   m_Name: DogLink Fence 2-13
@@ -54141,27 +53972,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &180620169
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 180620166}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 4511602174542738753
-  end: {fileID: 505318728}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 505318728}
 --- !u!1001 &180958271
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -64287,7 +64098,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 228601813}
-  - component: {fileID: 228601815}
   - component: {fileID: 228601814}
   m_Layer: 0
   m_Name: DogLink Fence 1-10
@@ -64326,27 +64136,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &228601815
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 228601812}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 5566883206988470337
-  end: {fileID: 1575385376}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 1575385376}
 --- !u!1001 &229317733
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -74531,7 +74321,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 266580578}
-  - component: {fileID: 266580580}
   - component: {fileID: 266580579}
   m_Layer: 0
   m_Name: DogLink Fence 2-00
@@ -74570,27 +74359,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &266580580
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 266580577}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 1105164541191098054
-  end: {fileID: 1019037232}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 1019037232}
 --- !u!1001 &267056529
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -87373,7 +87142,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 312587980}
-  - component: {fileID: 312587982}
   - component: {fileID: 312587981}
   m_Layer: 0
   m_Name: DogLink Fence 0-07
@@ -87412,27 +87180,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &312587982
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 312587979}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 7108555065122921512
-  end: {fileID: 1560681694}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 1560681694}
 --- !u!1001 &313027671
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -91789,7 +91537,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 325179062}
-  - component: {fileID: 325179064}
   - component: {fileID: 325179063}
   m_Layer: 0
   m_Name: DogLink Fence 1-02
@@ -91828,27 +91575,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &325179064
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 325179061}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 450548260435156866
-  end: {fileID: 1596803417}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 1596803417}
 --- !u!1001 &325618801
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -98265,7 +97992,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 349180890}
-  - component: {fileID: 349180892}
   - component: {fileID: 349180891}
   m_Layer: 0
   m_Name: DogLink Fence 1-00
@@ -98304,27 +98030,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &349180892
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 349180889}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 6753131382299375610
-  end: {fileID: 1847546149}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 1847546149}
 --- !u!1001 &349649407
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -98819,7 +98525,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 351561075}
-  - component: {fileID: 351561077}
   - component: {fileID: 351561076}
   m_Layer: 0
   m_Name: DogLink Fence 2-03
@@ -98858,27 +98563,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &351561077
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 351561074}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 1137306985246784743
-  end: {fileID: 1219302891}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 1219302891}
 --- !u!1001 &352628852
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -116328,7 +116013,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 416587383}
-  - component: {fileID: 416587385}
   - component: {fileID: 416587384}
   m_Layer: 0
   m_Name: DogLink Fence 0-04
@@ -116367,27 +116051,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &416587385
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 416587382}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 2191096584759518104
-  end: {fileID: 868707423}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 868707423}
 --- !u!1001 &416816485
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -128024,7 +127688,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 459225251}
-  - component: {fileID: 459225253}
   - component: {fileID: 459225252}
   m_Layer: 0
   m_Name: DogLink Fence 2-04
@@ -128063,27 +127726,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &459225253
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 459225250}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 104388605895423086
-  end: {fileID: 201461824}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 201461824}
 --- !u!1001 &459246899
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -147562,7 +147205,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 528676059}
-  - component: {fileID: 528676061}
   - component: {fileID: 528676060}
   m_Layer: 0
   m_Name: DogLink Fence 0-11
@@ -147601,27 +147243,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &528676061
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 528676058}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 7783408397736074430
-  end: {fileID: 267394643}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 267394643}
 --- !u!1001 &528823043
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -161811,6 +161433,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 0
   _via: {fileID: 1765494648}
+  _outside: {fileID: 0}
 --- !u!1001 &578872615
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -169594,7 +169217,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 608066849}
-  - component: {fileID: 608066851}
   - component: {fileID: 608066850}
   m_Layer: 0
   m_Name: DogLink Fence 3-11
@@ -169633,27 +169255,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &608066851
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 608066848}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 8080517991738425527
-  end: {fileID: 332821982}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 332821982}
 --- !u!1001 &608168921
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -175506,7 +175108,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 625075168}
-  - component: {fileID: 625075170}
   - component: {fileID: 625075169}
   m_Layer: 0
   m_Name: DogLink Fence 1-06
@@ -175545,27 +175146,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &625075170
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 625075167}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 997847846884841712
-  end: {fileID: 391347764}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 391347764}
 --- !u!1001 &625282992
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -190874,7 +190455,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 684429706}
-  - component: {fileID: 684429708}
   - component: {fileID: 684429707}
   m_Layer: 0
   m_Name: DogLink Fence 3-00
@@ -190913,27 +190493,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &684429708
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 684429705}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 8105569279335142588
-  end: {fileID: 1155478011}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 1155478011}
 --- !u!1001 &684474584
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -192670,7 +192230,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 690056935}
-  - component: {fileID: 690056937}
   - component: {fileID: 690056936}
   m_Layer: 0
   m_Name: DogLink Fence 1-07
@@ -192709,27 +192268,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &690056937
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 690056934}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 5036237484562052715
-  end: {fileID: 1790452478}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 1790452478}
 --- !u!1001 &690290104
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -200415,7 +199954,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 718982133}
-  - component: {fileID: 718982135}
   - component: {fileID: 718982134}
   m_Layer: 0
   m_Name: DogLink Fence 1-05
@@ -200454,27 +199992,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &718982135
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 718982132}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 879465232282197316
-  end: {fileID: 1291046382}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 1291046382}
 --- !u!1001 &719211221
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -226707,7 +226225,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 792988832}
-  - component: {fileID: 792988834}
   - component: {fileID: 792988833}
   m_Layer: 0
   m_Name: DogLink Fence 3-07
@@ -226746,27 +226263,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &792988834
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 792988831}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 6469271074991361318
-  end: {fileID: 1023577064}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 1023577064}
 --- !u!1001 &793051703
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -242703,7 +242200,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 863249437}
-  - component: {fileID: 863249439}
   - component: {fileID: 863249438}
   m_Layer: 0
   m_Name: DogLink Fence 0-12
@@ -242742,27 +242238,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &863249439
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 863249436}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 3493381749941291540
-  end: {fileID: 2145177400}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 2145177400}
 --- !u!1001 &863407039
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -249486,7 +248962,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 894753977}
-  - component: {fileID: 894753979}
   - component: {fileID: 894753978}
   m_Layer: 0
   m_Name: DogLink Fence 2-07
@@ -249525,27 +249000,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &894753979
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 894753976}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 3282049335581122338
-  end: {fileID: 1328922406}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 1328922406}
 --- !u!1001 &894938869
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -279134,7 +278589,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 999690821}
-  - component: {fileID: 999690823}
   - component: {fileID: 999690822}
   m_Layer: 0
   m_Name: DogLink Fence 0-03
@@ -279173,27 +278627,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &999690823
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 999690820}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 1935958261173142061
-  end: {fileID: 1470457845}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 1470457845}
 --- !u!1001 &1000180970
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -280194,7 +279628,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1003848687}
-  - component: {fileID: 1003848689}
   - component: {fileID: 1003848688}
   m_Layer: 0
   m_Name: DogLink Fence 3-08
@@ -280233,27 +279666,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &1003848689
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1003848686}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 1004118499101687168
-  end: {fileID: 122591840}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 122591840}
 --- !u!1001 &1004336172
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -286322,7 +285735,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1026906198}
-  - component: {fileID: 1026906200}
   - component: {fileID: 1026906199}
   m_Layer: 0
   m_Name: DogLink Fence 3-09
@@ -286361,27 +285773,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &1026906200
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1026906197}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 667455322233863501
-  end: {fileID: 1196299226}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 1196299226}
 --- !u!1001 &1027102054
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -292913,6 +292305,60 @@ MonoBehaviour:
   - {fileID: 1193647662}
   - {fileID: 1838620707}
   - {fileID: 126480674}
+  _crossings:
+  - {fileID: 792988833}
+  - {fileID: 2143705274}
+  - {fileID: 2087059538}
+  - {fileID: 228601814}
+  - {fileID: 1247554718}
+  - {fileID: 151910473}
+  - {fileID: 1977397464}
+  - {fileID: 1003848688}
+  - {fileID: 1792747209}
+  - {fileID: 164309950}
+  - {fileID: 999690822}
+  - {fileID: 8229050}
+  - {fileID: 1715778505}
+  - {fileID: 180620168}
+  - {fileID: 608066850}
+  - {fileID: 1372267031}
+  - {fileID: 1457729921}
+  - {fileID: 148672630}
+  - {fileID: 863249438}
+  - {fileID: 684429707}
+  - {fileID: 416587384}
+  - {fileID: 1109766852}
+  - {fileID: 1642413574}
+  - {fileID: 894753978}
+  - {fileID: 108813337}
+  - {fileID: 2137907697}
+  - {fileID: 1955420006}
+  - {fileID: 325179063}
+  - {fileID: 351561076}
+  - {fileID: 1260450846}
+  - {fileID: 2043705897}
+  - {fileID: 349180891}
+  - {fileID: 1422684893}
+  - {fileID: 718982134}
+  - {fileID: 625075169}
+  - {fileID: 1662198028}
+  - {fileID: 108079563}
+  - {fileID: 266580579}
+  - {fileID: 528676060}
+  - {fileID: 1327654115}
+  - {fileID: 1503492027}
+  - {fileID: 1760499038}
+  - {fileID: 312587981}
+  - {fileID: 1099709352}
+  - {fileID: 1684265670}
+  - {fileID: 1026906199}
+  - {fileID: 2130211793}
+  - {fileID: 109623259}
+  - {fileID: 1922523985}
+  - {fileID: 690056936}
+  - {fileID: 1269528948}
+  - {fileID: 169634643}
+  - {fileID: 459225252}
   _dogs:
   - {fileID: 2059856389}
 --- !u!1001 &1051122766
@@ -306868,7 +306314,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1099709351}
-  - component: {fileID: 1099709353}
   - component: {fileID: 1099709352}
   m_Layer: 0
   m_Name: DogLink Gate
@@ -306907,27 +306352,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &1099709353
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1099709350}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 1322444518588674956
-  end: {fileID: 156311959}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 156311959}
 --- !u!1001 &1099883461
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -309344,7 +308769,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1109766851}
-  - component: {fileID: 1109766853}
   - component: {fileID: 1109766852}
   m_Layer: 0
   m_Name: DogLink Fence 2-11
@@ -309383,27 +308807,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &1109766853
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1109766850}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 416131372587841994
-  end: {fileID: 2147401978}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 2147401978}
 --- !u!1001 &1109943200
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -344662,7 +344066,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1247554717}
-  - component: {fileID: 1247554719}
   - component: {fileID: 1247554718}
   m_Layer: 0
   m_Name: DogLink Fence 1-08
@@ -344701,27 +344104,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &1247554719
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1247554716}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 3097713453199197593
-  end: {fileID: 1095959233}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 1095959233}
 --- !u!1001 &1248486108
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -347584,7 +346967,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1260450845}
-  - component: {fileID: 1260450847}
   - component: {fileID: 1260450846}
   m_Layer: 0
   m_Name: DogLink Fence 0-05
@@ -347623,27 +347005,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &1260450847
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1260450844}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 8931711653754822592
-  end: {fileID: 2093812725}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 2093812725}
 --- !u!1001 &1260673704
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -350664,7 +350026,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1269528947}
-  - component: {fileID: 1269528949}
   - component: {fileID: 1269528948}
   m_Layer: 0
   m_Name: DogLink Fence 3-10
@@ -350703,27 +350064,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &1269528949
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1269528946}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 4661125040215299347
-  end: {fileID: 49282940}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 49282940}
 --- !u!1001 &1269610091
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -370069,7 +369410,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1327654114}
-  - component: {fileID: 1327654116}
   - component: {fileID: 1327654115}
   m_Layer: 0
   m_Name: DogLink Fence 3-01
@@ -370108,27 +369448,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &1327654116
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1327654113}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 409428314582993043
-  end: {fileID: 999419332}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 999419332}
 --- !u!1001 &1327824565
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -382451,7 +381771,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1372267030}
-  - component: {fileID: 1372267032}
   - component: {fileID: 1372267031}
   m_Layer: 0
   m_Name: DogLink Fence 0-09
@@ -382490,27 +381809,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &1372267032
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1372267029}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 1698390410005011114
-  end: {fileID: 314468837}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 314468837}
 --- !u!1 &1372274710
 GameObject:
   m_ObjectHideFlags: 0
@@ -395946,7 +395245,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1422684892}
-  - component: {fileID: 1422684894}
   - component: {fileID: 1422684893}
   m_Layer: 0
   m_Name: DogLink Fence 2-02
@@ -395985,27 +395283,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &1422684894
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1422684891}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 2975229945327831625
-  end: {fileID: 419621596}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 419621596}
 --- !u!1001 &1423049991
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -405908,7 +405186,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1457729920}
-  - component: {fileID: 1457729922}
   - component: {fileID: 1457729921}
   m_Layer: 0
   m_Name: DogLink Fence 1-04
@@ -405947,27 +405224,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &1457729922
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1457729919}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 4898974566059479247
-  end: {fileID: 1269469890}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 1269469890}
 --- !u!1001 &1458185757
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -417811,7 +417068,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1503492026}
-  - component: {fileID: 1503492028}
   - component: {fileID: 1503492027}
   m_Layer: 0
   m_Name: DogLink Fence 3-05
@@ -417850,27 +417106,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &1503492028
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1503492025}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 4271596653099251600
-  end: {fileID: 261946424}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 261946424}
 --- !u!1001 &1503632485
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -456291,7 +455527,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1642413573}
-  - component: {fileID: 1642413575}
   - component: {fileID: 1642413574}
   m_Layer: 0
   m_Name: DogLink Fence 0-10
@@ -456330,27 +455565,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &1642413575
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1642413572}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 2511829170210124771
-  end: {fileID: 60656894}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 60656894}
 --- !u!1001 &1642482017
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -462741,7 +461956,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1662198027}
-  - component: {fileID: 1662198029}
   - component: {fileID: 1662198028}
   m_Layer: 0
   m_Name: DogLink Fence 3-06
@@ -462780,27 +461994,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &1662198029
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1662198026}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 1376202436392070070
-  end: {fileID: 583209483}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 583209483}
 --- !u!1 &1662218396 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2493120358736429415, guid: c1249df814da5a14abbcea015ae43652, type: 3}
@@ -470546,7 +469740,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1684265669}
-  - component: {fileID: 1684265671}
   - component: {fileID: 1684265670}
   m_Layer: 0
   m_Name: DogLink Fence 2-01
@@ -470585,27 +469778,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &1684265671
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1684265668}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 2583546467775585295
-  end: {fileID: 1823508174}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 1823508174}
 --- !u!1001 &1684265736
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -482716,7 +481889,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1715778504}
-  - component: {fileID: 1715778506}
   - component: {fileID: 1715778505}
   m_Layer: 0
   m_Name: DogLink Fence 2-10
@@ -482755,27 +481927,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &1715778506
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1715778503}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 5486386920556300910
-  end: {fileID: 1860742885}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 1860742885}
 --- !u!1001 &1716299325
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -492557,7 +491709,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1760499037}
-  - component: {fileID: 1760499039}
   - component: {fileID: 1760499038}
   m_Layer: 0
   m_Name: DogLink Fence 3-03
@@ -492596,27 +491747,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &1760499039
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1760499036}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 8154373944790279667
-  end: {fileID: 632579356}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 632579356}
 --- !u!1001 &1761274331
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -509374,7 +508505,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1792747208}
-  - component: {fileID: 1792747210}
   - component: {fileID: 1792747209}
   m_Layer: 0
   m_Name: DogLink Fence 1-09
@@ -509413,27 +508543,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &1792747210
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1792747207}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 7763383362478948810
-  end: {fileID: 2109423318}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 2109423318}
 --- !u!1001 &1792852053
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -546486,7 +545596,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1922523984}
-  - component: {fileID: 1922523986}
   - component: {fileID: 1922523985}
   m_Layer: 0
   m_Name: DogLink Fence 0-02
@@ -546525,27 +545634,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &1922523986
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1922523983}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 5555914710606370595
-  end: {fileID: 1491217560}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 1491217560}
 --- !u!1001 &1922573156
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -555063,7 +554152,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1955420005}
-  - component: {fileID: 1955420007}
   - component: {fileID: 1955420006}
   m_Layer: 0
   m_Name: DogLink Fence 3-02
@@ -555102,27 +554190,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &1955420007
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1955420004}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 5930774053790954249
-  end: {fileID: 458315119}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 458315119}
 --- !u!1001 &1955508930
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -560749,7 +559817,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1977397463}
-  - component: {fileID: 1977397465}
   - component: {fileID: 1977397464}
   m_Layer: 0
   m_Name: DogLink Fence 0-00
@@ -560788,27 +559855,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &1977397465
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1977397462}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 1622042083582913663
-  end: {fileID: 1703484623}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 1703484623}
 --- !u!1001 &1978195491
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -579451,7 +578498,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2043705896}
-  - component: {fileID: 2043705898}
   - component: {fileID: 2043705897}
   m_Layer: 0
   m_Name: DogLink Fence 0-13
@@ -579490,27 +578536,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &2043705898
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2043705895}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 3373585023130621636
-  end: {fileID: 1794300638}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 1794300638}
 --- !u!1 &2043904194
 GameObject:
   m_ObjectHideFlags: 0
@@ -604273,7 +603299,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2087059537}
-  - component: {fileID: 2087059539}
   - component: {fileID: 2087059538}
   m_Layer: 0
   m_Name: DogLink Fence 1-03
@@ -604312,27 +603337,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &2087059539
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2087059536}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 6168349112391198794
-  end: {fileID: 404650913}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 404650913}
 --- !u!1001 &2087072355
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -616133,7 +615138,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2130211792}
-  - component: {fileID: 2130211794}
   - component: {fileID: 2130211793}
   m_Layer: 0
   m_Name: DogLink Fence 2-06
@@ -616172,27 +615176,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &2130211794
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2130211791}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 8246571203852017356
-  end: {fileID: 1854470022}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 1854470022}
 --- !u!1001 &2131143171
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -618760,7 +617744,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2137907696}
-  - component: {fileID: 2137907698}
   - component: {fileID: 2137907697}
   m_Layer: 0
   m_Name: DogLink Fence 2-12
@@ -618799,27 +617782,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &2137907698
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2137907695}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 580639717348643441
-  end: {fileID: 1838102150}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 1838102150}
 --- !u!1001 &2138913305
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -619774,7 +618737,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2143705273}
-  - component: {fileID: 2143705275}
   - component: {fileID: 2143705274}
   m_Layer: 0
   m_Name: DogLink Fence 0-06
@@ -619813,27 +618775,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.DogSystem.DogLinkInfo
   _obstacleHeight: 2
   _via: {fileID: 0}
---- !u!114 &2143705275
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2143705272}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd2cfff5dfa8c4244aa00fea9675adb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.NodeLink2
-  version: 1073741824
-  uniqueID: 3820386451192965604
-  end: {fileID: 1885962975}
-  costFactor: 3
-  oneWay: 0
-  pathfindingTag:
-    value: 2
-  graphMask:
-    value: -1
+  _outside: {fileID: 1885962975}
 --- !u!1001 &2144778926
 PrefabInstance:
   m_ObjectHideFlags: 0

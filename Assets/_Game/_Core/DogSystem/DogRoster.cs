@@ -9,6 +9,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
     public sealed class DogRoster
     {
         readonly List<Transform> _visits = new();
+        readonly List<DogLinkInfo> _crossings = new();
 
         public DogRoster(DogSettings settings) => Settings = settings;
 
@@ -19,6 +20,9 @@ namespace MB13.Aipocalypse.Core.DogSystem
         public RobotYard Yard { get; private set; }
         // Spots it trots over to at home (the robots' spots, the gate, the house door…).
         public IReadOnlyList<Transform> Visits => _visits;
+        // Fence crossings the dog scrambles over (DogScramble).
+        public IReadOnlyList<DogLinkInfo> Crossings => _crossings;
+        public bool PlayerAiming { get; set; }
         public bool Night { get; set; }
         public bool Raid { get; set; }
         public bool HasPlayer { get; set; }
@@ -28,7 +32,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
         // Seconds the player has stood still (0 while moving).
         public float PlayerStillFor { get; set; }
 
-        public void Bind(DogHouse house, RobotYard yard, IEnumerable<Transform> visits)
+        public void Bind(DogHouse house, RobotYard yard, IEnumerable<Transform> visits, IEnumerable<DogLinkInfo> crossings = null)
         {
             House = house;
             Yard = yard;
@@ -37,6 +41,11 @@ namespace MB13.Aipocalypse.Core.DogSystem
                 foreach (Transform visit in visits)
                     if (visit != null)
                         _visits.Add(visit);
+            _crossings.Clear();
+            if (crossings != null)
+                foreach (DogLinkInfo crossing in crossings)
+                    if (crossing != null)
+                        _crossings.Add(crossing);
         }
 
         public void Add(Dog dog) => Dog = dog;

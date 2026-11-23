@@ -128,11 +128,15 @@ namespace MB13.Aipocalypse.Tests
         }
 
         [Test]
-        public void Pet_LastsPetTime()
+        public void Pet_GivesItTimeToComeThenLastsPetTime()
         {
             _state.Pet(1f);
-            Assert.That(_state.Petting(1f + DogState.PetTime - 0.1f), Is.True);
-            Assert.That(_state.Petting(1f + DogState.PetTime + 0.1f), Is.False);
+            Assert.That(_state.Petting(1f + DogState.PetComeTime - 0.1f), Is.True, "still coming over (getting up takes a while)");
+            Assert.That(_state.Petting(1f + DogState.PetComeTime + 0.1f), Is.False, "never arrived: gives up");
+            _state.Pet(20f);
+            _state.PetArrived(23f);
+            Assert.That(_state.Petting(23f + DogState.PetTime - 0.1f), Is.True);
+            Assert.That(_state.Petting(23f + DogState.PetTime + 0.1f), Is.False);
         }
 
         [Test]

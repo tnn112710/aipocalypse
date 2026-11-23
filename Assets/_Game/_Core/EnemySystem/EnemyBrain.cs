@@ -38,6 +38,9 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         EnemyEyes _eyes;
         ITargetable _target;
         float _nextRetarget;
+        ITargetable _retaliate;
+        float _retaliateUntil;
+        float _retaliateReach;
         int _barrierVersion;
         readonly Awareness _awareness = new();
         float _nextSense;
@@ -252,6 +255,21 @@ namespace MB13.Aipocalypse.Core.EnemySystem
             Tree.Tick();
         }
 
+        // Provoked (the dog bit it, or bit a neighbour): it may go for `target` until `until`, but only while it's within `reach`
+        // (melee reach plus a little; a thrower's range): it never chases. Checked on every think in ChooseTarget.
+        public void Retaliate(ITargetable target, float until, float reach)
+        {
+            _retaliate = target;
+            _retaliateUntil = until;
+            _retaliateReach = reach;
+            _nextRetarget = 0f;
+        }
+
+        public bool Retaliating => _retaliate != null;
+
+        public static bool KeepsRetaliating(Vector3 self, Vector3 target, float reach, float now, float until, bool targetable) =>
+            targetable && now < until && MeleeHit.SqrFlatDistance(self, target) <= reach * reach;
+
         // Picks what to hunt (TargetSelector) every RetargetInterval, or at once when the current one can't be targeted any more,
         // a barrier started or stopped blocking (a gap opened: TargetSelector decides who goes through and who keeps breaking),
         // or it noticed or lost the player. Unaware, it goes for its orders' objective; arrived there, it roams there.
@@ -260,6 +278,13 @@ namespace MB13.Aipocalypse.Core.EnemySystem
             MeleeSettings melee = _definition.Melee;
             if (melee == null)
                 return Target = null;
+            if (_retaliate != null)
+            {
+                if (KeepsRetaliating(transform.position, _retaliate.Transform.position, _retaliateReach, Time.time, _retaliateUntil, _retaliate.IsTargetable))
+                    return Target = _retaliate;
+                _retaliate = null;
+                _nextRetarget = 0f;
+            }
             if (_target != null && _target.IsTargetable && Time.time < _nextRetarget && _barrierVersion == _targets.BarrierVersion)
                 return _target;
             _nextRetarget = Time.time + melee.RetargetInterval;

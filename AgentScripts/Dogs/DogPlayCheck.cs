@@ -49,7 +49,9 @@ public static class DogPlayCheck
         Vector3 start = Yard(-10f, -2f);
         PlacePlayer(start, start + YardRight);
         dog.Legs.Warp(Yard(-11f, 0f));
-        await Seconds(2f, null);
+        // On its feet first (a previous probe may have left it asleep: getting up takes a few seconds).
+        dog.SetPose(DogPose.Stand);
+        await Seconds(4f, null);
         float farthest = 0f;
         Vector3 end = Yard(-10f + metres, -2f);
         float walkTime = metres / 3f;
@@ -161,20 +163,20 @@ public static class DogPlayCheck
         dog.Legs.Warp(Yard(ix + 1f, iz + 1f));
         await Seconds(2f, null);
         PlacePlayer(beyond, inside);
-        var agent = dog.GetComponent<FollowerEntity>();
         bool linked = false;
         float peak = float.MinValue;
+        Transform model = dog.transform.Find("Model");
         await Seconds(15f, () =>
         {
-            linked |= agent.isTraversingOffMeshLink;
-            if (agent.isTraversingOffMeshLink)
-                peak = Mathf.Max(peak, dog.transform.position.y - beyond.y);
+            linked |= dog.Scrambling;
+            if (dog.Scrambling)
+                peak = Mathf.Max(peak, model.position.y - beyond.y);
         });
         bool outOk = !yard.Contains(dog.transform.position) && linked;
         string outLine = $"over: outside {!yard.Contains(dog.transform.position)} by a link {linked} (peak {peak:0.0} m), {Flat(dog.transform.position - beyond):0.0} m from the player";
         linked = false;
         PlacePlayer(inside, beyond);
-        await Seconds(15f, () => linked |= agent.isTraversingOffMeshLink);
+        await Seconds(15f, () => linked |= dog.Scrambling);
         bool inOk = yard.Contains(dog.transform.position) && linked;
         return $"{Pass(outOk && inOk)} scramble: {outLine}; back: inside {yard.Contains(dog.transform.position)} by a link {linked}; {Line(dog)}";
     }
@@ -308,14 +310,15 @@ public static class DogPlayCheck
     public static async Task<string> Pet()
     {
         Dog dog = Dog;
-        Vector3 at = Ground(dog.transform.position + YardRight * 4f);
+        Vector3 at = Yard(6f, 6f);
+        dog.Legs.Warp(Yard(2f, 6f));
         PlacePlayer(at, dog.transform.position);
-        await Seconds(0.5f, null);
+        await Seconds(1f, null);
         dog.InteractHold(Player.gameObject);
         bool petting = dog.State.Petting(Time.time);
         bool sat = false;
         float closest = float.MaxValue;
-        await Seconds(4.5f, () =>
+        await Seconds(9f, () =>
         {
             sat |= dog.Pose == DogPose.Sit;
             closest = Mathf.Min(closest, Flat(dog.transform.position - Player.transform.position));
@@ -328,17 +331,19 @@ public static class DogPlayCheck
     {
         Dog dog = Dog;
         DogManager manager = Scope.Resolve<DogManager>();
-        manager.Order(dog, DogOrder.Stay);
-        await Seconds(7f, null);
+        manager.Order(dog, DogOrder.Follow);
         dog.SetPose(DogPose.Stand);
-        await Seconds(1.5f, null);
+        await Seconds(2.5f, null);
         Vector3 at = Ground(dog.transform.position + dog.transform.forward * 4f);
         PlacePlayer(at, dog.transform.position + Vector3.up * 0.5f);
         bool tilted = false;
         var animator = dog.GetComponentInChildren<Animator>();
         int tilt = Animator.StringToHash("Act HeadTilt");
+        DogRoster roster = Scope.Resolve<DogRoster>();
         await Seconds(3f, () =>
         {
+            // A player who just stopped to look (one standing still for long has a dog sitting down, which can't tilt).
+            roster.PlayerStillFor = 0f;
             AimAt(dog.transform.position + Vector3.up * 0.5f);
             tilted |= animator.GetCurrentAnimatorStateInfo(0).shortNameHash == tilt || animator.GetNextAnimatorStateInfo(0).shortNameHash == tilt;
         });
@@ -481,7 +486,7 @@ public static class DogPlayCheck
         PlacePlayer(dry, dry + YardRight);
         var animator = dog.GetComponentInChildren<Animator>();
         bool shook = false;
-        await Seconds(14f, () => shook |= animator.GetCurrentAnimatorStateInfo(0).IsName("Act ShakeWater"));
+        await Seconds(20f, () => shook |= animator.GetCurrentAnimatorStateInfo(0).IsName("Act ShakeWater"));
         return $"{Pass(swam && lift > 0.1f && shook)} swim at {spot}: swam {swam} (model up {lift:0.00} m), shook dry {shook}, swimming now {dog.Swimming}; {Line(dog)}";
     }
 

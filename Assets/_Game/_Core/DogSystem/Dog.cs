@@ -122,6 +122,8 @@ namespace MB13.Aipocalypse.Core.DogSystem
         // The model moved off the agent (world offset and facing): into its dog house, where the navmesh is cut out, while
         // the agent waits at the door. Never switch the agent off instead: its entity data can be lost to another agent.
         public bool InHouse => _bodyRotation.HasValue;
+        // Mid-scramble over the fence (the body on its arc, the agent waiting on the near side).
+        public bool Scrambling { get; set; }
 
         public void SetBody(Vector3 offset, Quaternion rotation)
         {

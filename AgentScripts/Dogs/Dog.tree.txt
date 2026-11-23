@@ -17,7 +17,10 @@
 # Rebuilding keeps the asset's GUID; edits made in the Behavior Designer window are overwritten, so make them here.
 tree Assets/_Game/Content/Dogs/_Shared/Dog.asset
 Repeater "Repeat forever"
-  Selector "Come, petted, sad, catch up, follow, stay out, sleep at home, else home life"
+  Selector "Over the fence, come, petted, sad, catch up, follow, stay out, sleep at home, else home life"
+    Sequence AbortType=Both "Over the fence (aborts both ways)"
+      DogMustScramble "Cut off from the player by the shut fence?"
+      DogScramble "Trot to a crossing, scramble over"
     Sequence AbortType=Both "Come to heel (aborts both ways)"
       DogIsCalled "Whistled?"
       DogComeToHeel "Run over, sit by the player"

@@ -160,12 +160,13 @@ namespace MB13.Aipocalypse.Core.DogSystem
             return FollowMode.Free;
         }
 
-        // Changes of mode wait a reaction delay (never the same frame the player starts or stops); catching up doesn't.
+        // Changes of mode wait a reaction delay (never the same frame the player starts or stops); catching up and getting
+        // out of the line of fire don't.
         void Advance(FollowMode raw, float now)
         {
-            if (raw == FollowMode.CatchUp && _mode != FollowMode.CatchUp)
+            if (raw is FollowMode.CatchUp or FollowMode.ClearAim && _mode != raw)
             {
-                Enter(FollowMode.CatchUp);
+                Enter(raw);
                 return;
             }
             if (raw == _mode)
@@ -212,6 +213,8 @@ namespace MB13.Aipocalypse.Core.DogSystem
                 return DogGait.Sprint;
             if (mode == FollowMode.Free)
                 return DogGait.Still;
+            if (mode == FollowMode.ClearAim)
+                return distance > CatchUpGap ? DogGait.Sprint : DogGait.Canter;
             if (playerSpeed > _settings.TrotSpeed * 0.9f)
                 return distance > CatchUpGap ? DogGait.Sprint : DogGait.Canter;
             if (distance < 2f)

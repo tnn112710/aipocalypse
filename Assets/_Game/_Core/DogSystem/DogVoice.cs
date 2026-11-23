@@ -39,6 +39,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
             DogSound.Bark => _settings.BarkGap,
             DogSound.Whine => _settings.WhineGap,
             DogSound.Yelp => _settings.YelpGap,
+            DogSound.Growl => _settings.GrowlGap,
             _ => 0f,
         };
     }

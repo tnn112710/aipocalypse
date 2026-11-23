@@ -22,6 +22,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
         [SerializeField, Tooltip("Its home in the yard")] DogHouse _house;
         [SerializeField, Tooltip("The yard (shared with the robots); none = home is just around the house")] RobotYard _yard;
         [SerializeField, Tooltip("Spots it trots over to at home")] List<Transform> _visits = new();
+        [SerializeField, Tooltip("Fence crossings it scrambles over (inside end; Outside child)")] List<DogLinkInfo> _crossings = new();
         [SerializeField, ReadOnly, Tooltip("Collected on save / Play")] List<Dog> _dogs = new();
 
         public override string Problem =>
@@ -41,19 +42,20 @@ namespace MB13.Aipocalypse.Core.DogSystem
                 builder.RegisterEntryPoint<DogCommands>();
             builder.RegisterBuildCallback(resolver =>
             {
-                resolver.Resolve<DogRoster>().Bind(_house, _yard, _visits);
+                resolver.Resolve<DogRoster>().Bind(_house, _yard, _visits, _crossings);
                 foreach (Dog dog in _dogs)
                     if (dog != null)
                         resolver.InjectGameObject(dog.gameObject);
             });
         }
 
-        public void Setup(DogSettings settings, DogHouse house, RobotYard yard, List<Transform> visits)
+        public void Setup(DogSettings settings, DogHouse house, RobotYard yard, List<Transform> visits, List<DogLinkInfo> crossings)
         {
             _settings = settings;
             _house = house;
             _yard = yard;
             _visits = visits;
+            _crossings = crossings;
         }
 
 #if UNITY_EDITOR

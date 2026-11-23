@@ -30,6 +30,19 @@ public static class DogSetup
     const string TreePath = Content + "/_Shared/Dog.asset";
     const string DataDir = "Assets/_Game/Data/Dogs";
     const string SettingsPath = DataDir + "/DogSettings.asset";
+    const string StatsPath = DataDir + "/DogStatBlock.asset";
+    const string StaggerDir = "Assets/_Game/Data/Enemies/Stagger/";
+
+    // The spec's start values (docs/superpowers/specs/2026-11-23-dog-companion-design.md, "Stats").
+    static readonly (DogStat Stat, float Value)[] StartStats =
+    {
+        (DogStat.BiteDamage, 12f), (DogStat.BiteCooldown, 8f), (DogStat.MaxBiteClass, 0f), (DogStat.StaggerTime, 0.9f),
+        (DogStat.RetaliationWindow, 2.5f), (DogStat.CircleRadius, 5f), (DogStat.CircleSpeed, 3.5f), (DogStat.FeintChance, 0.25f),
+        (DogStat.EscapeSpeed, 7f), (DogStat.DodgeChance, 0.35f), (DogStat.Toughness, 100f), (DogStat.RegenPerSecond, 2f),
+        (DogStat.HelpUpToughness, 0.3f), (DogStat.LimpTime, 30f), (DogStat.RetreatAt, 0.25f), (DogStat.EngageRange, 15f),
+        (DogStat.SentChaseRange, 30f), (DogStat.SenseRange, 25f), (DogStat.TakedownChanceBase, 0f), (DogStat.TakedownChanceBonus, 0f),
+        (DogStat.MaxTakedownClass, 0f), (DogStat.TakedownCooldown, 20f), (DogStat.PinTime, 1.5f),
+    };
     const string AnimalLayer = "Animal";
     const string RootBone = "Root";
 
@@ -64,8 +77,21 @@ public static class DogSetup
             & LocalizationKit.Set(settings, "FollowLabel", "UI", "wheel.dog_follow")
             & LocalizationKit.Set(settings, "StayLabel", "UI", "wheel.dog_stay")
             & LocalizationKit.Set(settings, "PetLabel", "UI", "wheel.dog_pet");
+        var stats = AssetDatabase.LoadAssetAtPath<DogStatBlock>(StatsPath);
+        if (stats == null)
+        {
+            stats = ScriptableObject.CreateInstance<DogStatBlock>();
+            AssetDatabase.CreateAsset(stats, StatsPath);
+        }
+        foreach ((DogStat stat, float value) in StartStats)
+            if (!stats.Has(stat))
+                stats.SetBase(stat, value);
+        Save(stats);
+        settings.Stats = stats;
+        settings.Classes = new[] { "Light", "Medium", "Heavy", "Boss" }
+            .Select(n => Load<MB13.Aipocalypse.Core.EnemySystem.StaggerProfile>(StaggerDir + n + ".asset")).ToArray();
         Save(settings);
-        return $"data: {SettingsPath} (text {(ok ? "ok" : "MISSING ENTRIES")}; csv {imported})";
+        return $"data: {SettingsPath} (text {(ok ? "ok" : "MISSING ENTRIES")}; csv {imported}), stats {StatsPath}";
     }
 
     // ---- Model ----
@@ -200,6 +226,9 @@ public static class DogSetup
                      ("Hit", AnimatorControllerParameterType.Trigger), ("Side", AnimatorControllerParameterType.Int),
                      ("Jump", AnimatorControllerParameterType.Trigger), ("JumpKind", AnimatorControllerParameterType.Int),
                      ("Swim", AnimatorControllerParameterType.Bool),
+                     ("Attack", AnimatorControllerParameterType.Trigger), ("AttackIndex", AnimatorControllerParameterType.Int),
+                     ("Dodge", AnimatorControllerParameterType.Trigger), ("Down", AnimatorControllerParameterType.Trigger),
+                     ("Rise", AnimatorControllerParameterType.Trigger), ("Pin", AnimatorControllerParameterType.Bool),
                  })
             controller.AddParameter(name, type);
         AnimatorStateMachine machine = controller.layers[0].stateMachine;
@@ -275,6 +304,72 @@ public static class DogSetup
         Quick(sit.AddTransition(sitUp), 0.2f).AddCondition(AnimatorConditionMode.Equals, 0, "Pose");
         Then(sitUp, move);
 
+        // Fighting stance (Stance 1) and the injured limp (Stance 3), each its own blend.
+        BlendTree combatTree = Tree(controller, "Combat", "Speed");
+        combatTree.AddChild(Source("Stances/Combat/Dog_Combat_Idle").Clip, 0f);
+        foreach (string gait in new[] { "Walk", "Trot" })
+        {
+            (AnimationClip clip, float speed) = Source($"Stances/Combat/Dog_Combat_{gait}");
+            combatTree.AddChild(clip, Mathf.Max(speed, 0.4f));
+        }
+        // Faster than its fighting trot (darting in, getting out): the sprint.
+        combatTree.AddChild(Source("Locomotion/Dog_Sprint_Forward").Clip, 5.78f);
+        AnimatorState combat = machine.AddState("Combat");
+        combat.motion = combatTree;
+        Quick(move.AddTransition(combat), 0.2f).AddCondition(AnimatorConditionMode.Equals, 1, "Stance");
+        Quick(combat.AddTransition(move), 0.25f).AddCondition(AnimatorConditionMode.NotEqual, 1, "Stance");
+        BlendTree injuredTree = Tree(controller, "Injured", "Speed");
+        injuredTree.AddChild(Source("Stances/Injured/Dog_Injured_Idle").Clip, 0f);
+        (AnimationClip limp, float limpSpeed) = Source("Stances/Injured/Dog_Injured_Walk_Forward");
+        injuredTree.AddChild(limp, Mathf.Max(limpSpeed, 0.4f));
+        AnimatorState injured = machine.AddState("Injured");
+        injured.motion = injuredTree;
+        Quick(move.AddTransition(injured), 0.3f).AddCondition(AnimatorConditionMode.Equals, 3, "Stance");
+        Quick(injured.AddTransition(move), 0.3f).AddCondition(AnimatorConditionMode.NotEqual, 3, "Stance");
+        speeds.Add($"Limp {limpSpeed:0.00}");
+
+        // Attacks (AttackIndex 0 bite forward, 1 front left, 2 front right, 3 feint): from moving, fighting or limping.
+        string[] attacks = { "Attacks/Dog_Attack_Bite_Forward v2", "Attacks/Dog_Attack_Bite_Front_L", "Attacks/Dog_Attack_Bite_Front_R", "Attacks/Dog_Charge_Low" };
+        for (int i = 0; i < attacks.Length; i++)
+        {
+            AnimatorState state = Once(machine, "Attack " + i, attacks[i]);
+            foreach (AnimatorState from in new[] { move, combat, injured, sniff })
+            {
+                AnimatorStateTransition into = Quick(from.AddTransition(state), 0.08f);
+                into.AddCondition(AnimatorConditionMode.If, 0f, "Attack");
+                into.AddCondition(AnimatorConditionMode.Equals, i, "AttackIndex");
+            }
+            Exit(state.AddTransition(move), 0.85f, 0.15f);
+        }
+        // The takedown pin: biting and shaking over the body while Pin is on.
+        AnimatorState pin = Loop(machine, "Pin", "Attacks/Dog_Attack_Bite_Forward v2");
+        foreach (AnimatorState from in new[] { move, combat })
+            Quick(from.AddTransition(pin), 0.1f).AddCondition(AnimatorConditionMode.If, 0f, "Pin");
+        Quick(pin.AddTransition(move), 0.2f).AddCondition(AnimatorConditionMode.IfNot, 0f, "Pin");
+        // Dodges (Side 0 left, 1 right).
+        string[] dodgeSides = { "Left", "Right" };
+        for (int i = 0; i < 2; i++)
+        {
+            AnimatorState state = Once(machine, "Dodge " + dodgeSides[i], "Dodge/Dog_Dodge_" + dodgeSides[i]);
+            AnimatorStateTransition into = Quick(machine.AddAnyStateTransition(state), 0.06f);
+            into.canTransitionToSelf = false;
+            into.AddCondition(AnimatorConditionMode.If, 0f, "Dodge");
+            into.AddCondition(AnimatorConditionMode.Equals, i, "Side");
+            Exit(state.AddTransition(move), 0.85f, 0.15f);
+        }
+        // Knocked down (Side 0 left, 1 right): falls and stays down until Rise, then the recovery clip.
+        for (int i = 0; i < 2; i++)
+        {
+            AnimatorState fall = Once(machine, "Down " + dodgeSides[i], "Deaths/Dog_Death1_" + dodgeSides[i]);
+            AnimatorStateTransition into = Quick(machine.AddAnyStateTransition(fall), 0.1f);
+            into.canTransitionToSelf = false;
+            into.AddCondition(AnimatorConditionMode.If, 0f, "Down");
+            into.AddCondition(AnimatorConditionMode.Equals, i, "Side");
+            AnimatorState rise = Once(machine, "Rise " + dodgeSides[i], "Deaths/Dog_Death_Recovery_" + dodgeSides[i]);
+            Quick(fall.AddTransition(rise), 0.15f).AddCondition(AnimatorConditionMode.If, 0f, "Rise");
+            Exit(rise.AddTransition(move), 0.9f, 0.2f);
+        }
+
         // Acts (DogAct order) from standing or sniffing; back to Move at the end (exit time: share of the clip played).
         (DogAct Act, string File, string Take, float Exit)[] acts =
         {
@@ -290,12 +385,13 @@ public static class DogSetup
             (DogAct.Roll, "Actions/Dog_Rolling", null, 1.95f),
             (DogAct.Alert, "Actions/Dog_Alert", null, 0.4f),
             (DogAct.Yawn, "Idle/Dog_Idle_Yawn", null, 0.95f),
+            (DogAct.Growl, "Stances/Combat/Dog_Combat_Idle_Growl", null, 0.9f),
         };
         foreach ((DogAct act, string file, string take, float exit) in acts)
         {
             AnimatorState state = machine.AddState("Act " + act);
             state.motion = Source(file, take, loop: false).Clip;
-            foreach (AnimatorState from in new[] { move, sniff })
+            foreach (AnimatorState from in new[] { move, sniff, combat })
             {
                 AnimatorStateTransition into = Quick(from.AddTransition(state), 0.15f);
                 into.AddCondition(AnimatorConditionMode.If, 0f, "Act");
@@ -515,8 +611,6 @@ public static class DogSetup
     const string DogHousePrefab = "Assets/_StoreAssets/Env/SICS/Toon Series/Toon Farm Pack/Prefabs/Buildings/Farm Structures/TFP_Dog_House_01B.prefab";
     const float FenceHeight = 2f;
     const float LinkReach = 1.1f;
-    // The dog walks round through a gap or the gate unless that is this many times longer than scrambling over.
-    const float LinkCost = 3f;
     const float DoorDistance = 1.45f;
 
     // In WorldMap: the "Home Dog" root with the dog house (its door and bed, a navmesh cut), Loki at its door, the spots it
@@ -596,8 +690,10 @@ public static class DogSetup
         Visit("Visit_Pen", pen != null ? pen.transform.position + (yardCenter - pen.transform.position).normalized * 3f : null);
         Visit("Visit_Middle", yardCenter);
 
-        // Fence links: scrambled over by the dog only.
+        // Fence crossings: no NodeLink2 (it would join the shut yard's navmesh island to the outside for every agent: raiders
+        // would stop breaking in); DogScramble crosses them by hand.
         Transform links = Child(root, "Fence Links");
+        var crossings = new List<DogLinkInfo>();
         int count = 0;
         foreach (var segment in Object.FindObjectsByType<MB13.Aipocalypse.Core.DefenseSystem.BarrierSegment>(FindObjectsSortMode.None))
         {
@@ -610,18 +706,16 @@ public static class DogSetup
             link.rotation = Quaternion.LookRotation(-normal);
             Transform end = Child(link, "Outside");
             end.position = Ground(at - normal * LinkReach);
-            var nodeLink = link.GetComponent<Pathfinding.NodeLink2>() ?? link.gameObject.AddComponent<Pathfinding.NodeLink2>();
-            nodeLink.end = end;
-            nodeLink.oneWay = false;
-            nodeLink.costFactor = LinkCost;
-            nodeLink.pathfindingTag = MB13.Aipocalypse.Core.EnemySystem.NavTags.DogOnly;
-            EditorUtility.SetDirty(nodeLink);
+            var nodeLink = link.GetComponent<Pathfinding.NodeLink2>();
+            if (nodeLink != null)
+                Object.DestroyImmediate(nodeLink);
             var info = link.GetComponent<DogLinkInfo>() ?? link.gameObject.AddComponent<DogLinkInfo>();
-            info.Setup(FenceHeight, null);
+            info.Setup(FenceHeight, null, end);
             EditorUtility.SetDirty(info);
+            crossings.Add(info);
             count++;
         }
-        log.Add($"{count} fence links");
+        log.Add($"{count} fence crossings");
 
         // The robots' house door: the dog walks to the sill, then hops.
         if (doorLink != null)
@@ -640,7 +734,7 @@ public static class DogSetup
 
         var scope = Object.FindAnyObjectByType<MB13.Aipocalypse.Core.Bootstrap.GameLifetimeScope>() ?? throw new Exception("no GameLifetimeScope");
         var installer = scope.GetComponent<DogInstaller>() ?? scope.gameObject.AddComponent<DogInstaller>();
-        installer.Setup(Load<DogSettings>(SettingsPath), dogHouse, yard, visits);
+        installer.Setup(Load<DogSettings>(SettingsPath), dogHouse, yard, visits, crossings);
         installer.CollectSceneDogs();
         EditorUtility.SetDirty(installer);
         log.Add(installer.Problem == null ? "installer ready" : "installer problem: " + installer.Problem);
@@ -759,6 +853,9 @@ public static class DogSetup
             (DogSound.Pant, "Dog_Pant", 0.45f, 1f, Numbered("dog_2_breathig_", 1, 2)),
             (DogSound.Sniff, "Dog_Sniff", 0.45f, 1f, Numbered("dog_sniff_breathe_", 1, 2, 3, 4, 5).Append(CollieAudio + "Dog_Smell.ogg").ToArray()),
             (DogSound.Howl, "Dog_Howl", 0.7f, 1f, new[] { CollieAudio + "Dog_Howl_1.ogg", CollieAudio + "Dog_Howl_2.ogg" }),
+            (DogSound.Growl, "Dog_Growl", 0.6f, 1f, Numbered("dog_2_growl_", 1, 2, 3, 4, 5, 6, 7)),
+            // Placeholder: no dog bite in the packs (only cartoon chewing); a short snappy bark stands in.
+            (DogSound.Bite, "Dog_Bite", 0.7f, 1.1f, Numbered("dog_2_small_bark_short_", 1, 2, 3, 4)),
         };
         settings.Sounds = new Dictionary<DogSound, Ami.BroAudio.SoundID>();
         foreach ((DogSound sound, string name, float volume, float pitch, string[] clips) in sounds)

@@ -48,6 +48,17 @@ namespace MB13.Aipocalypse.Core.DogSystem
         Roll,
         Alert,
         Yawn,
+        Growl,
+    }
+
+    // What a hit did to the dog (DogState.Hit).
+    public enum DogHit
+    {
+        Ignored,
+        Yelped,
+        Dodged,
+        Flinched,
+        KnockedDown,
     }
 
     // Settings keys for its sounds. Append only.
@@ -59,6 +70,8 @@ namespace MB13.Aipocalypse.Core.DogSystem
         Pant,
         Sniff,
         Howl,
+        Growl,
+        Bite,
     }
 
     public enum DogWhistle

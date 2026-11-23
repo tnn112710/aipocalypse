@@ -139,6 +139,26 @@ namespace MB13.Aipocalypse.Tests
         }
 
         [Test]
+        public void Whistle_HeardFindsTheRobotAmongManyColliders()
+        {
+            using var scene = new WhistleScene();
+            for (int i = 0; i < 30; i++)
+            {
+                GameObject animal = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                scene.Track(animal);
+                animal.layer = HeardLayer;
+                animal.transform.position = new Vector3(-20f + i * 0.5f, 0f, 3f);
+            }
+            WhistleTargetStub robot = scene.Target(30f, new Vector3(1.5f, 0f, 0f));
+            robot.gameObject.layer = HeardLayer;
+            Physics.SyncTransforms();
+            scene.Hear(1 << HeardLayer, 10f);
+            scene.Wall(10f);
+
+            Assert.AreSame(robot, scene.Whistle.Tick(true, 0f), "30 other colliders nearby (a herd) must not push the robot out of the search");
+        }
+
+        [Test]
         public void Whistle_HeardOnlyNearTheAim()
         {
             using var scene = new WhistleScene();

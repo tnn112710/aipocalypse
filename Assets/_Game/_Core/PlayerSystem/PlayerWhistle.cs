@@ -21,7 +21,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         readonly SoundID _sound;
         readonly IWhistleFallback _fallback;
         readonly RaycastHit[] _hits = new RaycastHit[32];
-        readonly Collider[] _heard = new Collider[16];
+        // Room for a farm's herd, the dog and the robots within range (the overlap keeps an arbitrary subset when full).
+        readonly Collider[] _heard = new Collider[64];
         float _readyAt = float.NegativeInfinity;
         // The target came from the fallback (nothing aimed at or heard): it answers, but shows no prompt.
         bool _fallbackTarget;

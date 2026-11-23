@@ -113,14 +113,40 @@ MonoBehaviour:
   SpamWhistles: 4
   SpamWindow: 5
   AnnoyedTime: 6
+  ScrambleRange: 25
+  ScrambleAfter: 2.5
   StayRadius: 4
   StayGoHomeDistance: 150
   WheelTimeScale: 0.3
+  Stats: {fileID: 11400000, guid: 5851f66feb9267947821b62465c6bd2a, type: 2}
+  Classes:
+  - {fileID: 11400000, guid: d053d26fcf785c44bb3f08e7ff919d1f, type: 2}
+  - {fileID: 11400000, guid: 169367da4d55ed4448c3b5d29d4dafc5, type: 2}
+  - {fileID: 11400000, guid: 3b50e85212944ab418486bfb2fee79fc, type: 2}
+  - {fileID: 11400000, guid: 1a18dfec3b772de46809cadcdf890ce0, type: 2}
+  RegenDelay: 10
+  SelfRiseTime: 90
+  RetaliationRadius: 3
+  MeleeReachSlack: 0.5
+  OpeningAngle: 60
+  CircleWait: 1.5
+  CirclePoints: 8
+  CircleRoom: 3
+  SentGiveUp: 10
+  FightOverTime: 5
+  FightRange: 20
+  WarnGap: 30
+  TakedownHitStop: 0.06
+  BitePush: 2
+  PlayerHurtBelow: 0.3
+  HudRange: 40
+  HudWarnBelow: 0.3
   VoiceGap: 1.2
   BarkGap: 6
   BarkPerMinute: 3
   WhineGap: 8
   YelpGap: 1
+  GrowlGap: 4
   Sounds:
   - key: 0
     value:
@@ -150,6 +176,16 @@ MonoBehaviour:
   - key: 5
     value:
       _entity: {fileID: 11400000, guid: 311cf2afdf5d22243b0ad90d8092a036, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+  - key: 6
+    value:
+      _entity: {fileID: 11400000, guid: a05964485e516a347b4aa2cd69bc0de8, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+  - key: 7
+    value:
+      _entity: {fileID: 11400000, guid: 7a6102474b08d5e42a7d3bd332899a9b, type: 2}
       ID: 0
       <DebugObject>k__BackingField: {fileID: 0}
   references:

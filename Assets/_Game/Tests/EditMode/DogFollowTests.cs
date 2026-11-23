@@ -160,6 +160,14 @@ namespace MB13.Aipocalypse.Tests
         }
 
         [Test]
+        public void Follow_LeavesTheAimConeAtOnceAndQuickly()
+        {
+            var plan = _follow.Plan(At(new Vector3(0f, 0f, 3f), 0f, aiming: true));
+            Assert.That(plan.Mode, Is.EqualTo(FollowMode.ClearAim), "no reaction delay out of the line of fire");
+            Assert.That(plan.Gait, Is.EqualTo(DogGait.Canter).Or.EqualTo(DogGait.Sprint), "never a walk out of the aim");
+        }
+
+        [Test]
         public void Follow_SideSwapsWithinItsWindow()
         {
             var dog = new Vector3(4f, 0f, 0f);
