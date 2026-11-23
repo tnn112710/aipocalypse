@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using MB13.Aipocalypse.Core.Combat;
 using MB13.Aipocalypse.Core.Entities;
 using MB13.Aipocalypse.Core.Interaction;
@@ -36,8 +37,12 @@ namespace MB13.Aipocalypse.Core.DogSystem
         static readonly int SniffState = Animator.StringToHash("Sniff");
         static readonly int SwimState = Animator.StringToHash("Swim");
         static readonly int ShakeState = Animator.StringToHash("Act ShakeWater");
+        static readonly HashSet<int> ActStates = Acts();
         const float SpeedDamping = 0.12f;
-        const float NameTagHeight = 1.9f;
+        // Sent off mid-act faster than a walk, once the act has played this long (WalkOff).
+        const float ActLeaveSpeed = 1.5f;
+        const float ActSettle = 0.5f;
+        const float NameTagHeight = 2f;
         const float LiftSpeed = 1.5f;
 
         [SerializeField, Tooltip("The Model's Animator (BorderCollie.controller's parameters)")] Animator _animator;
@@ -198,6 +203,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
                 ? SpeedOverride
                 : DogTurn.AnimatorSpeed(new Vector2(velocity.x, velocity.z).magnitude, yawRate, Pose == DogPose.Stand && !Swimming && !InHouse, Settings);
             _animator.SetFloat(SpeedParameter, speed, SpeedDamping, dt);
+            WalkOff.Apply(_animator, ActStates, MoveState, new Vector2(velocity.x, velocity.z).magnitude, ActLeaveSpeed, ActSettle);
             _lift = Mathf.MoveTowards(_lift, Swimming ? TargetLift : 0f, LiftSpeed * dt);
             if (_model == null)
                 return;
@@ -205,6 +211,14 @@ namespace MB13.Aipocalypse.Core.DogSystem
                 _model.SetPositionAndRotation(transform.position + _bodyOffset, _bodyRotation.Value);
             else
                 _model.localPosition = new Vector3(0f, _lift, 0f);
+        }
+
+        static HashSet<int> Acts()
+        {
+            var states = new HashSet<int>();
+            foreach (DogAct act in System.Enum.GetValues(typeof(DogAct)))
+                states.Add(Animator.StringToHash("Act " + act));
+            return states;
         }
 
         // ---- Body ----

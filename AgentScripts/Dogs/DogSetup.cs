@@ -46,14 +46,19 @@ public static class DogSetup
     const string AnimalLayer = "Animal";
     const string RootBone = "Root";
 
-    // The collie at 1.9× stands 1.25 m tall (ear tips, idle; 0.66 m at 1×): the user's size, 2026-11-23. Clip ground speeds,
+    // The collie at 2× stands 1.3 m tall (ear tips, idle; 0.66 m at 1×): the user's size, 2026-11-23. Clip ground speeds,
     // the agent, the body collider and the dog house scale with it.
-    public const float ModelScale = 1.9f;
+    public const float ModelScale = 2f;
+    // A bigger animal steps slower: every moving clip plays at this rate, its blend position (its feet's ground speed)
+    // scaled to match, so the feet never slide.
+    const float Cadence = 0.85f;
     const float AgentRadius = 0.3f * ModelScale;
     const float AgentHeight = 0.7f * ModelScale;
-    const float TurnSpeed = 300f;
-    const float OnSpotTurnSpeed = 240f;
-    const float TurnSmoothing = 0.1f;
+    // A big dog turns in arcs, not on a pin: Face turns at the max rate, so it stays close to the walking one.
+    const float TurnSpeed = 200f;
+    const float MaxTurnSpeed = 260f;
+    const float OnSpotTurnSpeed = 160f;
+    const float TurnSmoothing = 0.2f;
 
     public static string All()
     {
@@ -183,7 +188,7 @@ public static class DogSetup
             copy = existing;
             Save(copy);
         }
-        float speed = loop ? new Vector2(drift.x, drift.z).magnitude / clip.length * ModelScale : 0f;
+        float speed = loop ? new Vector2(drift.x, drift.z).magnitude / clip.length * ModelScale * Cadence : 0f;
         return (copy, speed);
     }
 
@@ -244,22 +249,23 @@ public static class DogSetup
         AnimationClip idle = Source("Idle/Dog_Idle").Clip;
         BlendTree moveTree = Tree(controller, "Move", "Speed");
         moveTree.AddChild(idle, 0f);
+        // The walk again at a crawl, so the long idle only mixes in near a standstill (a blend syncs its clips' cycles: the
+        // idle would drag the walking legs slower than the body moves).
+        (AnimationClip walk, float walkSpeed) = Source("Locomotion/Dog_Walk_Forward");
+        Gait(moveTree, walk, walkSpeed * SlowStep, Cadence * SlowStep);
         float top = 0f;
         AnimationClip fastest = null;
         foreach (string gait in new[] { "Walk", "Trot", "Canter", "Run", "Sprint" })
         {
             (AnimationClip clip, float speed) = Source($"Locomotion/Dog_{gait}_Forward");
-            moveTree.AddChild(clip, speed);
+            Gait(moveTree, clip, speed);
             speeds.Add($"{gait} {speed:0.00}");
             top = speed;
             fastest = clip;
         }
-        // Past the sprint clip's own pace (the player sprints at 6 m/s): the same clip, played faster.
-        float topSpeed = Mathf.Max(8f, top * 1.2f);
-        moveTree.AddChild(fastest, topSpeed);
-        ChildMotion[] children = moveTree.children;
-        children[^1].timeScale = topSpeed / top;
-        moveTree.children = children;
+        // Past the sprint clip's own pace: the same clip, played faster.
+        float topSpeed = top * 1.25f;
+        Gait(moveTree, fastest, topSpeed, Cadence * topSpeed / top);
         AnimatorState move = machine.AddState("Move");
         move.motion = moveTree;
         machine.defaultState = move;
@@ -269,7 +275,7 @@ public static class DogSetup
         foreach (string gait in new[] { "Walk", "Trot" })
         {
             (AnimationClip clip, float speed) = Source($"Stances/Smell/Dog_Smell_{gait}_Forward");
-            sniffTree.AddChild(clip, Mathf.Max(speed, 0.3f));
+            Gait(sniffTree, clip, speed);
         }
         AnimatorState sniff = machine.AddState("Sniff");
         sniff.motion = sniffTree;
@@ -279,7 +285,7 @@ public static class DogSetup
         BlendTree swimTree = Tree(controller, "Swim", "Speed");
         swimTree.AddChild(Source("Swim/Dog_Swim_Idle").Clip, 0f);
         (AnimationClip swimClip, float swimSpeed) = Source("Swim/Dog_Swim_Forward");
-        swimTree.AddChild(swimClip, Mathf.Max(swimSpeed, 0.5f));
+        Gait(swimTree, swimClip, swimSpeed);
         AnimatorState swim = machine.AddState("Swim");
         swim.motion = swimTree;
         foreach (AnimatorState from in new[] { move, sniff })
@@ -317,10 +323,14 @@ public static class DogSetup
         foreach (string gait in new[] { "Walk", "Trot" })
         {
             (AnimationClip clip, float speed) = Source($"Stances/Combat/Dog_Combat_{gait}");
-            combatTree.AddChild(clip, Mathf.Max(speed, 0.4f));
+            Gait(combatTree, clip, speed);
         }
-        // Faster than its fighting trot (darting in, getting out): the sprint.
-        combatTree.AddChild(Source("Locomotion/Dog_Sprint_Forward").Clip, 5.78f);
+        // Faster than its fighting trot (darting in, getting out): the canter and the sprint.
+        foreach (string gait in new[] { "Canter", "Sprint" })
+        {
+            (AnimationClip clip, float speed) = Source($"Locomotion/Dog_{gait}_Forward");
+            Gait(combatTree, clip, speed);
+        }
         AnimatorState combat = machine.AddState("Combat");
         combat.motion = combatTree;
         Quick(move.AddTransition(combat), 0.2f).AddCondition(AnimatorConditionMode.Equals, 1, "Stance");
@@ -328,7 +338,7 @@ public static class DogSetup
         BlendTree injuredTree = Tree(controller, "Injured", "Speed");
         injuredTree.AddChild(Source("Stances/Injured/Dog_Injured_Idle").Clip, 0f);
         (AnimationClip limp, float limpSpeed) = Source("Stances/Injured/Dog_Injured_Walk_Forward");
-        injuredTree.AddChild(limp, Mathf.Max(limpSpeed, 0.4f));
+        Gait(injuredTree, limp, limpSpeed);
         AnimatorState injured = machine.AddState("Injured");
         injured.motion = injuredTree;
         Quick(move.AddTransition(injured), 0.3f).AddCondition(AnimatorConditionMode.Equals, 3, "Stance");
@@ -456,6 +466,17 @@ public static class DogSetup
         return "controller: " + ControllerPath + " (" + string.Join(", ", speeds) + " m/s)";
     }
 
+    const float SlowStep = 0.3f;
+
+    // A moving clip at its blend position, played at `timeScale` (Cadence: its feet then match `speed`).
+    static void Gait(BlendTree tree, AnimationClip clip, float speed, float timeScale = Cadence)
+    {
+        tree.AddChild(clip, Mathf.Max(speed, 0.3f));
+        ChildMotion[] children = tree.children;
+        children[^1].timeScale = timeScale;
+        tree.children = children;
+    }
+
     static BlendTree Tree(AnimatorController controller, string name, string parameter)
     {
         var tree = new BlendTree { name = name, blendParameter = parameter, useAutomaticThresholds = false, hideFlags = HideFlags.HideInHierarchy };
@@ -541,7 +562,7 @@ public static class DogSetup
             agent.FindProperty("shape.height").floatValue = AgentHeight;
             agent.FindProperty("movement.debugFlags").intValue = 0;
             agent.FindProperty("movement.follower.rotationSpeed").floatValue = TurnSpeed;
-            agent.FindProperty("movement.follower.maxRotationSpeed").floatValue = TurnSpeed * 1.5f;
+            agent.FindProperty("movement.follower.maxRotationSpeed").floatValue = MaxTurnSpeed;
             agent.FindProperty("movement.follower.maxOnSpotRotationSpeed").floatValue = OnSpotTurnSpeed;
             agent.FindProperty("movement.follower.allowRotatingOnSpotBacking").boolValue = false;
             agent.FindProperty("movement.rotationSmoothing").floatValue = TurnSmoothing;

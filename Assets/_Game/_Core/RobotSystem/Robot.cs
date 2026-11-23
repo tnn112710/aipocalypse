@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using MB13.Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.Entities;
 using MB13.Aipocalypse.Core.Events;
 using MB13.Aipocalypse.Core.Interaction;
 using MB13.Aipocalypse.Core.LocalizationSystem;
@@ -25,8 +27,13 @@ namespace MB13.Aipocalypse.Core.RobotSystem
         static readonly int KnockParameter = Animator.StringToHash("Knock");
         static readonly int DownParameter = Animator.StringToHash("Down");
         static readonly int StandbyParameter = Animator.StringToHash("Standby");
+        static readonly int LocomotionState = Animator.StringToHash("Locomotion");
+        static readonly HashSet<int> EmoteStates = Emotes();
         const float SpeedDamping = 0.15f;
         const float TurnDamping = 0.1f;
+        // Called away mid-emote, once the emote has played this long (WalkOff).
+        const float EmoteLeaveSpeed = 0.5f;
+        const float EmoteSettle = 0.5f;
         // A fallback meeting point this much above or below the player is on another floor (the house's is 1 m up).
         const float MeetHeightSlack = 0.6f;
 
@@ -373,6 +380,10 @@ namespace MB13.Aipocalypse.Core.RobotSystem
             // Knocked over, nothing plays over the fall and the getting up.
             if (_animator == null || !_animator.isActiveAndEnabled || emote == RobotEmote.None || (State != null && State.Down(Time.time)))
                 return;
+            // Already playing it: a trigger left set would replay it once it's back in Locomotion.
+            int state = Animator.StringToHash("Emote_" + (int)emote);
+            if (_animator.GetCurrentAnimatorStateInfo(0).shortNameHash == state || _animator.GetNextAnimatorStateInfo(0).shortNameHash == state)
+                return;
             _animator.SetInteger(EmoteIndexParameter, (int)emote);
             _animator.SetTrigger(EmoteParameter);
         }
@@ -438,6 +449,17 @@ namespace MB13.Aipocalypse.Core.RobotSystem
             float turn = speed < 0.1f ? Mathf.Clamp(turnRate / 90f, -1f, 1f) : 0f;
             _animator.SetFloat(SpeedParameter, speed, SpeedDamping, deltaTime);
             _animator.SetFloat(TurnParameter, turn, TurnDamping, deltaTime);
+            WalkOff.Apply(_animator, EmoteStates, LocomotionState, speed, EmoteLeaveSpeed, EmoteSettle);
+        }
+
+        // Every emote state but the jump (the door hop plays it while moving).
+        static HashSet<int> Emotes()
+        {
+            var states = new HashSet<int> { Animator.StringToHash("Emote_" + (int)RobotEmote.Brave + "_Punch") };
+            foreach (RobotEmote emote in System.Enum.GetValues(typeof(RobotEmote)))
+                if (emote != RobotEmote.None && emote != RobotEmote.Jump)
+                    states.Add(Animator.StringToHash("Emote_" + (int)emote));
+            return states;
         }
 
         // After the Animator, from RobotManager: turns the head toward LookTarget, clamped, eased in and out. The turn goes

@@ -20,6 +20,7 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
         [Range(0f, 0.5f), Tooltip("Each animal's pace is its kind's speeds times 1 ± this, rolled when it wakes")] public float PaceVariation = 0.1f;
         [Range(0f, 0.9f), Tooltip("Each animal's meals, idles and calls last its kind's times times 1 ± this")] public float TimeVariation = 0.25f;
         [Min(0f), Tooltip("Turning on the spot steps its legs like walking at this share of its walking pace per radian a second")] public float TurnStep = 0.25f;
+        [Min(1f), Tooltip("Turning on the spot to face something (degrees/s)")] public float FaceTurnSpeed = 120f;
 
         [Header("Tokens")]
         [Tooltip("What animals earn")] public CurrencyDefinition Tokens;

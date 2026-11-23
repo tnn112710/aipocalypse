@@ -15,6 +15,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
     {
         const float WalkSpeed = 1.6f;
         const float WindUp = 0.15f;
+        const float TurnRate = 360f;
 
         FollowerEntity _agent;
         Dog _dog;
@@ -54,7 +55,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
                 for (float t = 0f; t < time; t += context.deltaTime)
                 {
                     context.transform.Position = math.lerp(start, via, t / time);
-                    context.transform.Rotation = facing;
+                    context.transform.Rotation = Turn(context, facing);
                     yield return null;
                 }
                 from = via;
@@ -72,17 +73,21 @@ namespace MB13.Aipocalypse.Core.DogSystem
             for (float t = 0f; t < WindUp; t += context.deltaTime)
             {
                 context.transform.Position = from;
-                context.transform.Rotation = toward;
+                context.transform.Rotation = Turn(context, toward);
                 yield return null;
             }
             for (float t = 0f; t < duration; t += context.deltaTime)
             {
                 context.transform.Position = (float3)DogJumpArc.Position(kind, a, b, peak, t / duration);
-                context.transform.Rotation = toward;
+                context.transform.Rotation = Turn(context, toward);
                 yield return null;
             }
             context.transform.Position = end;
         }
+
+        // Turns toward `target` at TurnRate instead of snapping (a link's legs can point another way than the walk in).
+        static quaternion Turn(AgentOffMeshLinkTraversalContext context, quaternion target) =>
+            Quaternion.RotateTowards(context.transform.Rotation, target, TurnRate * context.deltaTime);
 
         static quaternion Facing(AgentOffMeshLinkTraversalContext context, float3 from, float3 to, float3 up) =>
             quaternion.LookRotationSafe(context.movementPlane.ToWorld(context.movementPlane.ToPlane(to - from), 0), up);

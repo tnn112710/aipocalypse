@@ -14,6 +14,7 @@ namespace MB13.Aipocalypse.Core.RobotSystem
     {
         // A segment that climbs or drops more than this is hopped, not walked.
         const float StepHeight = 0.3f;
+        const float TurnRate = 270f;
 
         [SerializeField, Tooltip("The door's sill: walked to on the floor's level, hopped from")] Transform _threshold;
         [SerializeField, Min(0.1f), Tooltip("Walking pace on the link (m/s)")] float _walkSpeed = 0.8f;
@@ -69,7 +70,7 @@ namespace MB13.Aipocalypse.Core.RobotSystem
                 for (float t = 0f; t < time; t += context.deltaTime)
                 {
                     context.transform.Position = math.lerp(from, to, t / time);
-                    context.transform.Rotation = facing;
+                    context.transform.Rotation = Turn(context, facing);
                     yield return null;
                 }
                 yield break;
@@ -81,7 +82,7 @@ namespace MB13.Aipocalypse.Core.RobotSystem
             for (float t = 0f; t < _windUp; t += context.deltaTime)
             {
                 context.transform.Position = from;
-                context.transform.Rotation = facing;
+                context.transform.Rotation = Turn(context, facing);
                 yield return null;
             }
             float peak = math.max(from.y, to.y) + _arc;
@@ -93,11 +94,15 @@ namespace MB13.Aipocalypse.Core.RobotSystem
                 float line = math.lerp(from.y, to.y, k);
                 float lift = 4f * (peak - math.lerp(from.y, to.y, 0.5f)) * k * (1f - k);
                 context.transform.Position = new float3(flat.x, line + lift, flat.z);
-                context.transform.Rotation = facing;
+                context.transform.Rotation = Turn(context, facing);
                 yield return null;
             }
             context.transform.Position = to;
         }
+
+        // Turns toward `target` at TurnRate instead of snapping (a link's legs can point another way than the walk in).
+        static quaternion Turn(AgentOffMeshLinkTraversalContext context, quaternion target) =>
+            Quaternion.RotateTowards(context.transform.Rotation, target, TurnRate * context.deltaTime);
 
         static quaternion Facing(AgentOffMeshLinkTraversalContext context, float3 from, float3 to, float3 up) =>
             quaternion.LookRotationSafe(context.movementPlane.ToWorld(context.movementPlane.ToPlane(to - from), 0), up);

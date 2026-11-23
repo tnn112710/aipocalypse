@@ -1,4 +1,5 @@
 using Pathfinding;
+using Pathfinding.ECS;
 using UnityEngine;
 
 namespace MB13.Aipocalypse.Core.EnemySystem
@@ -24,6 +25,11 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         bool _holdGround;
         int _traversableTags = NavTags.Walkers;
         float _movedAt = float.NegativeInfinity;
+        // Turning on the spot (Face): A* turns a standing agent at its max rotation speed, too quick for a body whose legs
+        // step round slower. When set, Face lowers the max to this and walking restores the prefab's.
+        float _faceTurnSpeed;
+        float _walkTurnSpeed;
+        bool _walkTurnRead;
 
         // Where it was when it started (wander circles around it), or where its last hunt for an objective ended (Rehome).
         public Vector3 Home { get; private set; }
@@ -43,9 +49,12 @@ namespace MB13.Aipocalypse.Core.EnemySystem
 
         // For walkers that aren't enemies (farm animals, robots). `holdGround`: can't be pushed by others while standing still.
         // `traversableTags`: which A* tags it may walk (NavTags; robots alone walk RobotsOnly ground).
-        public void Initialize(AstarPath navigation, float speed, float stopDistance, bool holdGround = false, int traversableTags = NavTags.Walkers)
+        // `faceTurnSpeed`: degrees a second when turning on the spot (0: the agent's max rotation speed).
+        public void Initialize(AstarPath navigation, float speed, float stopDistance, bool holdGround = false, int traversableTags = NavTags.Walkers,
+            float faceTurnSpeed = 0f)
         {
             _holdGround = holdGround;
+            _faceTurnSpeed = faceTurnSpeed;
             _traversableTags = traversableTags;
             _navigation = navigation;
             _agent = GetComponent<FollowerEntity>();
@@ -55,6 +64,12 @@ namespace MB13.Aipocalypse.Core.EnemySystem
                 _avoidsRead = true;
             }
             _agent.enableLocalAvoidance = _avoids;
+            if (!_walkTurnRead)
+            {
+                _walkTurnSpeed = _agent.movementSettings.follower.maxRotationSpeed;
+                _walkTurnRead = true;
+            }
+            MaxTurn(_walkTurnSpeed);
             PathRequestSettings pathfinding = _agent.pathfindingSettings;
             pathfinding.traversableTags = traversableTags;
             _agent.pathfindingSettings = pathfinding;
@@ -117,6 +132,7 @@ namespace MB13.Aipocalypse.Core.EnemySystem
             _deadline = Time.time + timeout;
             _movedAt = Time.time;
             _agent.isStopped = false;
+            MaxTurn(_walkTurnSpeed);
             Lock(false);
         }
 
@@ -131,6 +147,8 @@ namespace MB13.Aipocalypse.Core.EnemySystem
             if (!_agent.isStopped && Vector3.Dot(direction, _facing) >= FacingTolerance)
                 return;
             _facing = direction;
+            if (_faceTurnSpeed > 0f)
+                MaxTurn(_faceTurnSpeed);
             _agent.SetDestination(transform.position, direction);
             _deadline = float.PositiveInfinity;
             _agent.isStopped = false;
@@ -151,6 +169,17 @@ namespace MB13.Aipocalypse.Core.EnemySystem
                 return;
             _agent.isStopped = true;
             Lock(true);
+        }
+
+        void MaxTurn(float degreesPerSecond)
+        {
+            if (!_walkTurnRead)
+                return;
+            MovementSettings settings = _agent.movementSettings;
+            if (Mathf.Approximately(settings.follower.maxRotationSpeed, degreesPerSecond))
+                return;
+            settings.follower.maxRotationSpeed = degreesPerSecond;
+            _agent.movementSettings = settings;
         }
 
         void Lock(bool standing)

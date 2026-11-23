@@ -328,6 +328,12 @@ public static class RobotSetup
         float walk = 0.84f * ModelScale;
         float run = 1.75f * ModelScale;
         tree.AddChild(Clip("idle"), new Vector2(0f, 0f));
+        // The walk again at a crawl, played slower: the long idle only mixes in near a standstill (a blend syncs its clips'
+        // cycles, so the idle dragged the walking legs slower than the body moved, at bedtime pace and every start and stop).
+        tree.AddChild(Clip("walk"), new Vector2(0f, walk * SlowStep));
+        ChildMotion[] slow = tree.children;
+        slow[^1].timeScale = SlowStep;
+        tree.children = slow;
         tree.AddChild(Clip("walk"), new Vector2(0f, walk));
         tree.AddChild(Clip("run"), new Vector2(0f, run));
         tree.AddChild(Clip("turn90Left"), new Vector2(-1f, 0f));
@@ -417,6 +423,8 @@ public static class RobotSetup
         AssetDatabase.SaveAssetIfDirty(controller);
         return "controller: " + ControllerPath;
     }
+
+    const float SlowStep = 0.3f;
 
     static AnimatorStateTransition Quick(AnimatorStateTransition transition, float duration)
     {

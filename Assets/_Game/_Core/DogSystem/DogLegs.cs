@@ -27,7 +27,8 @@ namespace MB13.Aipocalypse.Core.DogSystem
         public void Begin(DogSettings settings)
         {
             _settings = settings;
-            Mover.Initialize(_navigation, settings.TrotSpeed, StopDistance, holdGround: true, traversableTags: NavTags.All);
+            Mover.Initialize(_navigation, settings.TrotSpeed, StopDistance, holdGround: true, traversableTags: NavTags.All,
+                faceTurnSpeed: settings.FaceTurnSpeed);
         }
 
         public void SetGait(DogGait gait) => Mover.SetSpeed(Speed(gait));

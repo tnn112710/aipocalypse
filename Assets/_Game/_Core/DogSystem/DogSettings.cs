@@ -23,11 +23,11 @@ namespace MB13.Aipocalypse.Core.DogSystem
         [Min(0.02f), Tooltip("Seconds between its thinks")] public float ThinkInterval = 0.1f;
         [Tooltip("Awake inside these hours; at home it sleeps in its dog house outside them")] public TimeWindow Awake = new(6f, 20f);
 
-        [Header("Speeds (m/s; the clips' own: walk 0.56, trot 1.36, canter 3.5, run 4.41, sprint 5.78)")]
-        [Min(0.1f)] public float WalkSpeed = 0.9f;
-        [Min(0.1f)] public float TrotSpeed = 1.8f;
-        [Min(0.1f), Tooltip("Faster than the player's walk (3 m/s)")] public float CanterSpeed = 3.8f;
-        [Min(0.1f), Tooltip("Faster than the player's sprint (6 m/s)")] public float SprintSpeed = 7.5f;
+        [Header("Speeds (m/s; the clips' own at its size: walk 0.95, trot 2.31, canter 5.95, run 7.5, sprint 9.83)")]
+        [Min(0.1f)] public float WalkSpeed = 1f;
+        [Min(0.1f)] public float TrotSpeed = 2.4f;
+        [Min(0.1f), Tooltip("Faster than the player's walk (3 m/s)")] public float CanterSpeed = 4.8f;
+        [Min(0.1f), Tooltip("Faster than the player's sprint (6 m/s)")] public float SprintSpeed = 9.5f;
 
         [Header("Following")]
         [Min(0f), Tooltip("Inside this it's free and does its own thing (m)")] public float InnerRadius = 3f;
@@ -51,7 +51,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
         [Min(0f), Tooltip("Then it naps (s)")] public float NapAfter = 60f;
         [Tooltip("Seconds between check-ins (min, max)")] public Vector2 CheckIn = new(30f, 60f);
         [Min(0f), Tooltip("A check-in stops this far in front of the player (m)")] public float CheckInDistance = 1.5f;
-        [Min(0f), Tooltip("Water deeper than this (m) and it swims")] public float SwimDepth = 0.85f;
+        [Min(0f), Tooltip("Water deeper than this (m) and it swims")] public float SwimDepth = 0.9f;
         [Min(0f), Tooltip("Looked at within this (m)...")] public float LookRange = 10f;
         [Min(0f), Tooltip("...for this long (s): a head tilt")] public float LookTime = 1f;
         [Min(0f), Tooltip("Seconds between head tilts")] public float HeadTiltGap = 20f;
@@ -59,7 +59,8 @@ namespace MB13.Aipocalypse.Core.DogSystem
         [Header("Turning, rain, welcome home")]
         [Min(0f), Tooltip("Turning on the spot faster than this (degrees/s)...")] public float TurnMinRate = 50f;
         [Min(0f), Tooltip("...while slower than this (m/s)...")] public float TurnStillBelow = 0.25f;
-        [Min(0f), Tooltip("...plays the walk at this speed so its legs step round (m/s)")] public float TurnStepSpeed = 1.05f;
+        [Min(0f), Tooltip("...plays the walk at this speed so its legs step round (m/s)")] public float TurnStepSpeed = 1f;
+        [Min(1f), Tooltip("Turning on the spot to face something (degrees/s): about what the walk step turns it")] public float FaceTurnSpeed = 150f;
         [Range(0f, 1f), Tooltip("Rain heavier than this soaks it (the weather's rain amount)")] public float RainWetsAbove = 0.15f;
         [Min(0f), Tooltip("Seconds in the rain before it shakes itself dry once out of it (a roof, indoors, or the rain stops)")] public float WetToShake = 20f;
         [Min(0f), Tooltip("Staying at home: the player out of the yard this long (s)...")] public float WelcomeAfter = 60f;

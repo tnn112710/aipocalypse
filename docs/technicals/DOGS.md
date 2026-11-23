@@ -17,11 +17,12 @@ Loki, a Border Collie, lives at its dog house in the WorldMap yard and comes exp
    - **Check-in** every 30–60 s: trots in front of the player and looks up happy, panting.
    - **Settling** while the player stands still: sits after 3–6 s, lies after 15–25 s, yawns and naps after 60 s.
    - **Head tilt:** looked at within 10 m for 1 s, it tilts its head (at most once per 20 s).
-3. **Water:** in water deeper than 0.85 m (the streams; the spawn system's `IWaterLevel`) it swims, the model floating up so its back is at the surface; out again, it stops and shakes itself dry.
+3. **Water:** in water deeper than 0.9 m (the streams; the spawn system's `IWaterLevel`) it swims, the model floating up so its back is at the surface; out again, it stops and shakes itself dry.
    - **Rain:** 20 s in rain heavier than 0.15 (the weather's rain amount) with nothing over it soaks it. Out of it (indoors, its dog house, any roof or canopy over it, or the rain stopping), it shakes itself dry the same way, once. A shorter shower dries off by itself (`DogWetness`).
    - **The shake** (after a swim or rain) waits up to 20 s for it to stand still, and counts as done only once the act plays: a sit or lie in the same moment would swallow the trigger.
-   - **Acts** (bark, happy, head tilt, howl…) only play on its feet: `Dog.Act` drops one asked for while it sits or lies, and settling cancels one still waiting (it would otherwise go off seconds later once it's up, e.g. a happy wag holding it back from following).
-   - **Turning on the spot:** the collie has no turn clips, so a turn faster than 50°/s while standing plays the walk at 0.6 m/s and its legs step round (`DogTurn`).
+   - **Acts** (bark, happy, head tilt, howl…) only play on its feet: `Dog.Act` drops one asked for while it sits or lies, and settling cancels one still waiting (it would otherwise go off seconds later once it's up, e.g. a happy wag holding it back from following). Sent off mid-act faster than 1.5 m/s, once the act has played 0.5 s, it cross-fades to its legs instead of sliding along in the pose (`WalkOff`; earlier it is still slowing into the act).
+   - **Turning on the spot:** the collie has no turn clips, so a turn faster than 50°/s while standing plays the walk at 1 m/s and its legs step round (`DogTurn`). Facing something (`Face`) turns it at `FaceTurnSpeed` 150°/s (A* would turn a standing agent at its max rate).
+   - **Turning while moving:** 200°/s, at most 260°/s, the drawn rotation smoothed over 0.2 s: a big dog turns in arcs. Link jumps and the fence scramble turn it at 360°/s at most, and it squares up to the fence before the leap (`DogScramble`).
 4. **Jumping:**
    - **The fence:** cut off from a player within 25 m by the fence, it scrambles over by a crossing point: at once with no walkable way round, else after 2.5 s (a gap nearby gets used first).
      - The crossing points are the 53 `DogLinkInfo` markers in `Home Dog/Fence Links`, one per segment and the gate.
@@ -143,7 +144,7 @@ Also:
 ## Tuning
 
 `Data/Dogs/DogSettings.asset`:
-- **Speeds:** walk 0.9, trot 1.8, canter 3.8, sprint 7.5 m/s. The clips' own paces are 0.56 / 1.35 / 3.5 / 4.41 / 5.78; the blend tree plays them at their pace, and the sprint up to 8 m/s faster.
+- **Speeds:** walk 1, trot 2.4, canter 4.8, sprint 9.5 m/s. The clips' own paces at its size are 0.95 / 2.31 / 5.95 / 7.5 / 9.83 (the blend thresholds), and the sprint plays up to 12.3 m/s faster.
 - **Following:** the zone radii, delays, lead, side swap, aim cone, sniff radius, settle times, check-ins, swim depth, look.
 - **Whistle:** range and spam.
 - **Stay:** radius and go-home distance.
@@ -154,13 +155,15 @@ Also:
 
 ## Setup and checks
 
-- **Size:** the model at `DogSetup.ModelScale` 1.9 (user, 2026-11-23): 1.25 m to the ear tips standing (0.66 m at 1×, a real collie's size). The clip ground speeds (the Move / Sniff / Combat / Swim / Limp blend thresholds), the agent, the body collider, the dog house (its door and bed spot) and the fence crossing points scale with it; body heights in code (name tag, swim float `SwimBodyDepth`, look and sound points), `SwimDepth` and `TurnStepSpeed` are set for 1.9. A new size: change `ModelScale`, rerun `Controller`, `Prefabs`, `World` (WorldMap freshly opened: a scene saved after play mode keeps the sky's runtime ambient and sun colours), and scale those values.
+- **Size:** the model at `DogSetup.ModelScale` 2 (user, 2026-11-23): 1.3 m to the ear tips standing (0.66 m at 1×, a real collie's size). The clip ground speeds (the Move / Sniff / Combat / Swim / Limp blend thresholds), the agent, the body collider, the dog house (its door and bed spot) and the fence crossing points scale with it; body heights in code (name tag, swim float `SwimBodyDepth`, look and sound points), `SwimDepth` and `TurnStepSpeed` are set for 2.
+  - **Cadence:** a bigger animal steps slower, so every moving clip plays at `DogSetup.Cadence` 0.85 with its threshold scaled to match (its feet's ground speed: no sliding). The walk is in the Move blend twice, the second at a crawl (0.3×), so the long idle mixes in only near a standstill (a blend syncs its clips' cycles: the idle dragged the walking legs slower than the body). A new size: change `ModelScale`, rerun `Controller`, `Prefabs`, `World` (WorldMap freshly opened: a scene saved after play mode keeps the sky's runtime ambient and sun colours), and scale those values.
 - **Setup:** `AgentScripts/Dogs/DogSetup.cs`: `Data`, `Model` (a look-only copy of the Malbers Border Collie PolyArt, no Malbers scripts, root motion off), `Controller`, `Prefabs`, `Hud` (the wheel in HUD.prefab, the paw icon), `World`, `Audio`; `All` runs the first five.
 - **Clips:** the collie's clips move their Root bone forward, so `DogSetup` writes in-place copies to `Content/Dogs/BorderCollie/Animations` (loops: the Root's drift removed; jumps and ledges: the Root held, the code moves the body).
 - **Previews:** `AgentScripts/Dogs/DogPreview.cs` renders review sheets (colours, poses, a prop from four sides) to a path outside Assets.
 - **Play probes:** `AgentScripts/Dogs/DogPlayCheck.cs`: Ready, Follow, Scout, CatchUp, Fence, Scramble, Indoors, Stay, HomeLife, Whistle, WhistleSpam, WhistleRobot, Pet, HeadTilt, Wheel, WheelInterrupted, NightHouse, FriendlyFire, AfterLoad, Swim, Shot, LookAtDog; fighting: Skirmish, Takedown, Sic, WhistleAtDogNearEnemy, BackOff, Down, Warn, WarnInterrupted (spawn goblins with `enemy.spawn`, the player invulnerable); the farm: Herd, RobotGreet, RobotGreetBusy, SheepChase, RaidHome active / passive, RaidNight; polish: TurnInPlace, RainShake, WelcomeHome, Bedtime, SpuriousEnd (each guarded task's `OnEnd` called without a start changes nothing), NightHowl, HerdAfterLoad.
   - Probe traps: Follow takes 20 m (12 m ends under the house floor: `Ground()` keeps terrain hits only); Swim needs a radius of about 350 m to find a wadeable stream; WarnInterrupted needs 30 s since the last warning (WarnGap); SheepChase needs the herd out; Herd needs 90 s when the animals are far out; a real raid at 21:00 kills an idle player (a dead one isn't looked at or followed): probes that need the player start at 10:00 with enemies cleared; Follow, HeadTilt and Takedown wait for it to get up (a still player has a dog dozing off within seconds); RainShake holds the weather with the console's `weather.set` (the weather rules replace a plain `WeatherService.Set`).
   - All passed on 2026-11-23 (Phases 1–3, then the polish and fix passes). NightHouse stops a raid if one starts at 23:00.
+- **Motion check:** `AgentScripts/Characters/MotionWatch.cs` (dog, animals, robots) records every frame while probes run: the fastest turn as drawn, snaps, turn wobble, animation freezes, cuts without a blend, and travelling in a single-clip state.
 
 ## Known gaps
 

@@ -1127,6 +1127,8 @@ namespace MB13.Aipocalypse.Core.DogSystem
     [Category("Aipocalypse/Dogs")]
     public sealed class DogScramble : ActionNode
     {
+        const float SquareUp = 12f;
+
         Dog _dog;
         Vector3 _from, _to;
         float _startedAt;
@@ -1171,6 +1173,14 @@ namespace MB13.Aipocalypse.Core.DogSystem
                 }
                 if (!_dog.Standing)
                     return TaskStatus.Running;
+                // Square up to the fence first: the leap is drawn facing straight across.
+                Vector3 ahead = _to - _dog.transform.position;
+                ahead.y = 0f;
+                if (ahead.sqrMagnitude > 0.01f && Vector3.Angle(_dog.transform.forward, ahead) > SquareUp)
+                {
+                    _dog.Legs.Face(_to);
+                    return TaskStatus.Running;
+                }
                 _dog.Legs.Halt();
                 _over = true;
                 _dog.Scrambling = true;

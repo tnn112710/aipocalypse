@@ -39,6 +39,7 @@ namespace MB13.Aipocalypse.Core.RobotSystem
         [Min(0.1f), Tooltip("Walking pace (m/s): near the walk clip's own pace at the robot's size")] public float WalkSpeed = 0.62f;
         [Min(0.1f), Tooltip("Trotting pace when called or stepping aside (m/s)")] public float TrotSpeed = 1.3f;
         [Range(0.3f, 1f), Tooltip("Walking pace when it goes to its spot for the night (× WalkSpeed)")] public float BedtimePace = 0.75f;
+        [Min(1f), Tooltip("Turning on the spot to face something (degrees/s): its turn clip turns 90 a second")] public float FaceTurnSpeed = 100f;
         [Tooltip("Degrees it turns its body either way when looking round while idle")] public float LookAroundYaw = 70f;
         [Tooltip("Seconds between looks round while idle (min, max)")] public Vector2 LookAroundInterval = new(2f, 4.5f);
 

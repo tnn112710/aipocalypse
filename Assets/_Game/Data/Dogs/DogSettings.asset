@@ -118,10 +118,10 @@ MonoBehaviour:
     On: 6
     Off: 20
     Fade: 0
-  WalkSpeed: 0.9
-  TrotSpeed: 1.8
-  CanterSpeed: 3.8
-  SprintSpeed: 7.5
+  WalkSpeed: 1
+  TrotSpeed: 2.4
+  CanterSpeed: 4.8
+  SprintSpeed: 9.5
   InnerRadius: 3
   OuterRadius: 8
   SprintRadius: 15
@@ -141,13 +141,14 @@ MonoBehaviour:
   NapAfter: 60
   CheckIn: {x: 30, y: 60}
   CheckInDistance: 1.5
-  SwimDepth: 0.85
+  SwimDepth: 0.9
   LookRange: 10
   LookTime: 1
   HeadTiltGap: 20
   TurnMinRate: 50
   TurnStillBelow: 0.25
-  TurnStepSpeed: 1.05
+  TurnStepSpeed: 1
+  FaceTurnSpeed: 150
   RainWetsAbove: 0.15
   WetToShake: 20
   WelcomeAfter: 60

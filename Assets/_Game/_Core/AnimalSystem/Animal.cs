@@ -196,7 +196,7 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
             _lastYaw = transform.eulerAngles.y;
             _wasCalled = Herd.Orders.Called;
             _nextCall = Time.time + NextCallDelay();
-            Mover.Initialize(_navigation, WalkSpeed, _definition.StopDistance, holdGround: true);
+            Mover.Initialize(_navigation, WalkSpeed, _definition.StopDistance, holdGround: true, faceTurnSpeed: Herd.Settings.FaceTurnSpeed);
             Tree.StartBehavior();
             Herd.Add(this);
             if (_grassBending != null && _definition.GrassBendRadius > 0f)
@@ -299,7 +299,7 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
                 return;
             Vector3 velocity = Mover.Velocity;
             velocity.y = 0f;
-            float stepping = _sleeping ? 0f : turn * Herd.Settings.TurnStep * _definition.WalkSpeed;
+            float stepping = _sleeping ? 0f : Mathf.Min(turn * Herd.Settings.TurnStep, 1f) * _definition.WalkSpeed;
             float speed = Mathf.Max(velocity.magnitude / Pace, stepping);
             _animator.SetFloat(SpeedParameter, speed, SpeedDamping, deltaTime);
         }

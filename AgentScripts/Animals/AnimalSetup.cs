@@ -156,7 +156,8 @@ public static class AnimalSetup
             d.DisplayName = LocalizationKit.Ref(Loc.CreaturesTable, "animal.sheep");
             d.WalkSpeed = 0.52f;
             d.HurrySpeed = 0.9f;
-            d.FleeSpeed = 3f;
+            // Its trot covers ~1.1 m/s at its size: faster plays it in fast-forward.
+            d.FleeSpeed = 1.8f;
             d.IdleChance = 0.25f;
             d.IdleTime = new Vector2(3f, 8f);
             d.DriftChance = 0.7f;
@@ -255,7 +256,7 @@ public static class AnimalSetup
             d.DisplayName = LocalizationKit.Ref(Loc.CreaturesTable, "animal.pig");
             d.WalkSpeed = 0.75f;
             d.HurrySpeed = 1.25f;
-            d.FleeSpeed = 2.6f;
+            d.FleeSpeed = 2f;
             d.IdleChance = 0.3f;
             d.IdleTime = new Vector2(4f, 10f);
             d.DriftChance = 0.6f;
@@ -391,7 +392,7 @@ public static class AnimalSetup
     // through the lie-down clip where the kind has one, and back to Stand through the wake-up clip or a cross-fade.
     static AnimatorController Controller(AnimalDefinition definition, string fbx, string prefix, Kind kind, string path)
     {
-        const float SetOff = 0.12f, Stopped = 0.06f, Moving = 0.25f;
+        const float SetOff = 0.12f, Stopped = 0.06f, SlowStep = 0.3f;
         var clips = AssetDatabase.LoadAllAssetsAtPath(Tfp + "Models/" + fbx).OfType<AnimationClip>().ToDictionary(c => c.name);
         string animations = System.IO.Path.GetDirectoryName(path).Replace('\\', '/') + "/Animations";
         AnimationClip Clip(string name) => clips.TryGetValue(prefix + name, out AnimationClip clip) ? clip : throw new Exception($"no clip {prefix}{name} in {fbx}");
@@ -424,11 +425,17 @@ public static class AnimalSetup
         var tree = new BlendTree { name = "Locomotion", blendParameter = "Speed", useAutomaticThresholds = false, hideFlags = HideFlags.HideInHierarchy };
         AssetDatabase.AddObjectToAsset(tree, controller);
         tree.AddChild(idle, 0f);
-        tree.AddChild(Loop(kind.WalkClip), definition.WalkSpeed);
+        // The walk again at a crawl, played slower: the long idle only mixes in near a standstill (a blend syncs its clips'
+        // cycles, so the idle dragged the walking legs slower than the body moved).
+        AnimationClip walk = Loop(kind.WalkClip);
+        tree.AddChild(walk, definition.WalkSpeed * SlowStep);
+        tree.AddChild(walk, definition.WalkSpeed);
         tree.AddChild(Loop(kind.RunClip), definition.FleeSpeed);
         ChildMotion[] children = tree.children;
-        children[1].timeScale = definition.WalkSpeed / (kind.AuthoredWalk * scale);
-        children[2].timeScale = definition.FleeSpeed / (kind.AuthoredRun * scale);
+        float walkScale = definition.WalkSpeed / (kind.AuthoredWalk * scale);
+        children[1].timeScale = walkScale * SlowStep;
+        children[2].timeScale = walkScale;
+        children[3].timeScale = definition.FleeSpeed / (kind.AuthoredRun * scale);
         tree.children = children;
 
         AnimatorState stand = machine.AddState("Stand");
@@ -446,7 +453,7 @@ public static class AnimalSetup
         toEat.AddCondition(AnimatorConditionMode.If, 0f, "Eat");
         toEat.AddCondition(AnimatorConditionMode.Less, 0.1f, "Speed");
         Transition(eat.AddTransition(stand), 0.35f).AddCondition(AnimatorConditionMode.IfNot, 0f, "Eat");
-        Transition(eat.AddTransition(locomotion), 0.25f).AddCondition(AnimatorConditionMode.Greater, Moving, "Speed");
+        Transition(eat.AddTransition(locomotion), 0.25f).AddCondition(AnimatorConditionMode.Greater, SetOff, "Speed");
         awake.Add(eat);
 
         for (int i = 0; i < kind.Fidgets.Length; i++)
@@ -458,7 +465,7 @@ public static class AnimalSetup
             into.AddCondition(AnimatorConditionMode.Equals, number, "Idle");
             into.AddCondition(AnimatorConditionMode.Less, 0.1f, "Speed");
             Transition(fidget.AddTransition(stand), 0.4f).AddCondition(AnimatorConditionMode.NotEqual, number, "Idle");
-            Transition(fidget.AddTransition(locomotion), 0.25f).AddCondition(AnimatorConditionMode.Greater, Moving, "Speed");
+            Transition(fidget.AddTransition(locomotion), 0.25f).AddCondition(AnimatorConditionMode.Greater, SetOff, "Speed");
             awake.Add(fidget);
         }
 
@@ -474,8 +481,10 @@ public static class AnimalSetup
         if (kind.LieDownClip != null)
         {
             fallAsleep = machine.AddState("LieDown");
-            fallAsleep.motion = Clip(kind.LieDownClip);
-            Exit(fallAsleep.AddTransition(sleep), 0.95f, 0.2f);
+            AnimationClip lieDown = Clip(kind.LieDownClip);
+            fallAsleep.motion = lieDown;
+            // The blend ends before the clip does: the vendor lie-down loops, and running past its end shows the standing frame.
+            Exit(fallAsleep.AddTransition(sleep), 1f - 0.17f / Mathf.Max(lieDown.length, 0.5f), 0.15f);
         }
         // From each awake state, not Any State: a lie-down state would otherwise restart itself while Sleep stays on.
         foreach (AnimatorState state in awake)

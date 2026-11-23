@@ -33,7 +33,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
         const float PathCheckInterval = 0.5f;
         const float LookAngle = 6f;
         // How far up the body the water may come before it swims (the model floats with its back at the surface).
-        const float SwimBodyDepth = 1.05f;
+        const float SwimBodyDepth = 1.1f;
         const float StillSpeed = 0.2f;
         const float ShakeWindow = 20f;
 
@@ -313,7 +313,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
         {
             Vector3 at = dog.transform.position;
             return dog.InHouse || Indoors(at)
-                || Physics.Raycast(at + Vector3.up * 1.5f, Vector3.up, 30f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+                || Physics.Raycast(at + Vector3.up * 1.6f, Vector3.up, 30f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
         }
 
         // The player at the bed (from the wake-up clock until the hours have passed; then the dog is sent home): a floor spot
@@ -373,7 +373,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
                 return;
             }
             Vector3 eye = player.View.position;
-            Vector3 toDog = dog.transform.position + Vector3.up * 0.95f - eye;
+            Vector3 toDog = dog.transform.position + Vector3.up * 1f - eye;
             bool looking = toDog.sqrMagnitude <= _settings.LookRange * _settings.LookRange
                 && (ReferenceEquals(player.Interactor?.Focus, dog) || Vector3.Angle(player.View.forward, toDog) < LookAngle);
             _lookedFor = looking ? _lookedFor + dt : 0f;
@@ -740,7 +740,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
             if (!_voice.TryPlay(sound, Time.time, burst))
                 return false;
             if (_audio != null && _settings.Sounds.TryGetValue(sound, out SoundID id) && id.IsValid())
-                _audio.PlayAt(id, dog.transform.position + Vector3.up * 1.1f);
+                _audio.PlayAt(id, dog.transform.position + Vector3.up * 1.15f);
             return true;
         }
 
@@ -794,7 +794,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
 
         static bool Visible(Transform view, Vector3 point)
         {
-            Vector3 to = point + Vector3.up * 0.75f - view.position;
+            Vector3 to = point + Vector3.up * 0.8f - view.position;
             if (Vector3.Angle(view.forward, to) > 70f)
                 return false;
             return !Physics.Raycast(view.position, to.normalized, to.magnitude - 0.3f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);

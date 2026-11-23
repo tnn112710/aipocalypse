@@ -22,7 +22,8 @@ namespace MB13.Aipocalypse.Tests
             Assert.That(animator.applyRootMotion, Is.False);
             Assert.That(animator.runtimeAnimatorController.name, Is.EqualTo("BorderCollie"));
             var agent = new SerializedObject(loki.GetComponent<Pathfinding.FollowerEntity>());
-            Assert.That(agent.FindProperty("shape.radius").floatValue, Is.EqualTo(0.3f).Within(1e-4f));
+            // 0.3 m at the model's 1×, scaled with it (DogSetup.ModelScale 2).
+            Assert.That(agent.FindProperty("shape.radius").floatValue, Is.EqualTo(0.6f).Within(1e-4f));
         }
 
         [Test]

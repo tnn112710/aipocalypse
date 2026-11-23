@@ -59,10 +59,10 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.38
-  m_Height: 1.9
+  m_Radius: 0.4
+  m_Height: 2
   m_Direction: 2
-  m_Center: {x: 0, y: 0.85499996, z: 0.095}
+  m_Center: {x: 0, y: 0.9, z: 0.1}
 --- !u!114 &4177549704029535538
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -77,14 +77,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.FollowerEntity
   version: 1073741839
   shape:
-    radius: 0.57
-    height: 1.3299999
+    radius: 0.6
+    height: 1.4
   movement:
     follower:
-      rotationSpeed: 300
+      rotationSpeed: 200
       speed: 5
-      maxRotationSpeed: 450
-      maxOnSpotRotationSpeed: 240
+      maxRotationSpeed: 260
+      maxOnSpotRotationSpeed: 160
       slowdownTime: 0.5
       slowdownTimeWhenTurningOnSpot: 0
       desiredWallDistance: 0.5
@@ -92,7 +92,7 @@ MonoBehaviour:
       allowRotatingOnSpotBacking: 0
     debugFlags: 0
     stopDistance: 0.2
-    rotationSmoothing: 0.1
+    rotationSmoothing: 0.2
     positionSmoothing: 0
     groundMask:
       serializedVersion: 2
@@ -264,15 +264,15 @@ PrefabInstance:
       objectReference: {fileID: 9100000, guid: f6fd442e5a2232743a232cb64294560e, type: 2}
     - target: {fileID: 6036522535706125590, guid: 6455248edc1e3cb4e98f0954838d02a1, type: 3}
       propertyPath: m_LocalScale.x
-      value: 1.9
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 6036522535706125590, guid: 6455248edc1e3cb4e98f0954838d02a1, type: 3}
       propertyPath: m_LocalScale.y
-      value: 1.9
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 6036522535706125590, guid: 6455248edc1e3cb4e98f0954838d02a1, type: 3}
       propertyPath: m_LocalScale.z
-      value: 1.9
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 6036522535706125590, guid: 6455248edc1e3cb4e98f0954838d02a1, type: 3}
       propertyPath: m_LocalPosition.x
