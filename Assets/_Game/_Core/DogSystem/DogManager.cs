@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using Ami.BroAudio;
 using MB13.Aipocalypse.Core.AudioSystem;
 using MB13.Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.EnemySystem;
+using MB13.Aipocalypse.Core.TimeSystem;
 using MB13.Aipocalypse.Core.Events;
 using MB13.Aipocalypse.Core.Interaction;
 using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.RandomSystem;
 using MB13.Aipocalypse.Core.SpawnSystem;
 using MB13.Aipocalypse.Core.UI;
 using MB13.Aipocalypse.Core.WorldTimeSystem;
@@ -39,6 +42,20 @@ namespace MB13.Aipocalypse.Core.DogSystem
         readonly CommandWheelPresenter _wheel;
         readonly IWaterLevel _water;
         readonly DogVoice _voice;
+        readonly RandomStream _random;
+        readonly EnemyRegistry _enemies;
+        readonly DamageService _damage;
+        readonly TimeService _time;
+        readonly List<FoeView> _foes = new();
+        readonly Dictionary<int, EnemyBrain> _brains = new();
+        float _fightSeenAt = float.NegativeInfinity;
+        bool _heel;
+        int _sentId = -1;
+        float _sentAt;
+        float _lastBiteAt;
+        float _nextWarn;
+        bool _wasDown;
+        EnemyBrain _aimedEnemy;
         readonly IDisposable _subscriptions;
         readonly List<WheelSlice> _slices = new();
         Vector3 _lastPlayerPosition;
@@ -60,6 +77,11 @@ namespace MB13.Aipocalypse.Core.DogSystem
             _audio = audio;
             _wheel = wheel;
             _voice = new DogVoice(settings);
+            Stats = new DogStatSheet(settings.Stats, settings.Classes != null ? settings.Classes.Length : 1);
+            _random = resolver.TryResolve(out RandomService random) ? random.Stream("Dog") : new RandomStream(7);
+            resolver.TryResolve(out _enemies);
+            resolver.TryResolve(out _damage);
+            resolver.TryResolve(out _time);
             resolver.TryResolve(out _water);
             _subscriptions = DisposableBag.Create(
                 revived.Subscribe(_ => SendHome(DogOrder.Follow)),
@@ -69,6 +91,17 @@ namespace MB13.Aipocalypse.Core.DogSystem
         }
 
         public DogSettings Settings => _settings;
+        // Its fighting stats (base + upgrades; a levelling system adds an IDogUpgradeSource).
+        public DogStatSheet Stats { get; }
+
+        // A gameplay roll (0..1) on the Dog stream (dodges, takedowns).
+        public float Roll() => _random.Value;
+
+        public bool IsPlayer(GameObject source)
+        {
+            IPlayer player = _players.Current;
+            return source != null && player != null && source.transform.IsChildOf(player.Transform);
+        }
         public bool Enabled => _settings != null && _settings.Enabled;
 
         public void Dispose()
@@ -96,6 +129,18 @@ namespace MB13.Aipocalypse.Core.DogSystem
                 _nextPathCheck = now + PathCheckInterval;
                 _hasPath = HasPath(dog.transform.position, _roster.PlayerPosition);
             }
+            dog.State.Tick(dt, now, Stats);
+            dog.SetInjured(dog.State.Limping(now));
+            if (!_wasDown && dog.State.Down)
+            {
+                dog.Escaping = false;
+                dog.SetPin(false);
+                dog.ResetBody();
+                dog.KnockDown(dog.LastHitLeft ? 0 : 1);
+            }
+            else if (_wasDown && !dog.State.Down)
+                dog.Rise();
+            _wasDown = dog.State.Down;
             Fenced(dog, dt);
             Swim(dog, now);
             LookedAt(dog, player, now, dt);
@@ -105,7 +150,18 @@ namespace MB13.Aipocalypse.Core.DogSystem
             dog.NextThinkAt = now + _settings.ThinkInterval;
             if (_roster.HasPlayer && dog.State.Order == DogOrder.Follow)
                 dog.Plan = dog.Follow.Plan(FollowInput(dog, player, now));
+            SeeFoes(dog, player, now);
             dog.Think();
+            // A bite asked for by the tree lands here, after its tick: a kill despawns the enemy's agent, a structural ECS
+            // change Behavior Designer's own systems forbid while they run.
+            if (_pendingBite >= 0)
+            {
+                int foe = _pendingBite;
+                _pendingBite = -1;
+                dog.BiteLanded = Bite(dog, foe) ? 2 : 1;
+                if (dog.BiteLanded == 2)
+                    dog.SetPin(true);
+            }
         }
 
         void ReadPlayer(IPlayer player, float dt)
@@ -224,6 +280,161 @@ namespace MB13.Aipocalypse.Core.DogSystem
             dog.Act(DogAct.HeadTilt);
         }
 
+        // ---- The fight ----
+
+        // The enemy it's going for (−1: none) and one it should growl a warning at (−1: none), set each think.
+        public int TargetId { get; private set; } = -1;
+        public int WarnId { get; private set; } = -1;
+        public bool InFight => Time.time - _fightSeenAt < _settings.FightOverTime;
+        public bool PlayerHurt { get; private set; }
+        public IReadOnlyList<FoeView> Foes => _foes;
+
+        public bool TryGetFoe(int id, out FoeView foe)
+        {
+            for (int i = 0; i < _foes.Count; i++)
+                if (_foes[i].Id == id)
+                {
+                    foe = _foes[i];
+                    return true;
+                }
+            foe = default;
+            return false;
+        }
+
+        // What it knows of the enemies within SenseRange; whether a fight is on; who to go for (the stance, a send, back
+        // off), who to warn about. Never while down.
+        void SeeFoes(Dog dog, IPlayer player, float now)
+        {
+            _foes.Clear();
+            _brains.Clear();
+            TargetId = -1;
+            WarnId = -1;
+            PlayerHurt = _roster.HasPlayer && player.Health != null && player.Health.Normalized < _settings.PlayerHurtBelow;
+            if (_enemies == null || dog.State.Down)
+                return;
+            Vector3 at = dog.transform.position;
+            float sense = Stats.Get(DogStat.SenseRange);
+            Vector3 playerAt = _roster.PlayerPosition;
+            for (int i = 0; i < _enemies.Count; i++)
+            {
+                EnemyBrain brain = _enemies[i];
+                if (brain == null || brain.IsDead || !brain.isActiveAndEnabled)
+                    continue;
+                Vector3 position = brain.transform.position;
+                bool near = Flat(position - at) <= sense || (_roster.HasPlayer && Flat(position - playerAt) <= sense);
+                if (!near)
+                    continue;
+                int id = IdOf(brain);
+                bool attackingPlayer = brain.Target is IPlayer;
+                MeleeSettings melee = brain.Definition.Melee;
+                bool swinging = attackingPlayer && melee != null && Flat(position - playerAt) <= melee.AttackRange + 0.5f;
+                float health = brain.Body != null && brain.Body.Health != null ? brain.Body.Health.Normalized : 1f;
+                _foes.Add(new FoeView(id, position, brain.transform.forward, brain.Definition.Ranged != null, brain.Alerted, attackingPlayer,
+                    swinging, health, ClassOf(brain), true, _roster.InYard(position)));
+                _brains[id] = brain;
+                if (brain.Alerted && _roster.HasPlayer && Flat(position - playerAt) <= _settings.FightRange)
+                    _fightSeenAt = now;
+            }
+            if (!InFight)
+                _heel = false;
+            if (_sentId >= 0 && (!_brains.ContainsKey(_sentId) || now - Mathf.Max(_sentAt, _lastBiteAt) > _settings.SentGiveUp))
+                _sentId = -1;
+            bool following = dog.State.Order == DogOrder.Follow && _roster.HasPlayer;
+            bool limping = dog.State.Limping(now);
+            if (_sentId >= 0 || (following && !_heel && !limping && !dog.State.Retreating(Stats)))
+                TargetId = DogCombat.PickTarget(_foes, playerAt, dog.State.Stance, _sentId, false, Stats);
+            if (TargetId < 0 && now >= _nextWarn && !InFight)
+                WarnId = DogCombat.WarnTarget(_foes, at, sense);
+        }
+
+        // A non-negative id per enemy (−1 means none): its object hash with the sign bit cleared.
+        static int IdOf(EnemyBrain brain) => System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(brain) & int.MaxValue;
+
+        int ClassOf(EnemyBrain brain)
+        {
+            StaggerProfile profile = brain.Definition.Reaction != null ? brain.Definition.Reaction.Stagger : null;
+            int index = profile != null && _settings.Classes != null ? System.Array.IndexOf(_settings.Classes, profile) : -1;
+            return index < 0 ? 0 : index;
+        }
+
+        // A warning under way (its target is cleared at once by the gap): the warn branch holds until it's done.
+        public bool Warning => Time.time < _warningUntil;
+        float _warningUntil;
+
+        int _pendingBite = -1;
+
+        // The skirmish's bite (dealt after the tree's tick; Dog.BiteLanded reports it).
+        public void RequestBite(Dog dog, int foeId)
+        {
+            _pendingBite = foeId;
+            dog.BiteLanded = 0;
+        }
+
+        public void Warned(float now)
+        {
+            _nextWarn = now + _settings.WarnGap;
+            _warningUntil = now + 6f;
+        }
+
+        public void WarningDone() => _warningUntil = 0f;
+
+        // A bite on `foeId`: damage and a stagger, or (a lucky roll) a takedown that drags it down toward the dog. The bitten
+        // enemy and those close by may swing back for a moment (EnemyBrain.Retaliate). True: a takedown.
+        public bool Bite(Dog dog, int foeId)
+        {
+            if (!_brains.TryGetValue(foeId, out EnemyBrain brain) || brain == null || brain.IsDead || brain.Body == null || _damage == null)
+                return false;
+            float now = Time.time;
+            _lastBiteAt = now;
+            Vector3 dogAt = dog.transform.position;
+            Vector3 at = brain.transform.position;
+            Vector3 towardEnemy = at - dogAt;
+            towardEnemy.y = 0f;
+            towardEnemy = towardEnemy.sqrMagnitude > 1e-4f ? towardEnemy.normalized : dog.transform.forward;
+            Vector3 point = at + Vector3.up * 0.8f - towardEnemy * 0.3f;
+            float health = brain.Body.Health != null ? brain.Body.Health.Normalized : 1f;
+            bool takedown = dog.State.TryTakedown(health, ClassOf(brain), now, Roll(), Stats);
+            if (takedown)
+            {
+                // The push points back at the dog: the body falls toward it, dragged down.
+                _damage.Deal(brain.Body, new DamageInfo(brain.Body.Health.Current, DamageType.Melee, point, -towardEnemy * _settings.BitePush, dog.gameObject));
+                _time?.RequestHitStop(_settings.TakedownHitStop, 0f);
+                TryPlay(dog, DogSound.Growl);
+            }
+            else
+            {
+                _damage.Deal(brain.Body, new DamageInfo(Stats.Get(DogStat.BiteDamage), DamageType.Melee, point, towardEnemy * _settings.BitePush, dog.gameObject));
+                if (!brain.IsDead)
+                {
+                    brain.Stagger(Stats.Get(DogStat.StaggerTime));
+                    brain.Animation?.Hit(towardEnemy * _settings.BitePush, false);
+                }
+                TryPlay(dog, DogSound.Bite);
+            }
+            Provoke(dog, dogAt, now);
+            return takedown;
+        }
+
+        // Enemies within RetaliationRadius of the dog get a short window to swing at it (only while it's within their reach).
+        public void Provoke(Dog dog, Vector3 dogAt, float now)
+        {
+            float until = now + Stats.Get(DogStat.RetaliationWindow);
+            foreach (EnemyBrain brain in _brains.Values)
+            {
+                if (brain == null || brain.IsDead || Flat(brain.transform.position - dogAt) > _settings.RetaliationRadius + 0.5f)
+                    continue;
+                float reach = brain.Definition.Ranged != null ? brain.Definition.Ranged.MaxRange
+                    : brain.Definition.Melee != null ? brain.Definition.Melee.AttackRange + _settings.MeleeReachSlack : 2f;
+                brain.Retaliate(dog, until, reach);
+            }
+        }
+
+        public void HelpUp(Dog dog)
+        {
+            dog.State.HelpUp(Time.time, Stats);
+            TryPlay(dog, DogSound.Whine);
+        }
+
         // ---- Orders ----
 
         public void OpenWheel(Dog dog)
@@ -233,6 +444,9 @@ namespace MB13.Aipocalypse.Core.DogSystem
             _slices.Add(new WheelSlice(_settings.FollowLabel.Text(), null, true, state.Order == DogOrder.Follow, () => Order(dog, DogOrder.Follow)));
             _slices.Add(new WheelSlice(_settings.StayLabel.Text(), null, true, state.Order == DogOrder.Stay, () => Order(dog, DogOrder.Stay)));
             _slices.Add(new WheelSlice(_settings.PetLabel.Text(), null, true, false, () => Pet(dog)));
+            bool active = state.Stance == DogStance.Active;
+            _slices.Add(new WheelSlice((active ? _settings.ActiveLabel : _settings.PassiveLabel).Text(), null, true, true,
+                () => state.SetStance(active ? DogStance.Passive : DogStance.Active)));
             _wheel.TryOpen(this, _slices, _settings.WheelTimeScale);
         }
 
@@ -262,7 +476,22 @@ namespace MB13.Aipocalypse.Core.DogSystem
         public bool Whistled(Dog dog, GameObject actor)
         {
             float now = Time.time;
-            switch (dog.State.Whistle(now, inFight: false))
+            // Aimed at an enemy: "get it!" (even Passive). In a fight a plain whistle means "back off".
+            if (_aimedEnemy != null && !_aimedEnemy.IsDead)
+            {
+                _sentId = IdOf(_aimedEnemy);
+                _sentAt = now;
+                _heel = false;
+                TryPlay(dog, DogSound.Bark);
+                return true;
+            }
+            bool fight = InFight;
+            if (fight)
+            {
+                _heel = true;
+                _sentId = -1;
+            }
+            switch (dog.State.Whistle(now, inFight: fight))
             {
                 case DogWhistle.Ignored:
                     if (dog.Standing)
@@ -285,21 +514,18 @@ namespace MB13.Aipocalypse.Core.DogSystem
         public bool TryAnswer(GameObject actor, Vector3 eye, Vector3 aim, out IWhistleTarget target)
         {
             target = null;
+            _aimedEnemy = null;
             Dog dog = _roster.Dog;
-            if (!Enabled || dog == null || !dog.Active || actor == null)
+            if (!Enabled || dog == null || !dog.Active || actor == null || dog.State.Down)
                 return false;
+            // An enemy under the aim (the first thing the aim hits): the whistle sends the dog at it.
+            if (Physics.SphereCast(eye, 0.35f, aim, out RaycastHit hit, 50f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)
+                && !hit.collider.transform.IsChildOf(actor.transform))
+                _aimedEnemy = hit.collider.GetComponentInParent<EnemyBrain>();
             if (Flat(dog.transform.position - actor.transform.position) > _settings.HearWhistleRange)
                 return false;
             target = dog;
             return true;
-        }
-
-        // Shot or hit: the player's own shots only make it yelp (it never takes damage in Phase 1).
-        public void Hurt(Dog dog, in DamageInfo info)
-        {
-            IPlayer player = _players.Current;
-            if (info.Source != null && player != null && info.Source.transform.IsChildOf(player.Transform))
-                TryPlay(dog, DogSound.Yelp);
         }
 
         public bool TryPlay(Dog dog, DogSound sound)

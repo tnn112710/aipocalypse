@@ -142,10 +142,12 @@ Assets/_Game/
 │  │  ├─ DogInstaller.cs                    SceneInstaller (_settings, _house, _yard, _visits; dogs collected on save / Play, injected): DogRoster, CommandWheelPresenter, DogManager (AsSelf, IWhistleFallback), DogSaveSection (+ DogCommands); needs EnemyInstaller and WorldTimeInstaller
 │  │  ├─ DogManager.cs                      ITickable + IWhistleFallback: night, the player into the roster, follow plans, swim, head tilt, wheel slices, whistles, sounds, home after death / sleep
 │  │  ├─ Dog.cs                             the entity bridge: IInteractable (wheel), IHoldInteractable (pet), IWhistleTarget, INameTagged, IDamageable (flinch only); animator; model offset into its house; swim float
-│  │  ├─ DogState.cs                        plain C#: order (sad after Stay), call, whistle spam, pet, head tilt, settle pose (DogStateTests)
+│  │  ├─ DogState.cs                        plain C#: order (sad after Stay), call, whistle spam, pet, head tilt, settle pose; stance, toughness, Hit → DogHit, down / help up / limp, regen, retreat, takedown rolls, bite cooldown (DogStateTests, DogCombatTests)
 │  │  ├─ DogFollow.cs                       plain C#: FollowInput → FollowPlan (comfort zone, reaction delay, scout, side, aim cone, catch up, separated) (DogFollowTests)
 │  │  ├─ DogVoice.cs                        plain C#: the noise budget (DogStateTests)
 │  │  ├─ DogJumpArc.cs                      plain C#: JumpKind pick, body path, duration (DogTests)
+│  │  ├─ DogStats.cs                        DogStat enum, DogStatBlock SO (Data/Dogs/DogStatBlock: base values), IDogUpgradeSource, DogStatSheet (base + upgrades, class index) (DogCombatTests)
+│  │  ├─ DogCombat.cs                       plain C#: FoeView; PickTarget (stance, sent, ranged first, home defence), CanBite, IsOpening, WarnTarget (DogCombatTests)
 │  │  ├─ DogTasks.cs                        Behavior Designer tasks of AgentScripts/Dogs/Dog.tree.txt (come, petted, sad stay, catch up, follow, stay here, sleep in house, home life)
 │  │  ├─ DogLegs.cs                         EnemyMover wrapper on every nav tag; gaits
 │  │  ├─ DogHouse.cs, DogLinkInfo.cs        the dog house (door, bed); an off-mesh link's obstacle height and Via point
@@ -498,6 +500,7 @@ Assets/_Game/
 │  │  ├─ TimeCommands.cs                    console: time.scale, pause (owner-keyed TimeService requests, released on Dispose)
 │  │  └─ TimeInstaller.cs                   registers TimeService as a root entry point (+ TimeCommands in dev builds)
 │  ├─ UI/                                   MB13.Aipocalypse.Core.UI — rules and how-tos in UI.md
+│  │  ├─ Hud/DogHud.cs                      the dog's toughness StatBar (paw icon): shown while following within HudRange, fighting or down; warning below HudWarnBelow
 │  │  ├─ Wheel/                             the command wheel: CommandWheelPresenter (ITickable: TryOpen / Pick / Close, time 0.3, UI input, closes on PlayerDied / RaidStarted), CommandWheel (view), WheelSlice, WheelMath, CommandWheelStyle (Data/UI)
 │  │  ├─ Widgets/StatBar.cs                 passive meter view: SetValue / SetWarning / ApplyStyle, optional trail, optional shape mask
 │  │  ├─ Widgets/StatBarStyle.cs            ScriptableObject: sprites, colors, font for a StatBar; ShapeSprite clips the bar to an outline through the Bar's Mask
@@ -789,6 +792,8 @@ Assets/_Game/
    ├─ DogTests.cs                           Loki prefab (no Malbers, no root motion), settings sounds, friendly fire applies nothing, DogJumpArc
    ├─ DogStateTests.cs                      DogState (whistle spam, pet, head tilt, settle, call, sad stay, save round trip), DogVoice
    ├─ DogFollowTests.cs                     DogFollow (zone, reaction delay, sprint, catch up, scout, turning, alongside, aim cone, side swap, keep up, separated)
+   ├─ DogCombatTests.cs                     DogStats (every stat has a base, upgrades add, class clamp), toughness / down / help up / limp / retreat, DogState.Hit, takedown chance / class / cooldown, DogCombat target choice, openings, home defence
+   ├─ EnemyRetaliationTests.cs              EnemyBrain.KeepsRetaliating (window, reach, no chase), TargetKind.Dog appended
    ├─ WheelTests.cs                         WheelMath slices; CommandWheelPresenter gives time and input back on every close; disabled slices; not over another menu
    ├─ RobotTests.cs                         Whistle input on Q; PlayerWhistle (range 50 m, walls, heard through walls near the aim, the dog fallback (no prompt), cooldown, own body); RobotCall (meeting point, re-aim, leave rule, travel timeout), RobotBeeps, RobotCooldown, RobotPersonality, YardMath; a hit applies nothing and publishes nothing; RobotSpot; face set, settings sounds, services; robot prefabs and tree wiring (legs, animated off screen), tints; whistle prompt
    ├─ RobotStateTests.cs                    RobotState (flinch, knockdown, sulk, pat, greet, night wake, step expiry, cheer, whistle spam, see off, chat), RobotManager.CheerFor, RobotHomecoming, NavTags, RobotCall.BegunAt

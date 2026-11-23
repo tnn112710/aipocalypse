@@ -86,6 +86,11 @@ namespace MB13.Aipocalypse.Core.DogSystem
 
         public void SetStance(DogStance stance) => Stance = stance;
 
+        // When its next bite is ready (BiteCooldown after the last).
+        public float BiteReadyAt { get; private set; }
+
+        public void Bitten(float now, float cooldown) => BiteReadyAt = now + cooldown;
+
         public void ResetToughness(DogStatSheet stats)
         {
             Toughness = stats.Get(DogStat.Toughness);

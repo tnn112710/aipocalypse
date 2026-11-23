@@ -490,6 +490,251 @@ public static class DogPlayCheck
         return $"{Pass(swam && lift > 0.1f && shook)} swim at {spot}: swam {swam} (model up {lift:0.00} m), shook dry {shook}, swimming now {dog.Swimming}; {Line(dog)}";
     }
 
+    // ---- Fighting (Phase 2) ----
+
+    // Clears enemies, puts the player (invulnerable) and the dog in the open field north of the gate, dog following.
+    static async Task<Dog> Arena(DogStance stance)
+    {
+        Dog dog = Dog;
+        Console("enemy.clear");
+        Player.Invulnerable = true;
+        Vector3 at = Ground(Yard(-3f, 42f));
+        PlacePlayer(at, at + YardRight * 10f);
+        dog.Legs.Warp(at - YardRight * 2f);
+        dog.State.ResetToughness(Scope.Resolve<DogManager>().Stats);
+        dog.State.SetStance(stance);
+        Scope.Resolve<DogManager>().Order(dog, DogOrder.Follow);
+        dog.SetPose(DogPose.Stand);
+        await Seconds(2.5f, null);
+        return dog;
+    }
+
+    static void Console(string line) => Scope.Resolve<MB13.Aipocalypse.Core.Debugging.ConsoleService>().Run(line);
+
+    static MB13.Aipocalypse.Core.EnemySystem.EnemyBrain[] Goblins() =>
+        Object.FindObjectsByType<MB13.Aipocalypse.Core.EnemySystem.EnemyBrain>().Where(b => !b.IsDead && b.isActiveAndEnabled).ToArray();
+
+    // An aware goblin near the player: the dog circles, bites within cooldown × 1.5 + a few s, gets out to >= 3.5 m; the
+    // goblin only goes for the dog inside its window and reach (never a chase).
+    public static async Task<string> Skirmish()
+    {
+        Dog dog = await Arena(DogStance.Active);
+        Console("enemy.spawn goblin 1");
+        await Seconds(1f, null);
+        var goblin = Goblins().FirstOrDefault();
+        if (goblin == null)
+            return "FAIL skirmish: no goblin spawned";
+        goblin.Mover.Teleport(Ground(Player.transform.position + YardRight * 6f));
+        goblin.Notice(true);
+        float firstBite = -1f, escapedTo = 0f, chaseAt = -1f;
+        float bitAt = -1f;
+        float t0 = Time.time;
+        float ready = dog.State.BiteReadyAt;
+        await Seconds(16f, () =>
+        {
+            if (goblin == null || goblin.IsDead)
+                return;
+            float d = Flat(goblin.transform.position - dog.transform.position);
+            if (dog.State.BiteReadyAt != ready)
+            {
+                ready = dog.State.BiteReadyAt;
+                bitAt = Time.time;
+                if (firstBite < 0f)
+                    firstBite = Time.time - t0;
+            }
+            if (bitAt > 0f && Time.time - bitAt < 2.5f)
+                escapedTo = Mathf.Max(escapedTo, d);
+            var melee = goblin.Definition.Melee;
+            Vector3 toDog = dog.transform.position - goblin.transform.position;
+            toDog.y = 0f;
+            bool movingAtDog = Vector3.Dot(goblin.Mover.Velocity, toDog.normalized) > 0.8f;
+            if (ReferenceEquals(goblin.Target, dog) && melee != null && d > melee.AttackRange + 1.5f && movingAtDog && chaseAt < 0f)
+                chaseAt = Time.time - t0;
+        });
+        bool ok = firstBite >= 0f && firstBite <= 8f * 1.5f + 4f && escapedTo >= 3.5f && chaseAt < 0f;
+        return $"{Pass(ok)} skirmish: first bite after {firstBite:0.0} s, got out to {escapedTo:0.0} m, goblin chased the dog at {chaseAt:0.0} s (want never), " +
+               $"goblin health {(goblin != null && goblin.Body != null ? goblin.Body.Health.Normalized : 0f):0.00}; {Line(dog)}";
+    }
+
+    sealed class Always : IDogUpgradeSource
+    {
+        public float Modifier(DogStat stat) => stat == DogStat.TakedownChanceBase ? 1f : 0f;
+    }
+
+    // A takedown forced (chance 1): a bite drags the goblin down; the dog pins it.
+    public static async Task<string> Takedown()
+    {
+        Dog dog = await Arena(DogStance.Active);
+        var stats = Scope.Resolve<DogManager>().Stats;
+        var always = new Always();
+        stats.Add(always);
+        try
+        {
+            Console("enemy.spawn goblin 1");
+            await Seconds(1f, null);
+            var goblin = Goblins().FirstOrDefault();
+            if (goblin == null)
+                return "FAIL takedown: no goblin";
+            goblin.Mover.Teleport(Ground(Player.transform.position + YardRight * 6f));
+        goblin.Notice(true);
+            var animator = dog.GetComponentInChildren<Animator>();
+            bool pinned = false, pinFlag = false, bit = false;
+            float startReady = dog.State.BiteReadyAt;
+            float diedAt = -1f;
+            float t0 = Time.time;
+            await Seconds(18f, () =>
+            {
+                pinned |= animator.GetCurrentAnimatorStateInfo(0).IsName("Pin");
+                pinFlag |= dog.Pinning;
+                bit |= dog.State.BiteReadyAt > 0f && Time.time - t0 > 0.5f && dog.State.BiteReadyAt != startReady;
+                if (diedAt < 0f && (goblin == null || goblin.IsDead))
+                    diedAt = Time.time - t0;
+            });
+            return $"{Pass(diedAt >= 0f && pinned)} takedown: goblin dragged down after {diedAt:0.0} s, pinned {pinned} (flag {pinFlag}, bit {bit}); {Line(dog)}";
+        }
+        finally
+        {
+            stats.Remove(always);
+        }
+    }
+
+    // Passive: it doesn't fight; a whistle aimed at the goblin sends it, and it bites.
+    public static async Task<string> Sic()
+    {
+        Dog dog = await Arena(DogStance.Passive);
+        Console("enemy.spawn goblin 1");
+        await Seconds(0.5f, null);
+        var goblin = Goblins().FirstOrDefault();
+        if (goblin == null)
+            return "FAIL sic: no goblin";
+        goblin.Mover.Teleport(Ground(Player.transform.position + YardRight * 6f));
+        goblin.Notice(true);
+        float ready = dog.State.BiteReadyAt;
+        await Seconds(5f, null);
+        bool bitWhilePassive = dog.State.BiteReadyAt != ready;
+        Vector3 aimAt = goblin.transform.position + Vector3.up * 1f;
+        AimAt(aimAt);
+        await Seconds(0.2f, () => AimAt(aimAt));
+        var target = WhistleTick();
+        bool bit = false;
+        await Seconds(14f, () => bit |= dog.State.BiteReadyAt != ready);
+        return $"{Pass(!bitWhilePassive && ReferenceEquals(target, dog) && bit)} sic: passive bit on its own {bitWhilePassive}, whistle answered by the dog {ReferenceEquals(target, dog)}, bit when sent {bit}; {Line(dog)}";
+    }
+
+    // A plain whistle in a fight: it backs off to the player and doesn't bite until the fight is over.
+    public static async Task<string> BackOff()
+    {
+        Dog dog = await Arena(DogStance.Active);
+        Console("enemy.spawn goblin 1");
+        await Seconds(0.5f, null);
+        var goblin = Goblins().FirstOrDefault();
+        if (goblin == null)
+            return "FAIL back off: no goblin";
+        goblin.Mover.Teleport(Ground(Player.transform.position + YardRight * 6f));
+        goblin.Notice(true);
+        await Seconds(3f, null);
+        Vector3 sky = Player.transform.position + Vector3.up * 40f + YardRight;
+        AimAt(sky);
+        WhistleTick();
+        float ready = dog.State.BiteReadyAt;
+        float farthest = 0f;
+        await Seconds(8f, () => farthest = Mathf.Max(farthest, Flat(dog.transform.position - Player.transform.position)));
+        bool bit = dog.State.BiteReadyAt != ready;
+        Console("enemy.clear");
+        return $"{Pass(!bit && farthest < 8f)} back off: bit after the whistle {bit}, farthest from the player {farthest:0.0} m; {Line(dog)}";
+    }
+
+    // Toughness 0: down, nobody may target it; hold E: up at 30% and limping.
+    public static async Task<string> Down()
+    {
+        Dog dog = await Arena(DogStance.Active);
+        DogManager manager = Scope.Resolve<DogManager>();
+        dog.State.Hurt(1000f, Time.time, manager.Stats);
+        await Seconds(2f, null);
+        bool down = dog.State.Down && !dog.IsTargetable;
+        var animator = dog.GetComponentInChildren<Animator>();
+        bool lying = animator.GetCurrentAnimatorStateInfo(0).IsName("Down Left") || animator.GetCurrentAnimatorStateInfo(0).IsName("Down Right");
+        bool prompt = dog.TryGetHoldPrompt(Player.gameObject, out var hold);
+        dog.InteractHold(Player.gameObject);
+        await Seconds(2.5f, null);
+        float toughness = dog.State.Toughness;
+        bool limping = dog.State.Limping(Time.time);
+        return $"{Pass(down && lying && prompt && !dog.State.Down && limping && Mathf.Abs(toughness - 30f) < 2f)} down: down and untargetable {down}, lying {lying}, " +
+               $"prompt \"{hold.Verb} {hold.Target}\", helped up {!dog.State.Down}, toughness {toughness:0}, limping {limping}; {Line(dog)}";
+    }
+
+    // An unaware goblin near the dog (no fight on): it faces it and growls.
+    public static async Task<string> Warn()
+    {
+        Dog dog = await Arena(DogStance.Active);
+        // Unseen by enemies (cheat.notarget): the goblin stays unaware of the player.
+        Player.IgnoredByEnemies = true;
+        Console("enemy.spawn goblin 1");
+        await Seconds(0.3f, null);
+        var goblin = Goblins().FirstOrDefault();
+        if (goblin == null)
+            return "FAIL warn: no goblin";
+        goblin.Mover.Teleport(Player.transform.position + YardRight * 18f);
+        var animator = dog.GetComponentInChildren<Animator>();
+        bool growled = false, bit = false;
+        float ready = dog.State.BiteReadyAt;
+        DogManager wm = Scope.Resolve<DogManager>();
+        string trace = "";
+        int frame = 0;
+        await Seconds(7f, () =>
+        {
+            if (frame++ % 60 == 0)
+                trace += $" [warn {wm.WarnId} target {wm.TargetId} infight {wm.InFight} foes {wm.Foes.Count} alerted {goblin.Alerted} pose {dog.Pose}]";
+            growled |= animator.GetCurrentAnimatorStateInfo(0).IsName("Act Growl") || animator.GetCurrentAnimatorStateInfo(0).IsName("Combat");
+            bit |= dog.State.BiteReadyAt != ready;
+        });
+        Console("enemy.clear");
+        Player.IgnoredByEnemies = false;
+        return $"{Pass(growled && !bit)} warn: growled {growled}, bit an unaware goblin {bit}; {Line(dog)}{trace}";
+    }
+
+    public static async Task<string> FightDebug()
+    {
+        Dog dog = await Arena(DogStance.Active);
+        DogManager m = Scope.Resolve<DogManager>();
+        Console("enemy.spawn goblin 1");
+        await Seconds(1f, null);
+        var goblin = Goblins().FirstOrDefault();
+        var sb = new StringBuilder();
+        sb.AppendLine($"goblins {Goblins().Length} enemies registry {Scope.Resolve<MB13.Aipocalypse.Core.EnemySystem.EnemyRegistry>().Count} player {Player.transform.position} dog {dog.transform.position} goblin {goblin?.transform.position}");
+        if (goblin != null)
+        {
+            goblin.Mover.Teleport(Ground(Player.transform.position + YardRight * 6f));
+            goblin.Notice(true);
+        }
+        for (int i = 0; i < 6; i++)
+        {
+            await Seconds(1f, null);
+            sb.AppendLine($"t{i}: foes {m.Foes.Count} target {m.TargetId} infight {m.InFight} hurt {m.PlayerHurt} alerted {goblin?.Alerted} gd {(goblin != null ? Flat(goblin.transform.position - dog.transform.position) : -1f):0.0} pd {(goblin != null ? Flat(goblin.transform.position - Player.transform.position) : -1f):0.0} hasPlayer {dog.Roster.HasPlayer} retreat {dog.State.Retreating(m.Stats)} limp {dog.State.Limping(Time.time)} stance {dog.State.Stance}");
+        }
+        return sb.ToString();
+    }
+
+    public static async Task<string> TakedownDebug()
+    {
+        Dog dog = await Arena(DogStance.Passive);
+        DogManager m = Scope.Resolve<DogManager>();
+        var always = new Always();
+        m.Stats.Add(always);
+        Console("enemy.spawn goblin 1");
+        await Seconds(1f, null);
+        var goblin = Goblins().FirstOrDefault();
+        goblin.Mover.Teleport(Ground(dog.transform.position + YardRight * 1.2f));
+        await Seconds(0.5f, null);
+        string before = $"chance {DogState.TakedownChance(1f, m.Stats):0.00} maxClass {m.Stats.GetClass(DogStat.MaxTakedownClass)} foes {m.Foes.Count}";
+        int id = m.Foes.Count > 0 ? m.Foes[0].Id : -1;
+        int cls = m.Foes.Count > 0 ? m.Foes[0].Class : -1;
+        bool result = m.Bite(dog, id);
+        await Seconds(0.3f, null);
+        m.Stats.Remove(always);
+        return $"{before} id {id} class {cls} bite→takedown {result} goblin dead {goblin == null || goblin.IsDead}";
+    }
+
     // Renders the player camera to a PNG (outside Assets).
     public static string Shot(string png)
     {

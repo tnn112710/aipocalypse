@@ -49,6 +49,63 @@ namespace MB13.Aipocalypse.Core.DogSystem
             }
         }
 
+        [Command("Set the dog's stance: active (joins fights) or passive (only when sent)")]
+        string Stance(string stance)
+        {
+            Dog dog = _roster.Dog;
+            if (dog == null)
+                return "No dog.";
+            dog.State.SetStance(stance?.ToLowerInvariant() == "passive" ? DogStance.Passive : DogStance.Active);
+            return "Stance " + dog.State.Stance;
+        }
+
+        [Command("Set the dog's toughness (0 knocks it down)")]
+        string Toughness(float value)
+        {
+            Dog dog = _roster.Dog;
+            if (dog == null)
+                return "No dog.";
+            float now = Time.time;
+            if (value <= 0f)
+                dog.State.Hurt(float.MaxValue, now, _manager.Stats);
+            else
+                dog.State.RestoreFight(dog.State.Stance, value, false, dog.State.LimpLeft(now), now);
+            return $"Toughness {dog.State.Toughness:0}{(dog.State.Down ? " (down)" : "")}";
+        }
+
+        [Command("Knock the dog down")]
+        string Down() => Toughness(0f);
+
+        [Command("Help the dog up (as hold E)")]
+        string Up()
+        {
+            Dog dog = _roster.Dog;
+            if (dog == null || !dog.State.Down)
+                return "Not down.";
+            _manager.HelpUp(dog);
+            return "Up, limping.";
+        }
+
+        sealed class TakedownCheat : IDogUpgradeSource
+        {
+            public float Base, Bonus;
+            public float Modifier(DogStat stat) => stat == DogStat.TakedownChanceBase ? Base : stat == DogStat.TakedownChanceBonus ? Bonus : 0f;
+        }
+
+        readonly TakedownCheat _takedown = new();
+
+        [Command("Takedown chance on top of the stats: base, bonus × missing health (dog.takedown 0.05 0.25; 0 0 to clear)")]
+        string Takedown(float chance, float bonus = 0f)
+        {
+            _takedown.Base = chance;
+            _takedown.Bonus = bonus;
+            if (chance == 0f && bonus == 0f)
+                _manager.Stats.Remove(_takedown);
+            else
+                _manager.Stats.Add(_takedown);
+            return $"Takedown chance now {DogState.TakedownChance(1f, _manager.Stats):0.00} (fresh enemy) to {DogState.TakedownChance(0f, _manager.Stats):0.00} (dying)";
+        }
+
         [Command("Where the dog is and what it's doing")]
         string Where()
         {

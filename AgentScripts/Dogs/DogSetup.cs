@@ -76,7 +76,10 @@ public static class DogSetup
             & LocalizationKit.Set(settings, "CallVerb", "Interaction", "verb.dog_call")
             & LocalizationKit.Set(settings, "FollowLabel", "UI", "wheel.dog_follow")
             & LocalizationKit.Set(settings, "StayLabel", "UI", "wheel.dog_stay")
-            & LocalizationKit.Set(settings, "PetLabel", "UI", "wheel.dog_pet");
+            & LocalizationKit.Set(settings, "PetLabel", "UI", "wheel.dog_pet")
+            & LocalizationKit.Set(settings, "ActiveLabel", "UI", "wheel.dog_active")
+            & LocalizationKit.Set(settings, "PassiveLabel", "UI", "wheel.dog_passive")
+            & LocalizationKit.Set(settings, "HelpUpVerb", "Interaction", "verb.dog_help_up");
         var stats = AssetDatabase.LoadAssetAtPath<DogStatBlock>(StatsPath);
         if (stats == null)
         {
@@ -1014,6 +1017,61 @@ public static class DogSetup
             EditorUtility.SetDirty(wheel);
             PrefabUtility.SaveAsPrefabAsset(root, HudPath, out bool saved);
             return saved ? "HUD.prefab: SafeFrame/Center/CommandWheel (" + WheelSlots + " slots); paw icon " + (settings.Icon != null) : "failed to save " + HudPath;
+        }
+        finally
+        {
+            PrefabUtility.UnloadPrefabContents(root);
+        }
+    }
+
+    const string StatBarPrefab = "Assets/_Game/_Core/UI/Prefabs/Widgets/StatBar.prefab";
+    const string DogBarStylePath = "Assets/_Game/Data/UI/DogToughness.asset";
+
+    // The dog's toughness bar (a StatBar with the paw icon) in HUD.prefab's SafeFrame/BottomLeft, above the vitals.
+    public static string DogBar()
+    {
+        var stamina = Load<MB13.Aipocalypse.Core.UI.StatBarStyle>("Assets/_Game/Data/UI/StaminaBarStyle.asset");
+        var style = AssetDatabase.LoadAssetAtPath<MB13.Aipocalypse.Core.UI.StatBarStyle>(DogBarStylePath);
+        if (style == null)
+        {
+            style = Object.Instantiate(stamina);
+            AssetDatabase.CreateAsset(style, DogBarStylePath);
+        }
+        // Its own paw icon in the bar's icon box (the stamina style it starts from has a bolt).
+        style.IconSprite = AssetDatabase.LoadAllAssetsAtPath(PawIconPath).OfType<Sprite>().FirstOrDefault();
+        Save(style);
+        GameObject root = PrefabUtility.LoadPrefabContents(HudPath);
+        try
+        {
+            Transform corner = root.transform.Find("SafeFrame/BottomLeft") ?? throw new Exception("no SafeFrame/BottomLeft");
+            Transform old = corner.Find("DogBar");
+            if (old != null)
+                Object.DestroyImmediate(old.gameObject);
+            var node = new GameObject("DogBar", typeof(RectTransform)).GetComponent<RectTransform>();
+            node.SetParent(corner, false);
+            node.anchorMin = node.anchorMax = node.pivot = Vector2.zero;
+            node.anchoredPosition = new Vector2(0f, 190f);
+            node.sizeDelta = new Vector2(260f, 34f);
+            node.gameObject.AddComponent<Canvas>();
+            var group = node.gameObject.AddComponent<CanvasGroup>();
+            group.alpha = 0f;
+            group.blocksRaycasts = false;
+            var barObject = (GameObject)PrefabUtility.InstantiatePrefab(Load<GameObject>(StatBarPrefab), node);
+            barObject.name = "Bar";
+            var barRect = (RectTransform)barObject.transform;
+            barRect.anchorMin = barRect.anchorMax = barRect.pivot = new Vector2(0f, 0.5f);
+            barRect.anchoredPosition = Vector2.zero;
+            var bar = barObject.GetComponent<MB13.Aipocalypse.Core.UI.StatBar>();
+            var so = new SerializedObject(bar);
+            so.FindProperty("_style").objectReferenceValue = style;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            bar.ApplyStyle();
+            var icon = barObject.GetComponentsInChildren<UnityEngine.UI.Image>(true).FirstOrDefault(i => i.name == "Icon");
+            var hud = node.gameObject.AddComponent<MB13.Aipocalypse.Core.UI.DogHud>();
+            hud.Setup(group, bar, icon);
+            EditorUtility.SetDirty(hud);
+            PrefabUtility.SaveAsPrefabAsset(root, HudPath, out bool saved);
+            return saved ? "HUD.prefab: SafeFrame/BottomLeft/DogBar (" + DogBarStylePath + ")" : "failed to save " + HudPath;
         }
         finally
         {

@@ -168,6 +168,15 @@ namespace MB13.Aipocalypse.Tests
                 Assert.That(_state.Order, Is.EqualTo(DogOrder.Stay));
                 Assert.That(_state.StayPoint, Is.EqualTo(saved.StayPoint));
                 Assert.That(_state.Sad(0f), Is.False, "a load isn't a fresh order");
+
+                var fight = new DogSaveSection.DogSave { Stance = DogStance.Passive, Toughness = 42f, Down = false, LimpLeft = 12f };
+                data.Set(DogSaveSection.Key, fight);
+                data.TryGet(DogSaveSection.Key, out DogSaveSection.DogSave fightBack);
+                _state.RestoreFight(fightBack.Stance, fightBack.Toughness, fightBack.Down, fightBack.LimpLeft, 100f);
+                Assert.That(_state.Stance, Is.EqualTo(DogStance.Passive));
+                Assert.That(_state.Toughness, Is.EqualTo(42f));
+                Assert.That(_state.Limping(111f), Is.True);
+                Assert.That(_state.Limping(112.5f), Is.False);
             }
             finally
             {

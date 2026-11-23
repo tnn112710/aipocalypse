@@ -28,6 +28,10 @@ namespace MB13.Aipocalypse.Core.DogSystem
                 Yaw = transform.eulerAngles.y,
                 InYard = _roster.InYard(transform.position),
                 StayPoint = dog.State.StayPoint,
+                Stance = dog.State.Stance,
+                Toughness = dog.State.Toughness,
+                Down = dog.State.Down,
+                LimpLeft = dog.State.LimpLeft(Time.time),
             });
         }
 
@@ -37,6 +41,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
             if (dog == null || dog.State == null || !save.TryGet(Key, out DogSave saved) || saved == null)
                 return;
             dog.Restore(saved.Position, saved.Yaw, saved.Order, saved.StayPoint);
+            dog.State.RestoreFight(saved.Stance, saved.Toughness, saved.Down, saved.LimpLeft, Time.time);
         }
 
         [Serializable]
@@ -47,6 +52,10 @@ namespace MB13.Aipocalypse.Core.DogSystem
             public float Yaw;
             public bool InYard;
             public Vector3 StayPoint;
+            public DogStance Stance;
+            public float Toughness = 100f;
+            public bool Down;
+            public float LimpLeft;
         }
     }
 }

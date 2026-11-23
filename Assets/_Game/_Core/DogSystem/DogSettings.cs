@@ -17,7 +17,8 @@ namespace MB13.Aipocalypse.Core.DogSystem
         [Tooltip("Tap E prompt's verb (\"Orders\")")] public LocalizedString OrdersVerb;
         [Tooltip("Hold E prompt's verb (\"Pet\")")] public LocalizedString PetVerb;
         [Tooltip("Whistle prompt's verb (\"Call\")")] public LocalizedString CallVerb;
-        [Tooltip("Wheel slice labels")] public LocalizedString FollowLabel, StayLabel, PetLabel;
+        [Tooltip("Wheel slice labels")] public LocalizedString FollowLabel, StayLabel, PetLabel, ActiveLabel, PassiveLabel;
+        [Tooltip("Hold E prompt's verb while it's down (\"Help up\")")] public LocalizedString HelpUpVerb;
         [Tooltip("Shown with its name tag and on the HUD")] public Sprite Icon;
         [Min(0.02f), Tooltip("Seconds between its thinks")] public float ThinkInterval = 0.1f;
         [Tooltip("Awake inside these hours; at home it sleeps in its dog house outside them")] public TimeWindow Awake = new(6f, 20f);

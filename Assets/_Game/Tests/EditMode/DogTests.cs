@@ -46,6 +46,22 @@ namespace MB13.Aipocalypse.Tests
         }
 
         [Test]
+        public void Dog_IsNeverDeadAndTargetsAsDog()
+        {
+            var dog = new UnityEngine.GameObject("Dog").AddComponent<Dog>();
+            try
+            {
+                Assert.That(dog.IsDead, Is.False);
+                Assert.That(dog.Kind, Is.EqualTo(MB13.Aipocalypse.Core.Entities.TargetKind.Dog));
+                Assert.That(dog.IsTargetable, Is.False, "not active: nobody may target it");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(dog.gameObject);
+            }
+        }
+
+        [Test]
         public void JumpArc_PicksByRiseAndObstacle()
         {
             Assert.That(DogJumpArc.Pick(0f, 2f), Is.EqualTo(JumpKind.Scramble), "a 2 m fence, both sides level");
