@@ -42,6 +42,15 @@ public static class DefensePlayCheck
             c.Resolve<ISubscriber<BarrierRestored>>().Subscribe(_ => restored++));
 
         log.AppendLine($"barriers {barriers.Segments.Count}, enemy breach targets {targets.Barriers.Count}");
+        // A new game starts with the front half down (DEFENSE.md, In WorldMap): rebuild it so the yard is shut.
+        int startBroken = 0;
+        foreach (BarrierSegment segment in barriers.Segments.Where(s => s.IsBroken).ToList())
+        {
+            segment.Restore();
+            startBroken++;
+        }
+        log.AppendLine($"rebuilt {startBroken} segments that start broken");
+        await Seconds(0.3f);
         BarrierSegment gate = barriers.Segments.First(s => s.Gate != null);
         Vector3 inside = player.SpawnPosition;
         Vector3 outward = Flat(gate.transform.position - YardCentre).normalized;

@@ -57,7 +57,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
         float _lastBiteAt;
         float _nextWarn;
         bool _wasDown;
-        EnemyBrain _aimedEnemy;
+        readonly SicOrder _sic;
         readonly AnimalHerd _herd;
         readonly RobotRoster _robots;
         float _nextRaidBark;
@@ -84,6 +84,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
             _audio = audio;
             _wheel = wheel;
             _voice = new DogVoice(settings);
+            _sic = new SicOrder(this);
             Stats = new DogStatSheet(settings.Stats, settings.Classes != null ? settings.Classes.Length : 1);
             _random = resolver.TryResolve(out RandomService random) ? random.Stream("Dog") : new RandomStream(7);
             resolver.TryResolve(out _enemies);
@@ -471,6 +472,23 @@ namespace MB13.Aipocalypse.Core.DogSystem
             return found;
         }
 
+        // The enemy nearest the dog among those it sees (any distance).
+        public bool NearestFoe(Dog dog, out Vector3 at)
+        {
+            at = default;
+            float best = float.MaxValue;
+            for (int i = 0; i < _foes.Count; i++)
+            {
+                float d = Flat(_foes[i].Position - dog.transform.position);
+                if (_foes[i].Alive && d < best)
+                {
+                    best = d;
+                    at = _foes[i].Position;
+                }
+            }
+            return best < float.MaxValue;
+        }
+
         // A raid with the dog in the yard: bursts of 2–3 barks toward the nearest raider, RaidBarkGap apart.
         void RaidBarks(Dog dog, float now)
         {
@@ -496,7 +514,8 @@ namespace MB13.Aipocalypse.Core.DogSystem
         // A free robot close by greets the dog (it waves, heart eyes); the dog sniffs it (DogHomeLife picks it up).
         void GreetRobots(Dog dog, float now)
         {
-            if (_robots == null || dog.State.Down || InFight || _roster.Raid)
+            if (_robots == null || !dog.InHomeLife || dog.State.Order == DogOrder.Follow || dog.GreetedBy != null || dog.State.Down
+                || InFight || _roster.Raid)
                 return;
             for (int i = 0; i < _robots.Robots.Count; i++)
             {
@@ -562,20 +581,23 @@ namespace MB13.Aipocalypse.Core.DogSystem
             TryPlay(dog, DogSound.Pant);
         }
 
+        // Q with an enemy under the aim: "get it!" (even Passive).
+        public bool Sic(Dog dog, EnemyBrain enemy)
+        {
+            if (dog == null || !dog.Usable || enemy == null || enemy.IsDead)
+                return false;
+            _sentId = IdOf(enemy);
+            _sentAt = Time.time;
+            _heel = false;
+            TryPlay(dog, DogSound.Bark);
+            return true;
+        }
+
         // Answered a whistle (aimed at it or the plain fallback): it comes to heel, following again; annoyed, it comes
-        // grumbling; still annoyed, it only shakes its head.
+        // grumbling; still annoyed, it only shakes its head. In a fight a plain whistle means "back off".
         public bool Whistled(Dog dog, GameObject actor)
         {
             float now = Time.time;
-            // Aimed at an enemy: "get it!" (even Passive). In a fight a plain whistle means "back off".
-            if (_aimedEnemy != null && !_aimedEnemy.IsDead)
-            {
-                _sentId = IdOf(_aimedEnemy);
-                _sentAt = now;
-                _heel = false;
-                TryPlay(dog, DogSound.Bark);
-                return true;
-            }
             bool fight = InFight;
             if (fight)
             {
@@ -605,17 +627,24 @@ namespace MB13.Aipocalypse.Core.DogSystem
         public bool TryAnswer(GameObject actor, Vector3 eye, Vector3 aim, out IWhistleTarget target)
         {
             target = null;
-            _aimedEnemy = null;
             Dog dog = _roster.Dog;
             if (!Enabled || dog == null || !dog.Active || actor == null || dog.State.Down)
                 return false;
-            // An enemy under the aim (the first thing the aim hits): the whistle sends the dog at it.
-            if (Physics.SphereCast(eye, 0.35f, aim, out RaycastHit hit, 50f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)
-                && !hit.collider.transform.IsChildOf(actor.transform))
-                _aimedEnemy = hit.collider.GetComponentInParent<EnemyBrain>();
             if (Flat(dog.transform.position - actor.transform.position) > _settings.HearWhistleRange)
                 return false;
-            target = dog;
+            // An enemy under the aim (the first thing the aim hits): the answer is an order to go for it, bound to that
+            // enemy, so a later whistle aimed at the dog itself only ever calls it.
+            EnemyBrain enemy = null;
+            if (Physics.SphereCast(eye, 0.35f, aim, out RaycastHit hit, 50f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)
+                && !hit.collider.transform.IsChildOf(actor.transform))
+                enemy = hit.collider.GetComponentInParent<EnemyBrain>();
+            if (enemy != null && !enemy.IsDead)
+            {
+                _sic.Set(dog, enemy);
+                target = _sic;
+            }
+            else
+                target = dog;
             return true;
         }
 
@@ -685,5 +714,29 @@ namespace MB13.Aipocalypse.Core.DogSystem
         }
 
         static float Flat(Vector3 v) => new Vector2(v.x, v.z).magnitude;
+
+        // The fallback's answer while an enemy is under the aim (one instance, reused).
+        sealed class SicOrder : IWhistleTarget
+        {
+            readonly DogManager _manager;
+            Dog _dog;
+            EnemyBrain _enemy;
+
+            public SicOrder(DogManager manager) => _manager = manager;
+
+            public void Set(Dog dog, EnemyBrain enemy)
+            {
+                _dog = dog;
+                _enemy = enemy;
+            }
+
+            public bool TryGetWhistlePrompt(GameObject actor, out InteractionPrompt prompt)
+            {
+                prompt = default;
+                return false;
+            }
+
+            public bool TryWhistle(GameObject actor) => _manager.Sic(_dog, _enemy);
+        }
     }
 }

@@ -269,8 +269,10 @@ namespace MB13.Aipocalypse.Core.DogSystem
                 _animator.SetTrigger(RiseParameter);
         }
 
-        // A robot that just greeted it (DogHomeLife goes over and sniffs it), cleared when done.
+        // A robot that just greeted it (DogHomeLife goes over and sniffs it), cleared when done. Robots greet it only while
+        // it's in home life (`InHomeLife`, set by DogHomeLife).
         public Transform GreetedBy { get; set; }
+        public bool InHomeLife { get; set; }
 
         // The last requested bite: 0 not dealt yet, 1 a bite, 2 a takedown (DogManager.RequestBite).
         public int BiteLanded { get; set; }
@@ -329,7 +331,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
             return left ? 2 : 3;
         }
 
-        bool Usable => _active && _manager != null && _manager.Enabled;
+        public bool Usable => _active && _manager != null && _manager.Enabled;
         string DisplayName => Settings.Name.Text();
 
         // ---- E: the command wheel; hold E: pet ----

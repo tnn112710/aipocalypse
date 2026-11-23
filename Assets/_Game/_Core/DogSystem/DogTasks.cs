@@ -360,6 +360,8 @@ namespace MB13.Aipocalypse.Core.DogSystem
             _dog.SetCombat(false);
             _dog.SetPin(false);
             _dog.Escaping = false;
+            // A takedown's "landed" keeps DogHasFoe true for the pin only; left set, the fight branch never lets go.
+            _dog.BiteLanded = 0;
         }
     }
 
@@ -383,6 +385,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
         float _until;
         float _giveUp;
         bool _growled;
+        bool _found;
         Vector3 _at;
 
         public override void OnAwake() => _dog = GetComponent<Dog>();
@@ -391,8 +394,10 @@ namespace MB13.Aipocalypse.Core.DogSystem
         {
             _growled = false;
             _giveUp = Time.time + 6f;
+            _found = _dog.Manager.TryGetFoe(_dog.Manager.WarnId, out FoeView foe);
+            if (!_found)
+                return;
             _dog.Manager.Warned(Time.time);
-            _dog.Manager.TryGetFoe(_dog.Manager.WarnId, out FoeView foe);
             _at = foe.Position;
             _dog.SetPose(DogPose.Stand);
             _dog.Legs.Halt();
@@ -402,6 +407,8 @@ namespace MB13.Aipocalypse.Core.DogSystem
         // Up on its feet first (it may have been lying down), then the growl, facing the enemy.
         public override TaskStatus OnUpdate()
         {
+            if (!_found)
+                return TaskStatus.Success;
             float now = Time.time;
             _dog.Legs.Face(_at);
             if (!_growled)
@@ -424,7 +431,14 @@ namespace MB13.Aipocalypse.Core.DogSystem
             return TaskStatus.Success;
         }
 
-        public override void OnEnd() => _dog?.SetCombat(false);
+        // Cut off (a whistle, a fight), the warning ends with it.
+        public override void OnEnd()
+        {
+            if (_dog == null)
+                return;
+            _dog.SetCombat(false);
+            _dog.Manager.WarningDone();
+        }
     }
 
     // ---- The player badly hurt: it stays close and whines ----
@@ -605,6 +619,56 @@ namespace MB13.Aipocalypse.Core.DogSystem
                 }
             }
             DogWalk.Go(_dog, best, DogGait.Sprint);
+            return TaskStatus.Running;
+        }
+    }
+
+    // ---- A raid at home: up and watching, never asleep ----
+
+    [Category("Aipocalypse/Dogs")]
+    public sealed class DogIsRaidAtHome : ConditionalNode
+    {
+        Dog _dog;
+
+        public override void OnAwake() => _dog = GetComponent<Dog>();
+        public override TaskStatus OnUpdate() => _dog.Roster.Raid && _dog.State.Order != DogOrder.Follow && _dog.Manager.AtHome(_dog)
+            ? TaskStatus.Success
+            : TaskStatus.Failure;
+    }
+
+    // Stands alert where it is, facing the nearest raider it sees (DogManager.RaidBarks does the barking).
+    [Category("Aipocalypse/Dogs")]
+    public sealed class DogWatchRaid : ActionNode
+    {
+        Dog _dog;
+        float _nextLook;
+        bool _alerted;
+
+        public override void OnAwake() => _dog = GetComponent<Dog>();
+
+        public override void OnStart()
+        {
+            _dog.SetSniffing(false);
+            _dog.SetPose(DogPose.Stand);
+            _dog.Legs.Halt();
+            _nextLook = 0f;
+            _alerted = false;
+        }
+
+        public override TaskStatus OnUpdate()
+        {
+            float now = Time.time;
+            if (now < _nextLook)
+                return TaskStatus.Running;
+            _nextLook = now + 0.3f;
+            if (!_dog.Manager.NearestFoe(_dog, out Vector3 raider))
+                return TaskStatus.Running;
+            _dog.Legs.Face(raider);
+            if (!_alerted && _dog.Standing)
+            {
+                _alerted = true;
+                _dog.Act(DogAct.Alert);
+            }
             return TaskStatus.Running;
         }
     }
@@ -1360,7 +1424,11 @@ namespace MB13.Aipocalypse.Core.DogSystem
 
         public override void OnAwake() => _dog = GetComponent<Dog>();
 
-        public override void OnStart() => _activity = Activity.None;
+        public override void OnStart()
+        {
+            _activity = Activity.None;
+            _dog.InHomeLife = true;
+        }
 
         public override TaskStatus OnUpdate()
         {
@@ -1568,6 +1636,8 @@ namespace MB13.Aipocalypse.Core.DogSystem
         {
             if (_dog == null)
                 return;
+            _dog.InHomeLife = false;
+            _dog.GreetedBy = null;
             _dog.SetSniffing(false);
             _dog.SpeedOverride = -1f;
             if (!_dog.InHouse)

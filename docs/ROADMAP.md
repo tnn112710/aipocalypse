@@ -186,6 +186,7 @@ How much effort and polish each area gets (user, 2026-10-31). Scale work to the 
 | Enemies & bosses | AI, behaviours, theft, roster and looks, raid spawns, Blood Moon minibosses, the eclipse boss | High |
 | Fishing | Rod, gun fishing, fish variety | High |
 | Animals | Roaming, drops, the bell, theft, sleep | High |
+| Dog | Loki: following, home life, fighting, herding, reactions (user, 2026-11-23) | High |
 | Environment | The whole map: terrain, water, vegetation, boundary, atmosphere | High |
 | Outer-zone content | Points of interest, loot spots, landmarks, secrets | High |
 | Movement & camera | Walk, sprint, jump, look, head bob | High |
@@ -215,7 +216,7 @@ How much effort and polish each area gets (user, 2026-10-31). Scale work to the 
 | Cooking | Recipes, eating | Low |
 | Deposit | The safe stash | Low |
 
-Not set yet (suggestions until the user decides): weapon roster & mods Medium, survival meters (HP, hunger, stamina) Medium, death, knockout & losses Medium, dog Medium, guide drone Medium, weather Low, Steam features (achievements, cloud saves) Low, accessibility Low, controller / Steam Deck Low, localization Later (English only at launch; the system is built since 2026-11-13 with Vietnamese and French to test it, LOCALIZATION.md; which languages ship is still open).
+Not set yet (suggestions until the user decides): weapon roster & mods Medium, survival meters (HP, hunger, stamina) Medium, death, knockout & losses Medium, guide drone Medium, weather Low, Steam features (achievements, cloud saves) Low, accessibility Low, controller / Steam Deck Low, localization Later (English only at launch; the system is built since 2026-11-13 with Vietnamese and French to test it, LOCALIZATION.md; which languages ship is still open).
 
 ## Done
 

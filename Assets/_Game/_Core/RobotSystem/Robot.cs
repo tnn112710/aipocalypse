@@ -348,7 +348,7 @@ namespace MB13.Aipocalypse.Core.RobotSystem
         // The dog (or another visitor) came close: a free, awake robot turns, waves and shows heart eyes, at most every 90 s.
         public bool TryGreetVisitor(Vector3 at, float now)
         {
-            if (!Usable || Asleep || Call.Active || Roster.Raid || now < _visitorReadyAt || State.Hit(now) || State.Greeting(now))
+            if (!Usable || Roster.Raid || now < _visitorReadyAt || !IsFree(now))
                 return false;
             _visitorReadyAt = now + 90f;
             Mover.Face(at);
@@ -357,6 +357,16 @@ namespace MB13.Aipocalypse.Core.RobotSystem
             Beep(RobotSound.Happy);
             return true;
         }
+
+        // Awake and doing nothing it was asked to: not called, hit, greeted, nervous, cheering, welcoming, seeing the player
+        // off, stepping aside, working or already chatting.
+        public bool IsFree(float now) =>
+            !Asleep && !Call.Active && !State.Hit(now) && !State.Greeting(now)
+            && !State.Nervous(now) && !State.Cheering(now) && !State.WelcomePending && !State.SeeingOff(now)
+            && !State.Chatting(now) && !State.StepRequested(now) && (Work == null || !Work.WantsToWork(now));
+
+        // Free, and its chat cooldown is over.
+        public bool FreeToChat(float now) => State.CanChat(now) && IsFree(now);
 
         public void Emote(RobotEmote emote)
         {

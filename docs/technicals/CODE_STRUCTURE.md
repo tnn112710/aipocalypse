@@ -148,7 +148,7 @@ Assets/_Game/
 │  │  ├─ DogJumpArc.cs                      plain C#: JumpKind pick, body path, duration (DogTests)
 │  │  ├─ DogStats.cs                        DogStat enum, DogStatBlock SO (Data/Dogs/DogStatBlock: base values), IDogUpgradeSource, DogStatSheet (base + upgrades, class index) (DogCombatTests)
 │  │  ├─ DogCombat.cs                       plain C#: HerdView, FoeView; PickTarget (stance, sent, ranged first, home defence), CanBite, IsOpening, WarnTarget (DogCombatTests)
-│  │  ├─ DogTasks.cs                        Behavior Designer tasks of AgentScripts/Dogs/Dog.tree.txt (come, petted, sad stay, catch up, follow, stay here, sleep in house, home life)
+│  │  ├─ DogTasks.cs                        Behavior Designer tasks of AgentScripts/Dogs/Dog.tree.txt (down, scramble, come, petted, sad stay, catch up, avoid raiders, back off, skirmish, warn, hurt player, herd, follow, stay here, raid watch, sleep in house, home life)
 │  │  ├─ DogLegs.cs                         EnemyMover wrapper on every nav tag; gaits
 │  │  ├─ DogHouse.cs, DogLinkInfo.cs        the dog house (door, bed); an off-mesh link's obstacle height and Via point
 │  │  ├─ DogRoster.cs                       scene service: the dog, house, yard, visits, night, the player
@@ -422,7 +422,7 @@ Assets/_Game/
 │  │  ├─ RobotGroundLegs.cs                 IRobotLegs over EnemyMover on the navmesh, allowed on RobotsOnly ground
 │  │  ├─ RobotFaceSet.cs                    SO per model: eye / mouth renderer names, Columns, Frames (Dictionary<RobotExpression, Frame{Eyes, Mouth}>), the speech line's renderer, scroll and track
 │  │  ├─ RobotEnums.cs                      RobotEmote (= the controller's EmoteIndex), RobotExpression, RobotSound, RobotHit, RobotCheer, RobotCallReason
-│  │  ├─ Robot.cs                           the bridge: IInteractable (E: greet + RobotServiceRequested), IHoldInteractable (hold E: pat), IWhistleTarget (prompt; TryPlanMeet; hiding from a raid: a head shake), INameTagged, IDamageable (flinch or knockdown, nothing applied); State, Call, Work, Mover (IRobotLegs), Home / Shelter / Allows (its spot, or where it started), Emote / Hold / SetMood / ClearMood / Beep / SetStandby, Advance (face, legs, Down), TurnHead; no Update
+│  │  ├─ Robot.cs                           the bridge: IInteractable (E: greet + RobotServiceRequested), IHoldInteractable (hold E: pat), IWhistleTarget (prompt; TryPlanMeet; hiding from a raid: a head shake), INameTagged, IDamageable (flinch or knockdown, nothing applied); State, Call, Work, Mover (IRobotLegs), Home / Shelter / Allows (its spot, or where it started), Emote / Hold / SetMood / ClearMood / Beep / SetStandby, Advance (face, legs, Down), TurnHead; no Update; IsFree / FreeToChat; TryGreetVisitor (the dog)
 │  │  ├─ RobotState.cs                      plain C#: greetings and pats, hits → flinch or knockdown (lying, rising) → sulk, whistles → annoyed, nervous, night wake, step requests (expire), cheer after a raid, welcome pending, seeing off, chats (RobotStateTests)
 │  │  ├─ RobotStreak.cs                     plain C#: counts events within a window (hits for a knockdown, whistles for annoyance)
 │  │  ├─ RobotHomecoming.cs                 plain C#: YardCrossing Left when the player steps out of the yard, Back when they step back in after WelcomeAway outside (RobotStateTests)

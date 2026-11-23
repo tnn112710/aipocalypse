@@ -1,5 +1,5 @@
 # The dog's tree (Loki, a Border Collie): a companion that follows the player like a dog, not a robot on a leash.
-# Job (Phase 1): keep the player company, be lively. No fighting yet (Phase 2 adds it above "Following").
+# Job: keep the player company, be lively; bite and run in fights (Phase 2); herd, greet robots, guard the yard (Phase 3).
 # Aware of: the player (DogRoster: where they are, look, how fast, how long they've stood still; DogManager plans where a
 # following dog wants to be into Dog.Plan), the world clock's waking hours (DogSettings.Awake), the yard and its dog house.
 # Told by the player: the command wheel (tap E: Follow, Stay, Pet), hold E (pet), the whistle (aimed at it, or a plain
@@ -9,7 +9,8 @@
 # of sight; follow (DogFollowPlayer: return, scout ahead, run alongside, clear the aim; inside the comfort zone sniff, dig,
 # mark, look round, check in, settle while the player stands still); stay out in the world (sit, lie, nap, sniff about,
 # back to the spot; DogManager sends it home at night or when the player is far away); at home at night sleep in its dog
-# house; otherwise home life (stroll, sniff, visit spots, sit, nap in the doorway, zoomies).
+# house, but never during a raid (up, facing the nearest raider); otherwise home life (stroll, sniff, visit spots, sit, nap
+# in the doorway, zoomies).
 # Warns: barks, whines, pants (DogVoice keeps it rare).
 # Aborts: Both re-checks the conditional every think, so a whistle or a pet cuts into anything below.
 # Build: unity command script run --file .agents/skills/aipocalypse-enemy-ai/scripts/TreeKit.cs --entry TreeKit.Build
@@ -17,7 +18,7 @@
 # Rebuilding keeps the asset's GUID; edits made in the Behavior Designer window are overwritten, so make them here.
 tree Assets/_Game/Content/Dogs/_Shared/Dog.asset
 Repeater "Repeat forever"
-  Selector "Down, over the fence, come, petted, sad, catch up, back off, fight, warn, hurt player, follow, stay out, sleep, home life"
+  Selector "Down, over the fence, come, petted, sad, catch up, keep away, back off, fight, warn, hurt player, herd, follow, stay out, raid watch, sleep, home life"
     Sequence AbortType=Both "Knocked down (aborts both ways)"
       DogIsDown "Down?"
       DogLieDown "Lie and whine until helped up"
@@ -60,6 +61,9 @@ Repeater "Repeat forever"
     Sequence AbortType=Both "Stay out in the world (aborts both ways)"
       DogIsStayingOut "Told to stay outside the yard?"
       DogStayHere "Wait by the spot"
+    Sequence AbortType=Both "Raid at home: up and watching (aborts both ways)"
+      DogIsRaidAtHome "A raid, at home?"
+      DogWatchRaid "Stand alert facing the nearest raider"
     Sequence AbortType=Both "Sleep at home (aborts both ways)"
       DogIsNight "Night?"
       DogSleepInHouse "Into its dog house, asleep"

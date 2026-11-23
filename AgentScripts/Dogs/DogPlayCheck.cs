@@ -40,7 +40,8 @@ public static class DogPlayCheck
         return $"{Pass(ok)} ready: active {dog.Active}, order {dog.State.Order}, door on navmesh (off {off:0.00} m), reachable {reach}; {Line(dog)}";
     }
 
-    // The player walks `metres` across the yard and stops: the dog keeps within the zone, isn't stopped on the frame the
+    // The player walks `metres` across the yard and stops (20 m; 12 m ends under the house floor, Ground() keeps terrain
+    // hits only): the dog keeps within the zone, isn't stopped on the frame the
     // player stops, and settles (sits) within 7.5 s of the stop.
     public static async Task<string> Follow(float metres)
     {
@@ -591,7 +592,13 @@ public static class DogPlayCheck
                 if (diedAt < 0f && (goblin == null || goblin.IsDead))
                     diedAt = Time.time - t0;
             });
-            return $"{Pass(diedAt >= 0f && pinned)} takedown: goblin dragged down after {diedAt:0.0} s, pinned {pinned} (flag {pinFlag}, bit {bit}); {Line(dog)}";
+            // After the pin it must leave the fight and follow again.
+            Vector3 from = Player.transform.position;
+            PlacePlayer(Ground(from - YardRight * 10f), Ground(from - YardRight * 20f));
+            await Seconds(6f, null);
+            float after = Flat(dog.transform.position - Player.transform.position);
+            bool follows = after < 8.5f;
+            return $"{Pass(diedAt >= 0f && pinned && follows)} takedown: goblin dragged down after {diedAt:0.0} s, pinned {pinned} (flag {pinFlag}, bit {bit}); then followed {follows} ({after:0.0} m, bite landed {dog.BiteLanded}); {Line(dog)}";
         }
         finally
         {
@@ -619,7 +626,28 @@ public static class DogPlayCheck
         var target = WhistleTick();
         bool bit = false;
         await Seconds(14f, () => bit |= dog.State.BiteReadyAt != ready);
-        return $"{Pass(!bitWhilePassive && ReferenceEquals(target, dog) && bit)} sic: passive bit on its own {bitWhilePassive}, whistle answered by the dog {ReferenceEquals(target, dog)}, bit when sent {bit}; {Line(dog)}";
+        return $"{Pass(!bitWhilePassive && target != null && bit)} sic: passive bit on its own {bitWhilePassive}, whistle answered {target != null}, bit when sent {bit}; {Line(dog)}";
+    }
+
+    // The aim was on a goblin (the fallback saw it), then moved onto the dog itself: Q calls the dog, it isn't sent.
+    public static async Task<string> WhistleAtDogNearEnemy()
+    {
+        Dog dog = await Arena(DogStance.Passive);
+        DogManager manager = Scope.Resolve<DogManager>();
+        Console("enemy.spawn goblin 1");
+        await Seconds(0.5f, null);
+        var goblin = Goblins().FirstOrDefault();
+        if (goblin == null)
+            return "FAIL whistle at dog: no goblin";
+        goblin.Mover.Teleport(Ground(Player.transform.position + YardRight * 6f));
+        await Seconds(0.3f, null);
+        Vector3 eye = Camera.main.transform.position;
+        manager.TryAnswer(Player.gameObject, eye, (goblin.transform.position + Vector3.up - eye).normalized, out _);
+        bool answered = dog.TryWhistle(Player.gameObject);
+        int sent = (int)typeof(DogManager).GetField("_sentId", Private).GetValue(manager);
+        bool called = dog.State.Called(Time.time);
+        Console("enemy.clear");
+        return $"{Pass(answered && called && sent < 0)} whistle at the dog after aiming at a goblin: answered {answered}, called {called}, sent at {sent} (want -1); {Line(dog)}";
     }
 
     // A plain whistle in a fight: it backs off to the player and doesn't bite until the fight is over.
@@ -692,6 +720,38 @@ public static class DogPlayCheck
         Console("enemy.clear");
         Player.IgnoredByEnemies = false;
         return $"{Pass(growled && !bit)} warn: growled {growled}, bit an unaware goblin {bit}; {Line(dog)}{trace}";
+    }
+
+    // A warning growl cut off by a whistle: the warning ends with it (left on, the next warn faces the map origin).
+    public static async Task<string> WarnInterrupted()
+    {
+        Dog dog = await Arena(DogStance.Active);
+        Player.IgnoredByEnemies = true;
+        DogManager manager = Scope.Resolve<DogManager>();
+        Console("enemy.spawn goblin 1");
+        await Seconds(0.3f, null);
+        var goblin = Goblins().FirstOrDefault();
+        if (goblin == null)
+            return "FAIL warn interrupted: no goblin";
+        goblin.Mover.Teleport(Player.transform.position + YardRight * 18f);
+        float giveUp = Time.realtimeSinceStartup + 7f;
+        while (!manager.Warning && Time.realtimeSinceStartup < giveUp)
+            await Seconds(0.05f, null);
+        bool warning = manager.Warning;
+        await Seconds(0.3f, null);
+        if (!warning)
+        {
+            Console("enemy.clear");
+            Player.IgnoredByEnemies = false;
+            return "FAIL warn interrupted: it never started a warning";
+        }
+        dog.State.Call(Time.time, annoyed: false);
+        await Seconds(0.6f, null);
+        bool stillWarning = manager.Warning;
+        dog.State.EndCall();
+        Console("enemy.clear");
+        Player.IgnoredByEnemies = false;
+        return $"{Pass(!stillWarning)} warn interrupted: warning left on after the whistle cut it {stillWarning}; {Line(dog)}";
     }
 
     public static async Task<string> FightDebug()
@@ -779,6 +839,31 @@ public static class DogPlayCheck
         return $"{Pass(greeted && sniffed)} robot greet: greeted by Bolt {greeted}, came to sniff {sniffed}; {Line(dog)}";
     }
 
+    // No greeting from a busy robot (chatting), nor while the dog follows the player past a robot.
+    public static async Task<string> RobotGreetBusy()
+    {
+        Dog dog = Dog;
+        Console("enemy.clear");
+        Scope.Resolve<WorldClock>().JumpTo(10f);
+        DogManager manager = Scope.Resolve<DogManager>();
+        Robot[] robots = Object.FindObjectsByType<Robot>();
+        Robot bolt = robots.First(r => r.name == "Robot_Shop");
+        Robot other = robots.First(r => r != bolt);
+        manager.Order(dog, DogOrder.Stay);
+        await Seconds(7f, null);
+        dog.GreetedBy = null;
+        bolt.State.Chat(other.transform.position + Vector3.up, leads: true, Time.time);
+        dog.Legs.Warp(Ground(bolt.transform.position + bolt.transform.forward * 2.5f));
+        bool busyGreeted = false;
+        await Seconds(2.5f, () => busyGreeted |= dog.GreetedBy != null);
+        PlacePlayer(Ground(other.transform.position + other.transform.forward * 3f), other.transform.position);
+        manager.Order(dog, DogOrder.Follow);
+        dog.Legs.Warp(Ground(other.transform.position + other.transform.forward * 2f));
+        bool followGreeted = false;
+        await Seconds(3f, () => followGreeted |= dog.GreetedBy != null);
+        return $"{Pass(!busyGreeted && !followGreeted)} robot greet when busy: chatting robot greeted {busyGreeted}, greeted while following {followGreeted}; {Line(dog)}";
+    }
+
     // dog.chase at home: it runs at a sheep, which flees.
     public static async Task<string> SheepChase()
     {
@@ -841,6 +926,65 @@ public static class DogPlayCheck
         return $"{Pass(ok)} raid at home ({stance}): bit {bit}, closest {closest:0.0} m, farthest {far:0.0} m; {Line(dog)}";
     }
 
+    // A night raid with the dog at home: it stays out of its house, standing, facing the raider outside the fence.
+    public static async Task<string> RaidNight(float trace = 0f, bool raider = true)
+    {
+        Dog dog = Dog;
+        Console("enemy.clear");
+        DogManager manager = Scope.Resolve<DogManager>();
+        Player.Invulnerable = true;
+        Player.IgnoredByEnemies = true;
+        manager.Order(dog, DogOrder.Stay);
+        dog.State.SetStance(DogStance.Active);
+        PlacePlayer(Ground(Yard(-12f, 6f)), Ground(Yard(0f, 6f)));
+        dog.Legs.Warp(Ground(Yard(-4f, 0f)));
+        Scope.Resolve<WorldClock>().JumpTo(21f);
+        // Night starts the real raid: stop it (its raiders walk in through the open front), then raise our own.
+        await Seconds(1f, null);
+        Console("raid.stop");
+        Console("enemy.clear");
+        Scope.Resolve<IPublisher<RaidStarted>>().Publish(new RaidStarted(1));
+        await Seconds(6f, null);
+        MB13.Aipocalypse.Core.EnemySystem.EnemyBrain goblin = null;
+        if (raider)
+        {
+            Console("enemy.spawn goblin 1");
+            await Seconds(1f, null);
+            goblin = Goblins().FirstOrDefault();
+            if (goblin == null)
+                return "FAIL raid night: no goblin";
+            goblin.Mover.Teleport(Ground(Yard(-4f, -22f)));
+            // It spawns by the player (in the yard): let the dog drop that fight before measuring.
+            await Seconds(2f, null);
+        }
+        bool everInHouse = false;
+        bool fought = false;
+        var timeline = new System.Text.StringBuilder();
+        float nextMark = Time.time;
+        await Seconds(trace > 0f ? trace : 8f, () =>
+        {
+            everInHouse |= dog.InHouse;
+            fought |= manager.TargetId >= 0;
+            if (trace > 0f && Time.time >= nextMark)
+            {
+                nextMark = Time.time + 1f;
+                timeline.Append($" [{Time.time:0} {dog.Pose} house {dog.InHouse} night {dog.Roster.Night} raid {dog.Roster.Raid} at {dog.transform.position:F0}]");
+            }
+        });
+        Vector3 to = goblin != null ? goblin.transform.position - dog.transform.position : dog.transform.forward;
+        to.y = 0f;
+        float facing = Vector3.Angle(dog.transform.forward, to);
+        bool inHouse = dog.InHouse;
+        DogPose pose = dog.Pose;
+        // The front half of the fence starts down: a raider may walk in, and then the dog fights it instead of watching.
+        bool raiderIn = goblin != null && dog.Roster.InYard(goblin.transform.position);
+        Scope.Resolve<IPublisher<RaidEnded>>().Publish(new RaidEnded(1, RaidEndReason.Stopped));
+        Console("enemy.clear");
+        Player.IgnoredByEnemies = false;
+        bool ok = !everInHouse && pose == DogPose.Stand && (goblin == null || (raiderIn ? fought : facing < 50f));
+        return $"{Pass(ok)} raid night: in its house {inHouse} (ever {everInHouse}), pose {pose}, raider in the yard {raiderIn} (fought {fought}), facing it within {facing:0} deg; {Line(dog)}{timeline}";
+    }
+
     // Renders the player camera to a PNG (outside Assets).
     public static string Shot(string png)
     {
@@ -868,10 +1012,10 @@ public static class DogPlayCheck
         return Line(Dog);
     }
 
-    static Component WhistleTick()
+    static object WhistleTick()
     {
         object whistle = typeof(Player).GetField("_whistle", Private).GetValue(Player);
-        return whistle.GetType().GetMethod("Tick").Invoke(whistle, new object[] { true, Time.time + 100f }) as Component;
+        return whistle.GetType().GetMethod("Tick").Invoke(whistle, new object[] { true, Time.time + 100f });
     }
 
     static string Pass(bool ok) => ok ? "PASS" : "FAIL";

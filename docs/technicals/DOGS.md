@@ -88,16 +88,16 @@ Loki, a Border Collie, lives at its dog house in the WorldMap yard and comes exp
    - It runs behind the animal farthest from the pen (from the pen's side, 3 m back), barks within the budget, and hurries it (`Animal.Hurry`).
    - It skips an animal that hasn't got closer for 20 s.
    - When all are home, or after 3 min, it stays at home.
-2. **Robots:** a free, awake robot within 4 m greets it once per 90 s (`Robot.TryGreetVisitor`: it faces it, waves, heart eyes, a happy beep). The dog trots over and sniffs it.
+2. **Robots:** a free robot within 4 m (`Robot.IsFree`: not asleep, called, chatting, stepping aside, working…) greets it once per 90 s (`Robot.TryGreetVisitor`: it faces it, waves, heart eyes, a happy beep), only while the dog is in home life. The dog trots over and sniffs it.
 3. **Sheep chase:** at home by day, every 3–6 min, it runs at the nearest sheep within 25 m (never one going home or asleep).
    - It startles the sheep every 0.5 s for 5 s (`Animal.Startle`, run), then comes back happy.
    - The cheat is `dog.chase`.
 4. **Howl:** at most once a night, a 20% roll between 22:00 and 02:00 at home, never in a raid, as it goes to its house. The cheat is `dog.howl`.
 5. **Raids at home** (user's rule):
    - **Barking:** it barks toward raiders in bursts of 2–3, 8–15 s apart.
-   - **Active:** it goes for raiders that got inside the yard, aware of the player or not, by the Phase 2 rules.
+   - **Active:** it goes for raiders that got inside the yard, aware of the player or not, by the Phase 2 rules. While it's in the yard it leaves raiders outside the fence alone (barks only), even when following the player.
    - **Passive:** it keeps 6 m away from raiders, running to the far side of the yard, and never bites.
-   - It doesn't sleep during a raid.
+   - It doesn't sleep during a raid: at home it stands alert where it is, facing the nearest raider it sees (`DogWatchRaid`).
 
 ## Pieces
 
@@ -117,7 +117,7 @@ DogHouse, DogRoster, DogInstaller, DogSaveSection ("dog": order, position, facin
 UI/Wheel             CommandWheelPresenter (time 0.3, UI input, closes on death / raid), CommandWheel view, WheelMath, CommandWheelStyle
 ```
 
-Tree (priority): come when whistled → petted → sad (just told to stay) → catch up → follow → stay out in the world → night at home: sleep in its house → home life.
+Tree (priority): down → over the fence → come when whistled → petted → sad (just told to stay) → catch up → keep away from raiders (Passive at home) → back off (hurt) → fight → warn → stay close to a hurt player → herd → follow → stay out in the world → a raid at home: watch → night at home: sleep in its house → home life.
 
 ## In WorldMap
 
@@ -125,7 +125,7 @@ Tree (priority): come when whistled → petted → sad (just told to stay) → c
 - `DogHouse`: the SICS `TFP_Dog_House_01B` at (265.8, 29.5, 288.9), its opening toward the middle of the yard, with `Door`, `Bed` and a `NavmeshCut` box.
 - `Loki` (`Content/Dogs/Loki/Loki.prefab`).
 - `Visits`: garden, door, gate, pen, middle.
-- `Fence Links`: 53 `NodeLink2`s, one per fence segment and the gate, tagged DogOnly with `DogLinkInfo` (2 m).
+- `Fence Links`: 53 crossing points (`DogLinkInfo`, 2 m: Outside and Inside markers), one per fence segment and the gate, for the scripted scramble. No `NodeLink2`s (see Jumping).
 
 Also:
 - the robots' `DoorLink_House` gets a `DogLinkInfo` with Via = its Sill;
@@ -153,7 +153,7 @@ Also:
 
 ## Known gaps
 
-- **The shut yard leaks:** `DefensePlayCheck.Run` reports a walkable way into the shut yard ("gate shut: path in True") even with the dog and the robots' door link switched off. It predates the dog; the fence scramble triggers after 2.5 s for this reason.
+- **A new game's yard is open:** the front half of the fence starts as debris (DEFENSE.md), so until the player rebuilds it the dog walks in and out through the gaps; the scramble is for a rebuilt fence.
 - **Rolls:** dodges and takedowns use `RandomService`; behaviour flavour (feints, growls, activities) uses `UnityEngine.Random`.
 
 - **Colour:** the colour is Black 01; the user picks from `DogPreview.Colours`.

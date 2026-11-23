@@ -56,8 +56,9 @@ namespace MB13.Aipocalypse.Core.DogSystem
     public static class DogCombat
     {
         // Sent (`sentId`): that one, while alive and within SentChaseRange of the player. Passive: nothing else. Active: enemies
-        // aware of the player within EngageRange of the player (with `homeDefence`, also raiders inside the yard): ranged
-        // first, then those attacking the player, then the nearest to the player. −1: none.
+        // aware of the player within EngageRange of the player; with `homeDefence` (a raid, the dog in the yard) raiders inside
+        // the yard only, aware or not (outside the fence they're only barked at). Ranged first, then those attacking the
+        // player, then the nearest to the player. −1: none.
         public static int PickTarget(IReadOnlyList<FoeView> foes, Vector3 player, DogStance stance, int sentId, bool homeDefence, DogStatSheet stats)
         {
             if (sentId >= 0)
@@ -79,7 +80,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
                 if (!foe.Alive)
                     continue;
                 float distance = Flat(foe.Position - player);
-                bool engageable = (foe.AwareOfPlayer && distance <= engage) || (homeDefence && foe.InYard);
+                bool engageable = homeDefence ? foe.InYard : foe.AwareOfPlayer && distance <= engage;
                 if (!engageable)
                     continue;
                 // Lower is better: ranged, then attacking the player, then near the player.

@@ -165,30 +165,20 @@ namespace MB13.Aipocalypse.Core.RobotSystem
             for (int i = 0; i < _roster.Robots.Count; i++)
             {
                 Robot a = _roster.Robots[i];
-                if (!FreeToChat(a, now))
+                if (!a.FreeToChat(now))
                     continue;
                 for (int j = i + 1; j < _roster.Robots.Count; j++)
                 {
                     Robot b = _roster.Robots[j];
                     Vector3 between = b.transform.position - a.transform.position;
                     between.y = 0f;
-                    if (between.sqrMagnitude > reach || !FreeToChat(b, now))
+                    if (between.sqrMagnitude > reach || !b.FreeToChat(now))
                         continue;
                     a.State.Chat(HeadOf(b), leads: true, now);
                     b.State.Chat(HeadOf(a), leads: false, now);
                     break;
                 }
             }
-        }
-
-        // Awake and doing nothing it was asked to: not called, hit, greeted, nervous, cheering, welcoming, seeing the player
-        // off, working or already chatting.
-        static bool FreeToChat(Robot robot, float now)
-        {
-            RobotState state = robot.State;
-            return state.CanChat(now) && !robot.Asleep && !robot.Call.Active && !state.Hit(now) && !state.Greeting(now)
-                && !state.Nervous(now) && !state.Cheering(now) && !state.WelcomePending && !state.SeeingOff(now)
-                && !state.Chatting(now) && !state.StepRequested(now) && (robot.Work == null || !robot.Work.WantsToWork(now));
         }
 
         static Vector3 HeadOf(Robot robot) => robot.Head != null ? robot.Head.position : robot.transform.position + Vector3.up * 1.1f;

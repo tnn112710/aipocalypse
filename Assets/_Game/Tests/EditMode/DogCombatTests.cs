@@ -231,6 +231,16 @@ namespace MB13.Aipocalypse.Tests
         }
 
         [Test]
+        public void Combat_HomeDefenceIgnoresAwareRaidersOutsideTheFence()
+        {
+            var outsideAware = new FoeView(7, new Vector3(5f, 0f, 0f), Vector3.forward, false, true, true, false, 1f, 0, true, inYard: false);
+            Assert.That(DogCombat.PickTarget(new[] { outsideAware }, Vector3.zero, DogStance.Active, -1, true, CombatStats()), Is.EqualTo(-1),
+                "aware of the player, 5 m away, but outside the fence: only barked at");
+            Assert.That(DogCombat.PickTarget(new[] { outsideAware }, Vector3.zero, DogStance.Active, -1, false, CombatStats()), Is.EqualTo(7),
+                "away from home the usual rule holds");
+        }
+
+        [Test]
         public void Hit_FromEnemyReducesToughness()
         {
             DogState state = NewState();
