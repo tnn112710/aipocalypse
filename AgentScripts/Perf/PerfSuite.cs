@@ -776,6 +776,13 @@ public static class PerfSuite
         Keep(() => rp.mainLightShadowmapResolution, v => rp.mainLightShadowmapResolution = v);
         Keep(() => SoGet("m_SoftShadowQuality"), v => SoProp("m_SoftShadowQuality", v));
         Keep(() => rp.renderScale, v => rp.renderScale = v);
+        Keep(() => rp.msaaSampleCount, v => rp.msaaSampleCount = v);
+        Keep(() => camData.antialiasing, v => camData.antialiasing = v);
+        Keep(() => terrain.drawHeightmap, v => terrain.drawHeightmap = v);
+        // Terrain detail materials (the grass): their ShadowCaster pass, switched in memory only.
+        var detailMats = terrain.terrainData.detailPrototypes.Where(d => d.usePrototypeMesh && d.prototype != null)
+            .SelectMany(d => d.prototype.GetComponentsInChildren<Renderer>(true)).SelectMany(r => r.sharedMaterials).Where(m => m != null).Distinct().ToList();
+        foreach (var m in detailMats) { var mat = m; Keep(() => mat.GetShaderPassEnabled("ShadowCaster"), on => mat.SetShaderPassEnabled("ShadowCaster", on)); }
         Keep(() => rp.gpuResidentDrawerEnableOcclusionCullingInCameras, v => rp.gpuResidentDrawerEnableOcclusionCullingInCameras = v);
         Keep(() => SoGet("m_EnableLODCrossFade"), v => SoProp("m_EnableLODCrossFade", v));
         Keep(() => rp.supportsCameraOpaqueTexture, v => rp.supportsCameraOpaqueTexture = v);
@@ -852,6 +859,11 @@ public static class PerfSuite
             ("hud off", () => Root("HUD", false)),
             ("terrain details off", () => terrain.detailObjectDistance = 0f),
             ("terrain trees off", () => terrain.treeDistance = 0f),
+            ("terrain surface off", () => terrain.drawHeightmap = false),
+            ("detail shadows off", () => { foreach (var m in detailMats) m.SetShaderPassEnabled("ShadowCaster", false); }),
+            ("msaa off", () => rp.msaaSampleCount = 1),
+            ("old msaa 2x", () => { rp.msaaSampleCount = 2; camData.antialiasing = AntialiasingMode.None; }),
+            ("msaa off + smaa", () => { rp.msaaSampleCount = 1; camData.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing; }),
             ("ssao off", () => Feature("ScreenSpaceAmbientOcclusion", false)),
             ("volumetric fog off", () => Feature("VolumetricFogRenderFeature", false)),
             ("cozy feature off", () => Feature("CozyRendererFeature", false)),
