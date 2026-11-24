@@ -111,7 +111,7 @@ namespace MB13.Aipocalypse.Core.Debugging
             if (distance < 0.01f)
                 return intent;
             Vector3 forward = view.forward;
-            float yaw = Vector3.SignedAngle(Flat(forward), Flat(toTarget), Vector3.up);
+            float yaw = Vector3.SignedAngle(FlatMath.Flatten(forward), FlatMath.Flatten(toTarget), Vector3.up);
             var error = new Vector2(yaw, Elevation(toTarget) - Elevation(forward));
             float step = TurnRate * deltaTime;
             intent.LookDegrees = error.sqrMagnitude > step * step ? error.normalized * step : error;
@@ -216,8 +216,6 @@ namespace MB13.Aipocalypse.Core.Debugging
             Bounds bounds = body.bounds;
             return new Vector3(bounds.center.x, bounds.min.y + bounds.size.y * ChestShare, bounds.center.z);
         }
-
-        static Vector3 Flat(Vector3 v) => new(v.x, 0f, v.z);
 
         // Degrees above the horizon.
         static float Elevation(Vector3 v) => Mathf.Atan2(v.y, new Vector2(v.x, v.z).magnitude) * Mathf.Rad2Deg;

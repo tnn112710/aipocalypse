@@ -129,7 +129,7 @@ DogVoice             plain C#: the noise budget (DogStateTests)
 DogJumpArc           plain C#: hop / scramble / climb up / drop down, body path and time (DogTests)
 DogTasks             Behavior Designer tasks (AgentScripts/Dogs/Dog.tree.txt → Content/Dogs/_Shared/Dog.asset)
 DogLegs              EnemyMover on every nav tag; gaits
-Links/DogJump        IOffMeshLinkHandler on the dog's FollowerEntity (own asmdef DogLinks); DogLinkInfo on a link: obstacle, Via
+Links/DogJump        IOffMeshLinkHandler on the dog's FollowerEntity (Links assembly, MB13.Aipocalypse.Links); DogLinkInfo on a link: obstacle, Via
 DogHouse, DogRoster, DogInstaller, DogSaveSection ("dog": order, position, facing, in the yard, stay point), DogCommands
 UI/Wheel             CommandWheelPresenter (time 0.3, UI input, closes on death / raid), CommandWheel view, WheelMath, CommandWheelStyle
 ```

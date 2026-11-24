@@ -8,11 +8,7 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         // Metres: a target farther above or below (on a roof, a ledge) is out of reach.
         public const float MaxHeightDifference = 2f;
 
-        public static float SqrFlatDistance(Vector3 a, Vector3 b)
-        {
-            float x = a.x - b.x, z = a.z - b.z;
-            return x * x + z * z;
-        }
+        public static float SqrFlatDistance(Vector3 a, Vector3 b) => FlatMath.SqrDistance(a, b);
 
         // Whether a blow from `attacker` facing `forward` reaches `target`: within `reach` metres and inside an arc of `arc`
         // degrees centred on the facing.

@@ -45,7 +45,7 @@ namespace MB13.Aipocalypse.Core.RobotSystem
 
         RobotManager _manager;
         IPublisher<RobotServiceRequested> _serviceRequests;
-        bool _started;
+        readonly ActivationGate _gate = new();
         bool _active;
         bool _rolled;
         float _lastYaw;
@@ -101,7 +101,7 @@ namespace MB13.Aipocalypse.Core.RobotSystem
             _manager = manager;
             _serviceRequests = serviceRequests;
             State = new RobotState(roster.Settings);
-            if (_started && isActiveAndEnabled)
+            if (_gate.OnConstructed(isActiveAndEnabled))
                 Activate();
         }
 
@@ -109,8 +109,7 @@ namespace MB13.Aipocalypse.Core.RobotSystem
         {
             Mover = GetComponent<IRobotLegs>();
             Tree = GetComponent<BehaviorTree>();
-            _started = true;
-            if (Roster != null)
+            if (_gate.OnStarted())
                 Activate();
             else
                 Debug.LogError($"{name}: not injected; save the scene so its RobotInstaller lists it.", this);
@@ -118,7 +117,7 @@ namespace MB13.Aipocalypse.Core.RobotSystem
 
         void OnEnable()
         {
-            if (_started && Roster != null)
+            if (_gate.OnEnabled())
                 Activate();
         }
 

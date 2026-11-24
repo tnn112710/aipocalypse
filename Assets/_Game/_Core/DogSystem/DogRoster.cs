@@ -80,7 +80,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
             float bestCost = float.MaxValue, gapCost = float.MaxValue;
             for (int i = 0; i < ways.Count; i++)
             {
-                float cost = Flat(ways[i].Near - from) + Flat(to - ways[i].Far);
+                float cost = FlatMath.Length(ways[i].Near - from) + FlatMath.Length(to - ways[i].Far);
                 if (!ways[i].Standing)
                     gapCost = Mathf.Min(gapCost, cost);
                 else if (cost < bestCost)
@@ -91,8 +91,6 @@ namespace MB13.Aipocalypse.Core.DogSystem
             }
             return best >= 0 && canWalk && gapCost <= bestCost + gapDetour ? -1 : best;
         }
-
-        static float Flat(Vector3 v) => new Vector2(v.x, v.z).magnitude;
 
         // Where "home" is: the house door, else where it started.
         public Vector3 Home(Dog dog) => House != null ? House.Door : dog.HomePosition;

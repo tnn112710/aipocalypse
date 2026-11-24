@@ -78,8 +78,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         Transform _shotMuzzle;
         // The aim pose through a fitted optic, its scope view offset and sight window.
         GunOpticAim _optic;
-        // Rounds until the next one shows tracers (BulletEffects.TracerEvery); 0 = the next one does.
-        int _roundsToTracer;
+        // Bullets, flash, tracers, spent cases and the laser dot.
+        GunShotSpawner _shotSpawner;
         // Optional (scenes without one are always day): how dark it is, for the tracer's glow.
         EnvironmentDirector _environment;
 
@@ -172,6 +172,8 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             _optic = new GunOpticAim(_aimPose);
             _accuracy = new GunAccuracy(_definition.Accuracy);
             _jam = _jams.Create(_gun, _definition, _animation, _jolt, this, Owner, Item);
+            _shotSpawner = new GunShotSpawner(_bullets, _effects, _shots, _random, _environment, _user, item, _gun, gameObject,
+                _ejectionPort, _mounts);
             _gun.Fired += OnFired;
             _gun.EmptyFired += OnEmptyFired;
             _gun.ActionStarted += OnActionStarted;
@@ -255,24 +257,12 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         {
             for (; _pendingShots > 0; _pendingShots--)
             {
-                Shoot();
+                _shotSpawner.Shoot(_shotMuzzle);
                 // After the shot leaves: its kick shows from the next frame, as the bullet is already out of the barrel.
                 _recoil.Kick(_aimWeight, _stateMultiplier * _user.FatigueRecoilScale, _item.Stats.VerticalRecoilScale,
                     _item.Stats.HorizontalRecoilScale);
             }
-            AimLaser();
-        }
-
-        // A fitted laser's dot sits where the next shot goes (the holder's aim rule from the laser, before spread), so it
-        // agrees with the crosshair whatever way the hip pose holds the barrel.
-        void AimLaser()
-        {
-            AttachmentModel laser = _mounts != null ? _mounts.Laser : null;
-            if (laser == null)
-                return;
-            int layers = _definition.Bullet.HitLayers;
-            GunAim.Shot(_user, laser.LaserOrigin, _item.Stats.Range, layers, _bullets, out Vector3 origin, out Vector3 direction);
-            laser.AimLaser(origin, direction, layers, _user.Eye);
+            _shotSpawner?.AimLaser();
         }
 
         protected override void OnShown()
@@ -297,7 +287,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             _sprintRecoveryLeft = 0f;
             _tailIn = -1f;
             _pendingShots = 0;
-            _roundsToTracer = 0;
+            _shotSpawner?.ResetTracer();
             _gun?.Interrupt();
             _recoil?.Reset();
             _accuracy?.Reset();
@@ -351,78 +341,14 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             if (low > 0 && rounds <= low)
                 _audio?.Play(_definition.Sounds.LowAmmo, _definition.Sounds.Volume * Mathf.Lerp(1f, 0.45f, rounds / (float)low));
             if (!_definition.Ejection.OnCycle)
-                Eject();
-        }
-
-        void Eject()
-        {
-            EjectionSettings ejection = _definition.Ejection;
-            if (_ejectionPort == null || ejection.Shell == null)
-                return;
-            PooledEffect shell = _effects.Spawn(ejection.Shell, _ejectionPort.position, _ejectionPort.rotation * Random.rotation);
-            if (shell == null || !shell.TryGetComponent(out Rigidbody body))
-                return;
-            float jitter = 1f + Random.Range(-ejection.VelocityJitter, ejection.VelocityJitter);
-            body.linearVelocity = _ejectionPort.TransformDirection(ejection.Velocity) * jitter;
-            body.angularVelocity = Random.onUnitSphere * (ejection.Spin * Mathf.Deg2Rad);
-            body.WakeUp();
-        }
-
-        void Shoot()
-        {
-            GunStats stats = _item.Stats;
-            Transform muzzle = _shotMuzzle;
-            BulletEffects effects = _definition.Effects;
-            if (effects != null && !stats.HidesFlash)
-            {
-                PooledEffect flash = _effects.Spawn(effects.MuzzleFlash, muzzle.position, muzzle.rotation, muzzle);
-                // Pooled: only a fresh flash needs moving onto the first-person layer.
-                if (flash != null && flash.gameObject.layer != gameObject.layer)
-                    flash.transform.SetLayerRecursively(gameObject.layer);
-            }
-
-            FireSettings fire = _definition.Fire;
-            BulletSettings bullet = _definition.Bullet;
-            GunAim.Shot(_user, muzzle, stats.Range, bullet.HitLayers, _bullets, out Vector3 origin, out Vector3 direction);
-            // The first round after equipping is a tracer round, and so are a magazine's last few; a round's pellets all
-            // show theirs or none.
-            bool traced = --_roundsToTracer <= 0;
-            if (traced && effects != null)
-                _roundsToTracer = effects.NextTracerGap(Random.value);
-            if (effects != null && effects.IsLastRound(_gun.Item.Rounds))
-                traced = true;
-            float darkness = _environment != null ? 1f - _environment.Daylight : 0f;
-            // No hidden cone: hip inaccuracy is the visible wobble the aim already follows. Pellets spread around it.
-            for (int i = 0; i < fire.Pellets; i++)
-            {
-                _bullets.Fire(new BulletShot
-                {
-                    Origin = origin,
-                    Direction = BulletSpread.Apply(direction, stats.SpreadAngle, _random.InsideUnitCircle),
-                    VisualOrigin = _user.AimFrom == AimOrigin.Camera ? muzzle.position : origin,
-                    Speed = stats.BulletSpeed,
-                    Range = stats.Range,
-                    GravityScale = bullet.GravityScale,
-                    Damage = stats.Damage,
-                    DamageType = bullet.DamageType,
-                    Knockback = fire.Knockback,
-                    Falloff = stats.Falloff,
-                    Layers = bullet.HitLayers,
-                    Ignore = _user.Root,
-                    Source = _user.Root.gameObject,
-                    Effects = effects,
-                    NoTracer = !traced,
-                    Darkness = darkness,
-                });
-            }
-            _shots?.Publish(new ShotFired(muzzle.position, _user.Root.gameObject, stats.Loudness));
+                _shotSpawner.Eject();
         }
 
         void OnActionStarted(GunAction action)
         {
             _jam.ActionStarted();
             if (action == GunAction.Cycling && _definition.Ejection.OnCycle)
-                Eject();
+                _shotSpawner.Eject();
             GunRepairProfile repair = action == GunAction.ClearingJam ? _definition.Jam.Repair : null;
             GunShakeSettings shake = repair != null && (_animation == null || Random.value < repair.ShakeChance) ? repair.Shake : null;
             if (shake != null)

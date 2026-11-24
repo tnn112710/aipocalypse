@@ -33,32 +33,6 @@ namespace MB13.Aipocalypse.Core.EnvironmentSystem
     [ExecuteAlways]
     public sealed class EnvironmentDirector : MonoBehaviour
     {
-        static readonly int SkyTintId = Shader.PropertyToID("_TOD_SkyTint");
-        static readonly int SkyExposureId = Shader.PropertyToID("_TOD_SkyExposure");
-        static readonly int NightTopId = Shader.PropertyToID("_TOD_NightTop");
-        static readonly int NightHorizonId = Shader.PropertyToID("_TOD_NightHorizon");
-        static readonly int NightBlendId = Shader.PropertyToID("_TOD_NightBlend");
-        static readonly int HorizonGlowId = Shader.PropertyToID("_TOD_HorizonGlow");
-        static readonly int SunDirId = Shader.PropertyToID("_TOD_SunDir");
-        static readonly int SunColorId = Shader.PropertyToID("_TOD_SunColor");
-        static readonly int SunDiscId = Shader.PropertyToID("_TOD_SunDisc");
-        static readonly int MoonDirId = Shader.PropertyToID("_TOD_MoonDir");
-        static readonly int MoonColorId = Shader.PropertyToID("_TOD_MoonColor");
-        static readonly int MoonPhaseId = Shader.PropertyToID("_TOD_MoonPhase");
-        static readonly int MoonGlowId = Shader.PropertyToID("_TOD_MoonGlow");
-        static readonly int StarsId = Shader.PropertyToID("_TOD_Stars");
-        // Skybox Plus (Kronnect) custom sun/moon positions, normally set by its own SkyboxPlus component (not used here).
-        static readonly int SbpCustomPositionsId = Shader.PropertyToID("_SBPCustomPositions");
-        static readonly int SbpSunDirId = Shader.PropertyToID("_WorldSpaceSunDir");
-        static readonly int SbpSunMatrixId = Shader.PropertyToID("_LightWL");
-        static readonly int SbpMoonDirId = Shader.PropertyToID("_WorldSpaceMoonDir");
-        static readonly int SbpMoonMatrixId = Shader.PropertyToID("_MoonLightWL");
-        static readonly int SbpMoonPhaseId = Shader.PropertyToID("_MoonPhase");
-        static readonly int SbpMoonPhaseAngleId = Shader.PropertyToID("_MoonPhaseAngle");
-        static readonly int StarMapRotationId = Shader.PropertyToID("_StarMapRotation");
-        // Right ascension of the Milky Way's core (Sagittarius A*), degrees.
-        const float GalacticCoreRightAscension = 266.405f;
-
         // Moon phase drift smaller than this doesn't re-apply an unchanged look (the phase creeps every frame).
         const float MoonPhaseStep = 0.0001f;
 
@@ -66,6 +40,13 @@ namespace MB13.Aipocalypse.Core.EnvironmentSystem
         static int _editRevision;
 
         public static void MarkLooksEdited() => _editRevision++;
+
+        public static Matrix4x4 StarMapRotation(float latitude, float siderealTime, float azimuth) =>
+            OwnSky.StarMapRotation(latitude, siderealTime, azimuth);
+
+        public static Vector3 SkyboxPlusSun(Vector3 sun, float duskElevation, float sink) => OwnSky.SkyboxPlusSun(sun, duskElevation, sink);
+
+        public static float SkyboxPlusSink(float hour, float morning, float evening) => OwnSky.SkyboxPlusSink(hour, morning, evening);
 
         [SerializeField, InlineEditor] TimeOfDayProfile _profile;
         [SerializeField, Tooltip("When the look changes. By Phases: at each phase start, to the profile's Phase Looks hour. By Hours: at each whole hour. Continuous: every frame. The sun and moon move with the look, so they hold still between transitions")]
@@ -117,6 +98,8 @@ namespace MB13.Aipocalypse.Core.EnvironmentSystem
         [BoxGroup("Preview"), SerializeField, Range(0f, 1f), Tooltip("0 new moon, 0.5 full")] float _previewMoonPhase = 0.5f;
 
         readonly List<EnvironmentReactor> _reactors = new();
+        // The own light and sky while COZY doesn't draw.
+        readonly OwnSky _ownSky = new();
         WorldClock _clock;
         AtmosphereState _state;
         VolumeProfile _fromProfile;
@@ -125,15 +108,7 @@ namespace MB13.Aipocalypse.Core.EnvironmentSystem
         float _lookSpan;
         float _lookTarget = -1f;
         float _lookGlide = 1f;
-        Quaternion _lightFrom;
-        Quaternion _lightTo;
-        float _glide = 1f;
-        bool _lightPlaced;
-        bool _sunLit;
         GraphicsService _graphics;
-        // Play mode: runtime copy of a Skybox Plus sky, whose moon phase is a material property.
-        Material _skySource;
-        Material _skyCopy;
         // Play mode while COZY draws: the scene's skybox, hidden because COZY's sky covers it.
         Material _hiddenSky;
         // While COZY draws: -1 unknown, 0 sun, 1 moon lights the scene (for the night shadow distance).
@@ -209,11 +184,7 @@ namespace MB13.Aipocalypse.Core.EnvironmentSystem
         void OnDestroy()
         {
             ShowSkybox();
-            if (_skyCopy == null)
-                return;
-            if (RenderSettings.skybox == _skyCopy)
-                RenderSettings.skybox = _skySource;
-            Destroy(_skyCopy);
+            _ownSky.ReleaseSkyCopy();
         }
 
         // A request to GraphicsService, which owns the shared pipeline asset's distance.
@@ -240,7 +211,7 @@ namespace MB13.Aipocalypse.Core.EnvironmentSystem
                 return;
             Vector3 sun = _profile.Path.Sun(_previewHour, out _);
             Vector3 moon = _profile.Path.Moon(_previewHour, out _);
-            ApplySky(state, _previewHour, sun, moon, _previewMoonPhase);
+            _ownSky.ApplySky(state, _previewHour, sun, moon, _previewMoonPhase, SkySettings);
         }
 
         void LateUpdate()
@@ -324,7 +295,7 @@ namespace MB13.Aipocalypse.Core.EnvironmentSystem
         void Apply(float hour, float lookHour, float moonPhase)
         {
             // By Phases / By Hours hold the look for minutes: with no light glide running, nothing to redo.
-            if (Application.isPlaying && _glide >= 1f && lookHour == _appliedLookHour &&
+            if (Application.isPlaying && _ownSky.LightSettled && lookHour == _appliedLookHour &&
                 Mathf.Abs(moonPhase - _appliedMoonPhase) < MoonPhaseStep && _appliedRevision == _editRevision)
             {
                 Hour = hour;
@@ -377,8 +348,12 @@ namespace MB13.Aipocalypse.Core.EnvironmentSystem
             else
             {
                 ShowSkybox();
-                ApplyLight(path, state, sun, sunElevation, moon, moonElevation, moonPhase);
-                ApplySky(state, lookHour, sun, moon, moonPhase);
+                // Only Continuous glides the light between shadow steps; a skip snaps it.
+                bool hold = _transition != LookTransition.Continuous || (_clock != null && _clock.IsSkipping);
+                if (_ownSky.ApplyLight(_light, path, state, sun, sunElevation, moon, moonElevation, moonPhase, _shadowStep, _shadowGlide,
+                        hold, out bool sunLights))
+                    SetShadowDistance(!sunLights);
+                _ownSky.ApplySky(state, lookHour, sun, moon, moonPhase, SkySettings);
             }
             ApplyRenderSettings(state, !cozy);
             ApplyFog(state, cozy);
@@ -438,70 +413,6 @@ namespace MB13.Aipocalypse.Core.EnvironmentSystem
                 target.SetActive(active);
         }
 
-        void ApplyLight(SunPath path, in AtmosphereState state, Vector3 sun, float sunElevation, Vector3 moon, float moonElevation, float moonPhase)
-        {
-            if (_light == null)
-                return;
-
-            float fullness = 1f - Mathf.Abs(moonPhase - 0.5f) * 2f;
-            float sunIntensity = state.SunIntensity * Mathf.SmoothStep(0f, 1f, sunElevation / path.HorizonFade);
-            float moonIntensity = state.MoonIntensity * Mathf.SmoothStep(0f, 1f, moonElevation / path.HorizonFade) * Mathf.Lerp(path.NewMoonLight, 1f, fullness);
-            bool sunLights = sunIntensity >= moonIntensity;
-
-            // The swap happens while both are near zero at twilight, so it can't be seen.
-            Vector3 toSource = sunLights ? sun : moon;
-            float bearing = Mathf.Atan2(toSource.x, toSource.z) * Mathf.Rad2Deg;
-            float elevation = Mathf.Max(sunLights ? sunElevation : moonElevation, path.MinLightElevation);
-
-            // Only changed values are written (here, RenderSettings and the volumes): every write dirties the object,
-            // and a selected one repaints its Inspector each frame, which halves the editor's frame rate.
-            Quaternion rotation = StepLight(Quaternion.LookRotation(-SunPath.Direction(bearing, elevation)), sunLights);
-            if (!_light.enabled)
-                _light.enabled = true;
-            Transform lightTransform = _light.transform;
-            // Exact compare: Quaternion's == ignores turns under ~0.16°, which would freeze a slow continuous sun.
-            if (!lightTransform.rotation.Equals(rotation))
-                lightTransform.rotation = rotation;
-            if (_light.useColorTemperature)
-                _light.useColorTemperature = false;
-            Color color = sunLights ? state.SunColor : state.MoonColor;
-            if (_light.color != color)
-                _light.color = color;
-            float intensity = sunLights ? sunIntensity : moonIntensity;
-            if (_light.intensity != intensity)
-                _light.intensity = intensity;
-            float shadowStrength = sunLights ? state.SunShadows : state.MoonShadows;
-            if (_light.shadowStrength != shadowStrength)
-                _light.shadowStrength = shadowStrength;
-            SetShadowDistance(!sunLights);
-        }
-
-        // Shadow maps shimmer while their light turns, so it turns in short glides between still holds.
-        // Jumps, skips and the sun/moon swap snap: nobody sees the shadows move then.
-        Quaternion StepLight(Quaternion target, bool sunLights)
-        {
-            bool snap = _shadowStep <= 0f || _transition != LookTransition.Continuous || !Application.isPlaying || !_lightPlaced || sunLights != _sunLit
-                || (_clock != null && _clock.IsSkipping) || Quaternion.Angle(_lightTo, target) > _shadowStep * 4f + 2f;
-            if (snap)
-            {
-                _lightFrom = _lightTo = target;
-                _glide = 1f;
-                _lightPlaced = true;
-                _sunLit = sunLights;
-                return target;
-            }
-
-            if (_glide >= 1f && Quaternion.Angle(_lightTo, target) >= _shadowStep)
-            {
-                _lightFrom = _lightTo;
-                _lightTo = target;
-                _glide = 0f;
-            }
-            if (_glide < 1f)
-                _glide = _shadowGlide > 0f ? Mathf.Min(1f, _glide + Time.unscaledDeltaTime / _shadowGlide) : 1f;
-            return Quaternion.Slerp(_lightFrom, _lightTo, Mathf.SmoothStep(0f, 1f, _glide));
-        }
-
         // Ambient only when the director lights the scene (COZY writes its own); fog is ApplyFog's.
         static void ApplyRenderSettings(in AtmosphereState state, bool ambient)
         {
@@ -519,102 +430,15 @@ namespace MB13.Aipocalypse.Core.EnvironmentSystem
                 RenderSettings.ambientGroundColor = state.AmbientGround;
         }
 
-        // Feeds both skies, so switching the scene's skybox material (Time Of Day or Skybox Plus) switches the sky.
-        void ApplySky(in AtmosphereState state, float lookHour, Vector3 sun, Vector3 moon, float moonPhase)
+        OwnSky.SkySettings SkySettings => new()
         {
-            ApplyTimeOfDaySky(state, sun, moon, moonPhase);
-            ApplySkyboxPlus(sun, moon, moonPhase, SkyboxPlusSink(lookHour, _skyboxPlusMorningSink, _skyboxPlusEveningSink));
-            float siderealTime = GalacticCoreRightAscension + 15f * (lookHour - _galacticCoreTransit);
-            Shader.SetGlobalMatrix(StarMapRotationId, StarMapRotation(_starLatitude, siderealTime, _starAzimuth));
-        }
-
-        // World sky direction → star map direction. The map is equirectangular in celestial coordinates (right ascension 0h at
-        // its left edge, growing rightward; +90° declination at the top) imported as a cubemap with Unity's latitude-longitude
-        // layout, where u = 0.5 + atan2(x, z) / 2π (measured: +X holds u 0.75). North is +Z, east +X. Sidereal time in degrees (15° per hour).
-        // Azimuth turns the whole sky clockwise seen from above (a star due south moves to bearing 180 + azimuth).
-        public static Matrix4x4 StarMapRotation(float latitude, float siderealTime, float azimuth)
-        {
-            float lat = latitude * Mathf.Deg2Rad;
-            float lst = siderealTime * Mathf.Deg2Rad;
-            float cosLst = Mathf.Cos(lst);
-            float sinLst = Mathf.Sin(lst);
-            // Hour-angle frame in world space: where the equator crosses the meridian, west, and the celestial pole.
-            var meridian = new Vector3(0f, Mathf.Cos(lat), -Mathf.Sin(lat));
-            Vector3 west = Vector3.left;
-            var pole = new Vector3(0f, Mathf.Sin(lat), Mathf.Cos(lat));
-            // Right ascension = sidereal time − hour angle; map direction = (−cos δ sin α, sin δ, −cos δ cos α).
-            Vector3 rowX = -sinLst * meridian + cosLst * west;
-            Vector3 rowZ = -cosLst * meridian - sinLst * west;
-            Matrix4x4 m = Matrix4x4.identity;
-            m.SetRow(0, rowX);
-            m.SetRow(1, pole);
-            m.SetRow(2, rowZ);
-            return m * Matrix4x4.Rotate(Quaternion.Euler(0f, -azimuth, 0f));
-        }
-
-        static void ApplyTimeOfDaySky(in AtmosphereState state, Vector3 sun, Vector3 moon, float moonPhase)
-        {
-            // Tint and exposure are Skybox/Panoramic values (the looks copied them), which Unity converts from gamma to linear
-            // for a material; globals are passed raw, so convert here or the sky renders ~10x too bright and clips.
-            bool linear = QualitySettings.activeColorSpace == ColorSpace.Linear;
-            Shader.SetGlobalColor(SkyTintId, linear ? state.SkyTint.linear : state.SkyTint);
-            Shader.SetGlobalFloat(SkyExposureId, linear ? Mathf.GammaToLinearSpace(state.SkyExposure) : state.SkyExposure);
-            Shader.SetGlobalColor(NightTopId, state.NightSkyTop);
-            Shader.SetGlobalColor(NightHorizonId, state.NightSkyHorizon);
-            Shader.SetGlobalFloat(NightBlendId, state.NightSkyBlend);
-            Shader.SetGlobalColor(HorizonGlowId, state.HorizonGlow);
-            Shader.SetGlobalVector(SunDirId, sun);
-            Shader.SetGlobalColor(SunColorId, state.SunColor);
-            Shader.SetGlobalFloat(SunDiscId, state.SunDisc);
-            Shader.SetGlobalVector(MoonDirId, moon);
-            Shader.SetGlobalColor(MoonColorId, state.MoonColor);
-            Shader.SetGlobalFloat(MoonPhaseId, moonPhase);
-            Shader.SetGlobalFloat(MoonGlowId, state.MoonGlow);
-            Shader.SetGlobalFloat(StarsId, state.Stars);
-        }
-
-        // Skybox Plus darkens its sky and shows stars from its sun's height alone, so near and below the horizon its sun sinks faster.
-        public static Vector3 SkyboxPlusSun(Vector3 sun, float duskElevation, float sink)
-        {
-            float elevation = Mathf.Asin(Mathf.Clamp(sun.y, -1f, 1f)) * Mathf.Rad2Deg;
-            if (elevation >= duskElevation)
-                return sun;
-            elevation = duskElevation + (elevation - duskElevation) * sink;
-            float bearing = Mathf.Atan2(sun.x, sun.z) * Mathf.Rad2Deg;
-            return SunPath.Direction(bearing, Mathf.Max(elevation, -85f));
-        }
-
-        // Switches at noon and midnight, where the sun is high or deep enough that either sink gives the same sky.
-        public static float SkyboxPlusSink(float hour, float morning, float evening) => hour >= 12f ? evening : morning;
-
-        void ApplySkyboxPlus(Vector3 sun, Vector3 moon, float moonPhase, float sink)
-        {
-            sun = SkyboxPlusSun(sun, _skyboxPlusDuskElevation, sink);
-            Shader.SetGlobalFloat(SbpCustomPositionsId, 1f);
-            Shader.SetGlobalVector(SbpSunDirId, sun);
-            Shader.SetGlobalMatrix(SbpSunMatrixId, Matrix4x4.Rotate(Quaternion.Inverse(Quaternion.LookRotation(-sun))));
-            Shader.SetGlobalVector(SbpMoonDirId, new Vector4(moon.x, moon.y, moon.z, -1f));
-            Shader.SetGlobalMatrix(SbpMoonMatrixId, Matrix4x4.Rotate(Quaternion.Inverse(Quaternion.LookRotation(-moon))));
-
-            // The phase is a material property: Play mode writes it to a runtime copy, so the asset is never written.
-            if (!Application.isPlaying)
-                return;
-            Material sky = RenderSettings.skybox;
-            if (sky == null || !sky.HasProperty(SbpMoonPhaseAngleId))
-                return;
-            if (sky != _skyCopy)
-            {
-                if (_skyCopy != null)
-                    Destroy(_skyCopy);
-                _skySource = sky;
-                _skyCopy = new Material(sky) { name = sky.name + " (runtime)" };
-                RenderSettings.skybox = _skyCopy;
-            }
-            // Ours: 0 new, 0.5 full. Skybox Plus: -1 new, 1 full; angle 0 lights the right side (waxing), 180 the left.
-            float fullness = 1f - Mathf.Abs(moonPhase - 0.5f) * 2f;
-            _skyCopy.SetFloat(SbpMoonPhaseId, fullness * 2f - 1f);
-            _skyCopy.SetFloat(SbpMoonPhaseAngleId, moonPhase < 0.5f ? 0f : 180f);
-        }
+            SkyboxPlusDuskElevation = _skyboxPlusDuskElevation,
+            SkyboxPlusMorningSink = _skyboxPlusMorningSink,
+            SkyboxPlusEveningSink = _skyboxPlusEveningSink,
+            StarLatitude = _starLatitude,
+            StarAzimuth = _starAzimuth,
+            GalacticCoreTransit = _galacticCoreTransit,
+        };
 
         // From = the key before the hour at full weight, To = the next key at the blend weight: URP's volume stack lerps them.
         // Each grade is complete (no base volume under them), so outside a blend between two grades only From is on.

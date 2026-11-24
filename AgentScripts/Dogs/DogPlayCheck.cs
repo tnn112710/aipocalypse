@@ -782,7 +782,8 @@ public static class DogPlayCheck
         Vector3 eye = Camera.main.transform.position;
         manager.TryAnswer(Player.gameObject, eye, (goblin.transform.position + Vector3.up - eye).normalized, out _);
         bool answered = dog.TryWhistle(Player.gameObject);
-        int sent = (int)typeof(DogManager).GetField("_sentId", Private).GetValue(manager);
+        object fight = typeof(DogManager).GetField("_fight", Private).GetValue(manager);
+        int sent = (int)typeof(DogFight).GetField("_sentId", Private).GetValue(fight);
         bool called = dog.State.Called(Time.time);
         Console("enemy.clear");
         return $"{Pass(answered && called && sent < 0)} whistle at the dog after aiming at a goblin: answered {answered}, called {called}, sent at {sent} (want -1); {Line(dog)}";
@@ -1194,8 +1195,9 @@ public static class DogPlayCheck
         {
             // Held (the console's set), so the weather rules don't swap it back.
             Console("weather.set HeavyRain Gale 0");
-            var rainedOn = typeof(DogManager).GetField("_rainedOn", Private);
-            var wetnessField = typeof(DogManager).GetField("_wetness", Private);
+            object senses = typeof(DogManager).GetField("_senses", Private).GetValue(manager);
+            var rainedOn = typeof(DogSenses).GetField("_rainedOn", Private);
+            var wetnessField = typeof(DogSenses).GetField("_wetness", Private);
             var wetField = typeof(DogWetness).GetField("_wet", Private);
             float rainMark = 0f;
             await Seconds(24f, () =>
@@ -1204,7 +1206,7 @@ public static class DogPlayCheck
                 if (Time.time >= rainMark)
                 {
                     rainMark = Time.time + 3f;
-                    trace.Append($" <rain {weather.Mix.Rain:0.00} sky {weather.Sky} on {rainedOn.GetValue(manager)} wet {wetField.GetValue(wetnessField.GetValue(manager))} at {dog.transform.position:F1}>");
+                    trace.Append($" <rain {weather.Mix.Rain:0.00} sky {weather.Sky} on {rainedOn.GetValue(senses)} wet {wetField.GetValue(wetnessField.GetValue(senses))} at {dog.transform.position:F1}>");
                 }
             });
             Console("weather.set Clear Calm 0");

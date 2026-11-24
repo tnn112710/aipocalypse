@@ -102,7 +102,7 @@ namespace MB13.Aipocalypse.Core.RobotSystem
         }
 
         bool Answers(Robot robot, float now, float radius) => !robot.Asleep && !robot.Call.Active && !robot.State.Hit(now)
-            && FlatDistance(robot.transform.position, _roster.PlayerPosition) <= radius;
+            && FlatMath.Distance(robot.transform.position, _roster.PlayerPosition) <= radius;
 
         public void Tick() => Advance(Time.deltaTime);
 
@@ -188,7 +188,7 @@ namespace MB13.Aipocalypse.Core.RobotSystem
             RobotState state = robot.State;
             Vector3 position = robot.transform.position;
             Vector3 feet = _roster.PlayerPosition;
-            float distance = FlatDistance(feet, position);
+            float distance = FlatMath.Distance(feet, position);
             // Busy with something it can't break off for a wave or a frown: answering a call, a hit, a raid.
             bool busy = robot.Call.Active || state.Hit(now) || _roster.Raid;
 
@@ -234,12 +234,6 @@ namespace MB13.Aipocalypse.Core.RobotSystem
                 return false;
             _audio.PlayAt(id, robot.transform.position + Vector3.up);
             return true;
-        }
-
-        static float FlatDistance(Vector3 a, Vector3 b)
-        {
-            a.y = b.y;
-            return Vector3.Distance(a, b);
         }
     }
 }

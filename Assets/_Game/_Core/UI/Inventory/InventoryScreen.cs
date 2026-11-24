@@ -13,7 +13,6 @@ using MessagePipe;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.InputSystem.UI;
 using UnityEngine.Localization;
 using UnityEngine.UI;
 using VContainer;
@@ -38,21 +37,13 @@ namespace MB13.Aipocalypse.Core.UI
         static readonly LocalizedString WeightFormat = Loc.UI("inventory.weight");
         static readonly LocalizedString Kilograms = Loc.UI("unit.weight");
         static readonly LocalizedString StackWeight = Loc.UI("unit.weight_stack");
-        static readonly LocalizedString NoRoom = Loc.UI("inventory.no_room");
-        static readonly LocalizedString NowhereToWear = Loc.UI("inventory.nowhere");
-        static readonly LocalizedString BackpackFull = Loc.UI("inventory.backpack_full");
         static readonly LocalizedString StillSearching = Loc.UI("inventory.still_searching");
-        static readonly LocalizedString PickGun = Loc.UI("inventory.part_pick_gun");
-        static readonly LocalizedString SlotGun = Loc.UI("inventory.slot_gun");
-        static readonly LocalizedString SlotMelee = Loc.UI("inventory.slot_melee");
-        static readonly LocalizedString SlotItems = Loc.UI("inventory.slot_items");
         static readonly LocalizedString UsesFormat = Loc.UI("tooltip.uses");
         static readonly LocalizedString ValueFormat = Loc.UI("tooltip.value");
         static readonly LocalizedString LockedText = Loc.UI("tooltip.locked");
         static readonly LocalizedString HintCarried = Loc.UI("tooltip.hint_carried");
         static readonly LocalizedString HintLoot = Loc.UI("tooltip.hint_loot");
         static readonly LocalizedString HintKeys = Loc.UI("tooltip.hint_keys");
-        static readonly LocalizedString DropLocked = Loc.UI("inventory.drop_locked");
         // Indexed by ItemRarity.
         static readonly LocalizedString[] RarityNames =
         {
@@ -95,6 +86,7 @@ namespace MB13.Aipocalypse.Core.UI
         }
 
         readonly List<SlotRef> _slots = new();
+        readonly ModalScreen _modal = new();
         // Each grid keeps its own views, hooked once: a rebuild only adds or hides the difference. Re-parenting ~70 pooled
         // views on every open cost ~5 ms, a hitch now that the screen doesn't pause during raids.
         readonly List<ItemSlotView> _equipmentViews = new();
@@ -104,17 +96,15 @@ namespace MB13.Aipocalypse.Core.UI
         IReadOnlyList<ISlotView> _hookedHotbar;
         Canvas _canvas;
         InputService _input;
-        TimeService _time;
         AudioService _audio;
         IDisposable _subscriptions;
         bool _raid;
-        bool _pausing;
         int _lootStart;
         Equipment _equipment;
         Inventory _inventory;
+        InventoryActions _actions;
         PlayerLooting _looting;
         LootContainer _loot;
-        bool _open;
         bool _dirty;
         bool _rebuild;
         int _dragFrom = -1;
@@ -127,7 +117,7 @@ namespace MB13.Aipocalypse.Core.UI
         string _hintCarried;
         string _hintLoot;
 
-        public bool IsOpen => _open;
+        public bool IsOpen => _modal.IsOpen;
         public LootContainer Loot => _loot;
 
         [Inject]
@@ -135,14 +125,12 @@ namespace MB13.Aipocalypse.Core.UI
             ISubscriber<RaidEnded> raidEnded, ISubscriber<DamageDealt> dealt)
         {
             _input = input;
-            _time = time;
             _audio = audio;
             _subscriptions = DisposableBag.Create(
                 raidStarted.Subscribe(_ => _raid = true),
                 raidEnded.Subscribe(_ => _raid = false),
                 dealt.Subscribe(OnDamageDealt));
-            if (_eventSystem != null && _eventSystem.TryGetComponent(out InputSystemUIInputModule module))
-                _input.ConfigureUiModule(module);
+            _modal.Bind(this, _eventSystem, input, time);
         }
 
         void Awake()
@@ -173,6 +161,7 @@ namespace MB13.Aipocalypse.Core.UI
             _looting = player.Looting;
             if (_inventory == null)
                 return;
+            _actions = new InventoryActions(_equipment, Key);
             _inventory.Changed += MarkDirty;
             _inventory.Backpack.Resized += MarkRebuild;
             if (_looting != null)
@@ -197,6 +186,7 @@ namespace MB13.Aipocalypse.Core.UI
             }
             _equipment = null;
             _inventory = null;
+            _actions = null;
             _looting = null;
         }
 
@@ -211,7 +201,7 @@ namespace MB13.Aipocalypse.Core.UI
         {
             if (_inventory == null || _input == null)
                 return;
-            if (!_open)
+            if (!_modal.IsOpen)
             {
                 if (_input.InventoryPressed && CanOpen())
                     Open(null);
@@ -244,19 +234,12 @@ namespace MB13.Aipocalypse.Core.UI
             if (_inventory == null)
                 return;
             SetLoot(loot);
-            if (!_open)
+            // During a raid the world goes on: looting a body mid-fight is a risk, not a safe pause.
+            if (_modal.Open(pause: !_raid))
             {
-                _open = true;
-                // During a raid the world goes on: looting a body mid-fight is a risk, not a safe pause.
-                _pausing = !_raid;
-                if (_pausing)
-                    _time?.RequestPause(this);
                 Play(_style != null ? _style.OpenSound : default);
                 _hintCarried = HintCarried.Text() + "\n" + HintKeys.Format(_input.GetDropKeyLabel(), _input.GetLockKeyLabel(), HotbarKeyRange());
                 _hintLoot = HintLoot.Text();
-                _input.RequestUI(this);
-                if (_eventSystem != null)
-                    _eventSystem.SetActive(true);
                 SetVisible(true);
                 if (_hotbar != null)
                     _hotbar.SetInteractive(true, (_canvas != null ? _canvas.sortingOrder : 0) + 1);
@@ -271,9 +254,8 @@ namespace MB13.Aipocalypse.Core.UI
 
         public void Close()
         {
-            if (!_open)
+            if (!_modal.Close())
                 return;
-            _open = false;
             _looting?.Stop();
             CancelDrag();
             if (_menu != null)
@@ -285,12 +267,6 @@ namespace MB13.Aipocalypse.Core.UI
             SetVisible(false);
             if (_hotbar != null)
                 _hotbar.SetInteractive(false, 0);
-            if (_eventSystem != null)
-                _eventSystem.SetActive(false);
-            _input?.ReleaseUI(this);
-            if (_pausing)
-                _time?.ReleasePause(this);
-            _pausing = false;
             Play(_style != null ? _style.CloseSound : default);
         }
 
@@ -298,7 +274,7 @@ namespace MB13.Aipocalypse.Core.UI
 
         void OnLootOpened(LootContainer container)
         {
-            if (CanOpen() || _open)
+            if (CanOpen() || _modal.IsOpen)
                 Open(container);
             else
                 _looting.Stop();
@@ -307,7 +283,7 @@ namespace MB13.Aipocalypse.Core.UI
         // A hit while the world goes on (a raid) closes the screen, so the player can fight back.
         void OnDamageDealt(DamageDealt hit)
         {
-            if (_open && !_pausing && hit.Result.Applied > 0f && Player != null && ReferenceEquals(hit.Target, Player))
+            if (_modal.IsOpen && !_modal.Pausing && hit.Result.Applied > 0f && Player != null && ReferenceEquals(hit.Target, Player))
                 Close();
         }
 
@@ -582,6 +558,27 @@ namespace MB13.Aipocalypse.Core.UI
             _messageUntil = Time.unscaledTime + MessageSeconds;
         }
 
+        // An inventory action's sound, then its refusal (with the refusal sound). A part going on or off the inspected gun
+        // has its own sound and nudges the 3D view.
+        void Present(InventoryActions.Outcome outcome)
+        {
+            switch (outcome.Sound)
+            {
+                case InventoryActions.Cue.Place:
+                    Play(_style != null ? _style.PlaceSound : default);
+                    break;
+                case InventoryActions.Cue.Attach:
+                case InventoryActions.Cue.Detach:
+                    bool attached = outcome.Sound == InventoryActions.Cue.Attach;
+                    SoundID sound = _style == null ? default : attached ? _style.AttachSound : _style.DetachSound;
+                    Play(sound.IsValid() ? sound : _style != null ? _style.PlaceSound : default);
+                    if (_inspector != null)
+                        _inspector.Nudge(attached);
+                    break;
+            }
+            ShowMessage(outcome.Refusal);
+        }
+
         // Left-click: inspect the item; double-click: send it across, or fit / take off a gun part. Right-click: the item's
         // menu; on a fitted part, the double-click's move.
         void OnSlotClicked(ISlotView view, PointerEventData eventData)
@@ -597,14 +594,14 @@ namespace MB13.Aipocalypse.Core.UI
                 if (!slot.IsPart)
                     Inspect(item);
                 if (eventData.clickCount == 2)
-                    SendAcross(slot, item);
+                    SendAcross(slot);
                 return;
             }
             if (eventData.button != PointerEventData.InputButton.Right)
                 return;
             if (slot.IsPart || _menu == null)
             {
-                SendAcross(slot, item);
+                SendAcross(slot);
                 return;
             }
             _menuSlot = slot;
@@ -614,74 +611,10 @@ namespace MB13.Aipocalypse.Core.UI
             _menu.Show(eventData.position, IsLoot(slot), item.Definition is ConsumableDefinition && Player is IConsumer, item.Locked);
         }
 
-        void SendAcross(SlotRef slot, ItemInstance item)
+        void SendAcross(SlotRef slot)
         {
-            string refusal = null;
             GunInstance gun = _inspector != null ? _inspector.Gun : null;
-            if (slot.IsPart)
-            {
-                Modded(GunModding.TryDetach(_inventory, gun, slot.Part, null, 0, out refusal), refusal, attached: false);
-                return;
-            }
-            if (item.Definition is AttachmentDefinition && (gun != null || _loot == null))
-            {
-                if (gun == null)
-                    ShowMessage(PickGun.Text());
-                else
-                    Modded(GunModding.TryAttach(_inventory, slot.Container, slot.Index, gun, out refusal), refusal, attached: true);
-                return;
-            }
-            if (_loot != null && slot.Container == _loot.Items)
-            {
-                if (_inventory.TakeFrom(slot.Container, slot.Index) == 0)
-                    refusal = NoRoom.Text();
-            }
-            else if (_loot != null && slot.Container == _inventory.Backpack)
-            {
-                if (_inventory.SendTo(slot.Container, slot.Index, _loot.Items, out refusal) == 0 && refusal == null)
-                    refusal = NoRoom.Text();
-            }
-            else if (slot.Container == _inventory.Backpack)
-            {
-                if (!Equip(slot, out refusal))
-                    refusal = NowhereToWear.Text();
-            }
-            else if (_inventory.SendTo(slot.Container, slot.Index, _inventory.Backpack, out refusal) == 0 && refusal == null)
-            {
-                refusal = BackpackFull.Text();
-            }
-            if (refusal == null)
-                Play(_style != null ? _style.PlaceSound : default);
-            ShowMessage(refusal);
-        }
-
-        // From the backpack into a free slot that takes it (active or gear), else swapped with the first one that does. True
-        // with a `refusal` when a swap was refused (e.g. the worn backpack isn't empty): the caller shows it, once.
-        bool Equip(SlotRef from, out string refusal)
-        {
-            refusal = null;
-            ItemInstance item = from.Container[from.Index];
-            ItemContainer[] targets = { _inventory.Hotbar, _inventory.Gear };
-            foreach (ItemContainer target in targets)
-            {
-                int free = target.FindFreeSlot(item);
-                if (free >= 0)
-                    return _inventory.TryMove(from.Container, from.Index, target, free, out _);
-            }
-            foreach (ItemContainer target in targets)
-            {
-                for (int i = 0; i < target.Count; i++)
-                {
-                    if (!target.CanPlace(i, item))
-                        continue;
-                    if (_inventory.TryMove(from.Container, from.Index, target, i, out refusal))
-                        return true;
-                    if (refusal == null)
-                        continue;
-                    return true;
-                }
-            }
-            return false;
+            Present(slot.IsPart ? _actions.Detach(gun, slot.Part, null, 0) : _actions.SendAcross(slot.Container, slot.Index, gun, _loot));
         }
 
         void OnDragStarted(ISlotView view, PointerEventData eventData)
@@ -727,34 +660,11 @@ namespace MB13.Aipocalypse.Core.UI
             if (IsHidden(to))
                 ShowMessage(StillSearching.Text());
             else if (from.IsPart)
-                Modded(GunModding.TryDetach(_inventory, gun, from.Part, to.Container, to.Index, out string detachRefusal), detachRefusal, attached: false);
+                Present(_actions.Detach(gun, from.Part, to.Container, to.Index));
             else if (to.IsPart)
-                Modded(GunModding.TryAttach(_inventory, from.Container, from.Index, gun, out string attachRefusal), attachRefusal, attached: true);
-            else if (_inventory.TryMove(from.Container, from.Index, to.Container, to.Index, out string refusal, _dragAmount))
-                Play(_style != null ? _style.PlaceSound : default);
+                Present(_actions.Attach(from.Container, from.Index, gun));
             else
-                ShowMessage(refusal ?? WrongSlot(from, to));
-        }
-
-        // A move the containers refused without a reason: a hotbar slot that doesn't take that kind of item, either the one
-        // dropped on or, for a swap, the one it came from.
-        string WrongSlot(SlotRef from, SlotRef to)
-        {
-            ItemContainer hotbar = _inventory.Hotbar;
-            ItemInstance moved = ItemAt(from);
-            ItemInstance swapped = ItemAt(to);
-            if (to.Container == hotbar && moved != null && !hotbar.CanPlace(to.Index, moved))
-                return SlotTakes(to.Index);
-            if (from.Container == hotbar && swapped != null && !hotbar.CanPlace(from.Index, swapped))
-                return SlotTakes(from.Index);
-            return null;
-        }
-
-        string SlotTakes(int hotbarSlot)
-        {
-            ItemCategory accepts = _inventory.Hotbar.AcceptsAt(hotbarSlot);
-            LocalizedString text = accepts == ItemCategory.Gun ? SlotGun : accepts == ItemCategory.Melee ? SlotMelee : SlotItems;
-            return text.Format(Key(hotbarSlot));
+                Present(_actions.Move(from.Container, from.Index, to.Container, to.Index, _dragAmount));
         }
 
         // A part dropped on the inspected gun's 3D view goes to its own slot.
@@ -763,21 +673,7 @@ namespace MB13.Aipocalypse.Core.UI
             if (_dragFrom < 0 || _slots[_dragFrom].IsPart || _inspector == null || _inspector.Gun == null)
                 return;
             SlotRef from = _slots[_dragFrom];
-            Modded(GunModding.TryAttach(_inventory, from.Container, from.Index, _inspector.Gun, out string refusal), refusal, attached: true);
-        }
-
-        // A part went on or came off the inspected gun: its own sound and a small nudge of the 3D view.
-        void Modded(bool done, string refusal, bool attached)
-        {
-            if (!done)
-            {
-                ShowMessage(refusal);
-                return;
-            }
-            SoundID sound = _style == null ? default : attached ? _style.AttachSound : _style.DetachSound;
-            Play(sound.IsValid() ? sound : _style != null ? _style.PlaceSound : default);
-            if (_inspector != null)
-                _inspector.Nudge(attached);
+            Present(_actions.Attach(from.Container, from.Index, _inspector.Gun));
         }
 
         // Let go anywhere but a slot: the item stays where it was (dropping is the menu's).
@@ -799,16 +695,16 @@ namespace MB13.Aipocalypse.Core.UI
             switch (choice)
             {
                 case ItemContextMenu.Choice.Use:
-                    Use(item);
+                    Present(InventoryActions.Use(item, Player as IConsumer));
                     break;
                 case ItemContextMenu.Choice.Drop:
-                    Drop(slot, item);
+                    Drop(slot);
                     break;
                 case ItemContextMenu.Choice.Lock:
-                    ToggleLock(item);
+                    Present(InventoryActions.ToggleLock(item));
                     break;
                 case ItemContextMenu.Choice.Pickup:
-                    Pickup(slot, item);
+                    Present(_actions.Pickup(slot.Container, slot.Index));
                     break;
             }
         }
@@ -836,71 +732,20 @@ namespace MB13.Aipocalypse.Core.UI
             if (item == null || slot.IsPart || IsHidden(slot))
                 return;
             if (key != null)
-                ToHotbar(slot, key.Value);
+                Present(_actions.ToHotbar(slot.Container, slot.Index, key.Value));
             else if (IsLoot(slot))
                 return;
             else if (drop)
-                Drop(slot, item);
+                Drop(slot);
             else
-                ToggleLock(item);
+                Present(InventoryActions.ToggleLock(item));
         }
 
-        void Drop(SlotRef slot, ItemInstance item)
+        void Drop(SlotRef slot)
         {
-            if (item.Locked)
-            {
-                ShowMessage(DropLocked.Text());
-                return;
-            }
-            if (_inventory.TryRemove(slot.Container, slot.Index, out ItemInstance removed, out string refusal))
+            Present(_actions.Drop(slot.Container, slot.Index, out ItemInstance removed));
+            if (removed != null)
                 Player?.ThrowAway(removed);
-            else
-                ShowMessage(refusal);
-        }
-
-        void ToggleLock(ItemInstance item)
-        {
-            item.Locked = !item.Locked;
-            Play(_style != null ? _style.PlaceSound : default);
-        }
-
-        // As much of a crate's stack as fits.
-        void Pickup(SlotRef slot, ItemInstance item)
-        {
-            int count = item.Count;
-            int taken = _inventory.TakeFrom(slot.Container, slot.Index);
-            if (taken > 0)
-                Play(_style != null ? _style.PlaceSound : default);
-            if (taken < count)
-                ShowMessage(taken == 0 ? NoRoom.Text() : BackpackFull.Text());
-        }
-
-        // Moves the whole stack to the hotbar slot `key` selects (swapping with what's there), as a drag onto it would.
-        void ToHotbar(SlotRef from, HotbarKey key)
-        {
-            int index = _equipment.SlotOf(key);
-            if (index < 0 || (from.Container == _inventory.Hotbar && from.Index == index))
-                return;
-            var to = new SlotRef { Container = _inventory.Hotbar, Index = index };
-            if (_inventory.TryMove(from.Container, from.Index, to.Container, to.Index, out string refusal))
-                Play(_style != null ? _style.PlaceSound : default);
-            else
-                ShowMessage(refusal ?? WrongSlot(from, to));
-        }
-
-        // Uses a consumable straight from the screen, with the same refusals as in hand ("Health full").
-        void Use(ItemInstance item)
-        {
-            if (item.Definition is not ConsumableDefinition consumable || Player is not IConsumer consumer)
-                return;
-            string refusal = consumer.CannotUse(consumable);
-            if (refusal != null)
-            {
-                ShowMessage(refusal);
-                return;
-            }
-            consumer.Use(consumable);
-            HeldConsumable.SpendUse(item);
         }
 
         void CancelDrag()
@@ -960,22 +805,8 @@ namespace MB13.Aipocalypse.Core.UI
 
         void TakeAll()
         {
-            if (_loot == null)
-                return;
-            bool full = false;
-            bool took = false;
-            for (int i = 0; i < _loot.Items.Count; i++)
-                if (_loot.Items[i] != null && !_loot.IsHidden(i))
-                {
-                    int count = _loot.Items[i].Count;
-                    int taken = _inventory.TakeFrom(_loot.Items, i);
-                    full |= taken < count;
-                    took |= taken > 0;
-                }
-            if (took)
-                Play(_style != null ? _style.PlaceSound : default);
-            if (full)
-                ShowMessage(BackpackFull.Text());
+            if (_loot != null)
+                Present(_actions.TakeAll(_loot));
         }
     }
 }

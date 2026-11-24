@@ -57,7 +57,7 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         float _staggerEnd;
         bool _appearRequested;
         bool _engaged;
-        bool _started;
+        readonly ActivationGate _gate = new();
 
         public EnemyDefinition Definition => _definition;
         // This life's stats (base values + modifiers); null before the first activation.
@@ -137,7 +137,7 @@ namespace MB13.Aipocalypse.Core.EnemySystem
             resolver.TryResolve(out _grassBending);
             resolver.TryResolve(out _projectiles);
             PrewarmEffects(effects);
-            if (_started && isActiveAndEnabled)
+            if (_gate.OnConstructed(isActiveAndEnabled))
                 Activate();
         }
 
@@ -145,10 +145,10 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         void Start()
         {
             CacheParts();
-            _started = true;
+            bool injected = _gate.OnStarted();
             if (_definition == null)
                 Debug.LogError($"{name}: no EnemyDefinition assigned.", this);
-            else if (_registry != null)
+            else if (injected)
                 Activate();
             else
                 Debug.LogError($"{name}: not injected; save the scene so its EnemyInstaller lists it, or spawn it through the SpawnService.", this);
@@ -156,7 +156,7 @@ namespace MB13.Aipocalypse.Core.EnemySystem
 
         void OnEnable()
         {
-            if (_started && _registry != null && _definition != null)
+            if (_gate.OnEnabled() && _definition != null)
                 Activate();
         }
 

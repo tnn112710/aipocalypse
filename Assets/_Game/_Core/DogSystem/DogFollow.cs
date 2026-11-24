@@ -108,13 +108,13 @@ namespace MB13.Aipocalypse.Core.DogSystem
 
         public FollowPlan Plan(in FollowInput input)
         {
-            Vector3 forward = Flat(input.PlayerForward);
+            Vector3 forward = FlatMath.Flatten(input.PlayerForward);
             if (forward == Vector3.zero)
                 forward = Vector3.forward;
             Vector3 right = new(forward.z, 0f, -forward.x);
             if (!_sideChosen)
             {
-                Side = Vector3.Dot(Flat(input.Dog - input.Player), right) < 0f ? -1 : 1;
+                Side = Vector3.Dot(FlatMath.Flatten(input.Dog - input.Player), right) < 0f ? -1 : 1;
                 _sideChosen = true;
             }
             if (input.Now >= _sideSwapAt)
@@ -128,7 +128,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
             FollowMode raw = Raw(input);
             Advance(raw, input.Now);
             Vector3 goal = Goal(input, forward, right);
-            DogGait target = Gait(_mode, Flat(goal - input.Dog).magnitude, Flat(input.PlayerVelocity).magnitude);
+            DogGait target = Gait(_mode, FlatMath.Flatten(goal - input.Dog).magnitude, FlatMath.Flatten(input.PlayerVelocity).magnitude);
             // Out of the line of fire at once; everything else a gait at a time.
             _gait = _mode == FollowMode.ClearAim ? target : Ramp(target, input.Now);
             return new FollowPlan(_mode, goal, _gait);
@@ -138,8 +138,8 @@ namespace MB13.Aipocalypse.Core.DogSystem
         public static Vector3 ClearOfAim(Vector3 dog, Vector3 cameraPosition, Vector3 cameraForward, float coneDegrees,
             float clearance, int side = 1)
         {
-            Vector3 forward = Flat(cameraForward).normalized;
-            Vector3 offset = Flat(dog - cameraPosition);
+            Vector3 forward = FlatMath.Flatten(cameraForward).normalized;
+            Vector3 offset = FlatMath.Flatten(dog - cameraPosition);
             float along = Vector3.Dot(offset, forward);
             Vector3 lateral = offset - forward * along;
             Vector3 lateralDir = lateral.sqrMagnitude > 1e-6f ? lateral.normalized : new Vector3(forward.z, 0f, -forward.x) * side;
@@ -150,7 +150,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
 
         FollowMode Raw(in FollowInput input)
         {
-            float distance = Flat(input.Dog - input.Player).magnitude;
+            float distance = FlatMath.Flatten(input.Dog - input.Player).magnitude;
             if (distance > _settings.CatchUpRadius || NoPath(input.Now))
                 return FollowMode.CatchUp;
             if (input.PlayerSprinting)
@@ -246,8 +246,8 @@ namespace MB13.Aipocalypse.Core.DogSystem
 
         bool InAim(in FollowInput input)
         {
-            Vector3 forward = Flat(input.CameraForward).normalized;
-            Vector3 offset = Flat(input.Dog - input.CameraPosition);
+            Vector3 forward = FlatMath.Flatten(input.CameraForward).normalized;
+            Vector3 offset = FlatMath.Flatten(input.Dog - input.CameraPosition);
             float along = Vector3.Dot(offset, forward);
             if (along <= 0f || along > AimSightRange)
                 return false;
@@ -257,7 +257,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
 
         void UpdateSteady(in FollowInput input)
         {
-            Vector3 velocity = Flat(input.PlayerVelocity);
+            Vector3 velocity = FlatMath.Flatten(input.PlayerVelocity);
             if (velocity.magnitude < SteadySpeed)
             {
                 _steadySince = float.NaN;
@@ -284,7 +284,5 @@ namespace MB13.Aipocalypse.Core.DogSystem
         bool NoPath(float now) => !float.IsNaN(_noPathSince) && now - _noPathSince >= _settings.NoPathTime;
 
         float Roll(Vector2 range) => range.x + (range.y - range.x) * (float)_random.NextDouble();
-
-        static Vector3 Flat(Vector3 v) => new(v.x, 0f, v.z);
     }
 }

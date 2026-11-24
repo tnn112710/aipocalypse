@@ -50,7 +50,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
 
         DogManager _manager;
         bool _active;
-        bool _started;
+        readonly ActivationGate _gate = new();
         float _lift;
         bool _sniffing, _combat, _injured;
         Vector3 _bodyOffset;
@@ -103,7 +103,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
             _manager = manager;
             State = new DogState(roster.Settings);
             Follow = new DogFollow(roster.Settings, name.GetHashCode());
-            if (_started && isActiveAndEnabled)
+            if (_gate.OnConstructed(isActiveAndEnabled))
                 Activate();
         }
 
@@ -112,8 +112,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
             Legs = GetComponent<DogLegs>();
             Tree = GetComponent<BehaviorTree>();
             HomePosition = transform.position;
-            _started = true;
-            if (Roster != null)
+            if (_gate.OnStarted())
                 Activate();
             else
                 Debug.LogError($"{name}: not injected; save the scene so its DogInstaller lists it.", this);
@@ -121,7 +120,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
 
         void OnEnable()
         {
-            if (_started && Roster != null)
+            if (_gate.OnEnabled())
                 Activate();
         }
 

@@ -1,4 +1,5 @@
 using System.Collections;
+using MB13.Aipocalypse.Core.Links;
 using Pathfinding;
 using Pathfinding.ECS;
 using Unity.Mathematics;
@@ -45,7 +46,7 @@ namespace MB13.Aipocalypse.Core.RobotSystem
             float3 start = context.link.relativeStart;
             float3 end = context.link.relativeEnd;
             float3 up = context.movementPlane.ToWorld(float2.zero, 1);
-            quaternion facing = Facing(context, start, end, up);
+            quaternion facing = LinkMoves.Facing(context, start, end, up);
             while (!context.MoveTowards(start, facing, true, false).reached)
                 yield return null;
 
@@ -63,28 +64,19 @@ namespace MB13.Aipocalypse.Core.RobotSystem
         {
             if (math.distancesq(from, to) < 0.0001f)
                 yield break;
-            quaternion facing = Facing(context, from, to, up);
+            quaternion facing = LinkMoves.Facing(context, from, to, up);
             if (math.abs(to.y - from.y) <= StepHeight)
             {
-                float time = math.distance(from, to) / _walkSpeed;
-                for (float t = 0f; t < time; t += context.deltaTime)
-                {
-                    context.transform.Position = math.lerp(from, to, t / time);
-                    context.transform.Rotation = Turn(context, facing);
-                    yield return null;
-                }
+                foreach (object step in LinkMoves.Walk(context, from, to, _walkSpeed, facing, TurnRate))
+                    yield return step;
                 yield break;
             }
 
             Robot robot = context.gameObject != null ? context.gameObject.GetComponent<Robot>() : null;
             if (robot != null)
                 robot.Emote(RobotEmote.Jump);
-            for (float t = 0f; t < _windUp; t += context.deltaTime)
-            {
-                context.transform.Position = from;
-                context.transform.Rotation = Turn(context, facing);
-                yield return null;
-            }
+            foreach (object step in LinkMoves.Hold(context, from, facing, _windUp, TurnRate))
+                yield return step;
             float peak = math.max(from.y, to.y) + _arc;
             for (float t = 0f; t < _hopTime; t += context.deltaTime)
             {
@@ -94,17 +86,10 @@ namespace MB13.Aipocalypse.Core.RobotSystem
                 float line = math.lerp(from.y, to.y, k);
                 float lift = 4f * (peak - math.lerp(from.y, to.y, 0.5f)) * k * (1f - k);
                 context.transform.Position = new float3(flat.x, line + lift, flat.z);
-                context.transform.Rotation = Turn(context, facing);
+                context.transform.Rotation = LinkMoves.Turn(context, facing, TurnRate);
                 yield return null;
             }
             context.transform.Position = to;
         }
-
-        // Turns toward `target` at TurnRate instead of snapping (a link's legs can point another way than the walk in).
-        static quaternion Turn(AgentOffMeshLinkTraversalContext context, quaternion target) =>
-            Quaternion.RotateTowards(context.transform.Rotation, target, TurnRate * context.deltaTime);
-
-        static quaternion Facing(AgentOffMeshLinkTraversalContext context, float3 from, float3 to, float3 up) =>
-            quaternion.LookRotationSafe(context.movementPlane.ToWorld(context.movementPlane.ToPlane(to - from), 0), up);
     }
 }

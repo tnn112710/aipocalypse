@@ -10,14 +10,23 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
     // Tasks of the farm animals' tree (AgentScripts/Animals/Animal.tree.txt). Tuning comes from the animal's definition and
     // the herd's settings; what the herd was told is AnimalHerd.Orders, what this animal was told is Animal.SentHome.
 
-    // On its way into the pen: the bell rang, or the player sent it home. Also the abort check of the walk home.
-    [Category("Aipocalypse/Animals")]
-    public sealed class CalledHome : ConditionalNode
+    // Base of the animals' yes/no conditions: Success while Check() holds. Abstract, so Behavior Designer and TreeKit
+    // never list it as a task (trees store the concrete task's type name).
+    public abstract class AnimalCondition : ConditionalNode
     {
-        Animal _animal;
+        protected Animal _animal;
 
         public override void OnAwake() => _animal = GetComponent<Animal>();
-        public override TaskStatus OnUpdate() => _animal.GoingHome ? TaskStatus.Success : TaskStatus.Failure;
+        public override TaskStatus OnUpdate() => Check() ? TaskStatus.Success : TaskStatus.Failure;
+
+        protected abstract bool Check();
+    }
+
+    // On its way into the pen: the bell rang, or the player sent it home. Also the abort check of the walk home.
+    [Category("Aipocalypse/Animals")]
+    public sealed class CalledHome : AnimalCondition
+    {
+        protected override bool Check() => _animal.GoingHome;
     }
 
     // Walks into the pen (trotting once hurried). With no way in (a shut gate) it waits just outside the pen gate and looks
@@ -88,12 +97,9 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
 
     // Something made it move away (a gunshot, the player walking into it). Also the abort check of the move.
     [Category("Aipocalypse/Animals")]
-    public sealed class IsStartled : ConditionalNode
+    public sealed class IsStartled : AnimalCondition
     {
-        Animal _animal;
-
-        public override void OnAwake() => _animal = GetComponent<Animal>();
-        public override TaskStatus OnUpdate() => _animal.Startled ? TaskStatus.Success : TaskStatus.Failure;
+        protected override bool Check() => _animal.Startled;
     }
 
     // Runs (a gunshot) or steps briskly, at its hurry pace (the player), StartleDistance away from what startled it, then settles. Inside the pen it
@@ -185,12 +191,9 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
 
     // Outside the waking hours. Also the abort check of the sleep.
     [Category("Aipocalypse/Animals")]
-    public sealed class IsNight : ConditionalNode
+    public sealed class IsNight : AnimalCondition
     {
-        Animal _animal;
-
-        public override void OnAwake() => _animal = GetComponent<Animal>();
-        public override TaskStatus OnUpdate() => _animal.Herd.Asleep ? TaskStatus.Success : TaskStatus.Failure;
+        protected override bool Check() => _animal.Herd.Asleep;
     }
 
     // Lies down where it stands until something aborts it (morning, the bell, a scare).

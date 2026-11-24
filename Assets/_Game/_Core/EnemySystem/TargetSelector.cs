@@ -180,9 +180,9 @@ namespace MB13.Aipocalypse.Core.EnemySystem
                 if (way.Width < bodyWidth)
                     continue;
                 Vector3 at = (way.A + way.B) * 0.5f;
-                shortest = Mathf.Min(shortest, Flat(at - from) + Flat(to - at));
+                shortest = Mathf.Min(shortest, FlatMath.Length(at - from) + FlatMath.Length(to - at));
             }
-            return float.IsPositiveInfinity(shortest) ? 0f : Mathf.Max(0f, shortest - Flat(to - from));
+            return float.IsPositiveInfinity(shortest) ? 0f : Mathf.Max(0f, shortest - FlatMath.Length(to - from));
         }
 
         // A standing barrier, or a way in narrower than `bodyWidth`, crosses the straight line from `from` to `to` (on the ground
@@ -299,7 +299,7 @@ namespace MB13.Aipocalypse.Core.EnemySystem
                 for (int k = 0; k < _run.Count; k++)
                 {
                     IBreachable member = _run[k];
-                    opening.Width += 2f * Flat(member.Span);
+                    opening.Width += 2f * FlatMath.Length(member.Span);
                     for (int j = 0; j < barriers.Count; j++)
                     {
                         IBreachable other = barriers[j];
@@ -322,7 +322,7 @@ namespace MB13.Aipocalypse.Core.EnemySystem
                     for (int m = k + 1; m < _run.Count * 2; m++)
                     {
                         Vector3 p = End(_run[k / 2], k % 2), q = End(_run[m / 2], m % 2);
-                        float apart = Flat(p - q);
+                        float apart = FlatMath.Length(p - q);
                         if (apart <= widest)
                             continue;
                         widest = apart;
@@ -340,7 +340,7 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         {
             for (int i = 0; i < 2; i++)
                 for (int j = 0; j < 2; j++)
-                    if (Flat(End(a, i) - End(b, j)) < JoinDistance)
+                    if (FlatMath.Length(End(a, i) - End(b, j)) < JoinDistance)
                         return true;
             return false;
         }
@@ -375,8 +375,6 @@ namespace MB13.Aipocalypse.Core.EnemySystem
                 _hunters[hunter] = new Hunter { Position = from, Candidate = candidate || choice is IBreachable };
             return choice;
         }
-
-        static float Flat(Vector3 v) => Mathf.Sqrt(v.x * v.x + v.z * v.z);
 
         // Segments ab and cd cross on the XZ plane.
         static bool Crosses(Vector3 a, Vector3 b, Vector3 c, Vector3 d)

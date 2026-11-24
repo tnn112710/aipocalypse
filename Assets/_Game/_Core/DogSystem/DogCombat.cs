@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace MB13.Aipocalypse.Core.DogSystem
 {
-    // What the dog knows about one enemy (DogManager fills these from the EnemyRegistry each think).
+    // What the dog knows about one enemy (DogFight fills these from the EnemyRegistry each think).
     public readonly struct FoeView
     {
         public readonly int Id;
@@ -66,7 +66,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
             {
                 float chase = stats.Get(DogStat.SentChaseRange);
                 for (int i = 0; i < foes.Count; i++)
-                    if (foes[i].Id == sentId && foes[i].Alive && Flat(foes[i].Position - player) <= chase)
+                    if (foes[i].Id == sentId && foes[i].Alive && FlatMath.Length(foes[i].Position - player) <= chase)
                         return sentId;
                 return -1;
             }
@@ -80,7 +80,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
                 FoeView foe = foes[i];
                 if (!foe.Alive)
                     continue;
-                float distance = Flat(foe.Position - player);
+                float distance = FlatMath.Length(foe.Position - player);
                 bool engageable = homeDefence ? foe.InYard : foe.AwareOfPlayer && distance <= engage;
                 if (!engageable)
                     continue;
@@ -137,7 +137,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
             {
                 if (!foes[i].Alive || foes[i].AwareOfPlayer)
                     continue;
-                float distance = Flat(foes[i].Position - dog);
+                float distance = FlatMath.Length(foes[i].Position - dog);
                 if (distance <= bestDistance)
                 {
                     bestDistance = distance;
@@ -146,7 +146,5 @@ namespace MB13.Aipocalypse.Core.DogSystem
             }
             return best;
         }
-
-        static float Flat(Vector3 v) => new Vector2(v.x, v.z).magnitude;
     }
 }

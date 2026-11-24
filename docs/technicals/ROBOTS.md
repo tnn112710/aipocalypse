@@ -70,7 +70,7 @@ RobotManager (entry point)   per frame: night, raids, the player leaving (see of
 RobotTasks (Behavior Designer)  flinch > step aside > hide (raid) > answer a call > nervous > greet > cheer > see off > chat > welcome >
                                 standby > work > home life
 RobotSpot / RobotYard        scene components: where a robot lives (radius, NoGo boxes, shelter) / the yard it never leaves
-RobotDoorHop (RobotLinks asmdef)  A* NodeLink2 handler: walk to the sill, hop the step
+RobotDoorHop (Links assembly)  A* NodeLink2 handler: walk to the sill, hop the step
 RobotInstaller               registers the above, injects the scene's robots (collected on save / Play)
 PlayerWhistle (PlayerSystem) the Q key: prompt target + the whistle sound + a 50 m aim cast to an IWhistleTarget, else the heard
                              target nearest the aim (through walls)

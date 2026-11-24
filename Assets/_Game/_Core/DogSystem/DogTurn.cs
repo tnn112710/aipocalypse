@@ -10,17 +10,15 @@ namespace MB13.Aipocalypse.Core.DogSystem
         // Past this it's no longer worth another arc: the turn in place finishes it.
         public const float ArcDone = 10f;
 
-        public static bool WantsArc(Vector3 forward, Vector3 direction, float arcAngle) => Vector3.Angle(Flat(forward), Flat(direction)) > arcAngle;
+        public static bool WantsArc(Vector3 forward, Vector3 direction, float arcAngle) => Vector3.Angle(FlatMath.Flatten(forward), FlatMath.Flatten(direction)) > arcAngle;
 
         // The arc's landing point: `step` ahead in the wanted direction.
-        public static Vector3 Landing(Vector3 from, Vector3 direction, float step) => from + Flat(direction).normalized * step;
+        public static Vector3 Landing(Vector3 from, Vector3 direction, float step) => from + FlatMath.Flatten(direction).normalized * step;
 
         // An arc that keeps it near `anchor` (its stay spot): no farther from it than it already is, once it's more than
         // `near` away.
         public static bool KeepsNear(Vector3 from, Vector3 landing, Vector3 anchor, float near = 1.5f, float slack = 0.3f) =>
-            Flat(landing - anchor).magnitude <= Mathf.Max(Flat(from - anchor).magnitude, near) + slack;
-
-        static Vector3 Flat(Vector3 v) => new(v.x, 0f, v.z);
+            FlatMath.Flatten(landing - anchor).magnitude <= Mathf.Max(FlatMath.Flatten(from - anchor).magnitude, near) + slack;
 
         // `yawRate` in degrees per second; `onItsFeet`: standing (not sitting, lying, swimming or in its house).
         public static float AnimatorSpeed(float speed, float yawRate, bool onItsFeet, DogSettings settings) =>

@@ -1,5 +1,6 @@
 using MB13.Aipocalypse.Core.AudioSystem;
 using MB13.Aipocalypse.Core.EnemySystem;
+using MB13.Aipocalypse.Core.Entities;
 using MB13.Aipocalypse.Core.EnvironmentSystem;
 using MB13.Aipocalypse.Core.Interaction;
 using MB13.Aipocalypse.Core.LocalizationSystem;
@@ -38,7 +39,7 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
         AudioService _audio;
         AnimalManager _manager;
         GrassBendField _grassBending;
-        bool _started;
+        readonly ActivationGate _gate = new();
         bool _active;
         bool _eating;
         bool _sleeping;
@@ -135,7 +136,7 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
             _navigation = navigation;
             _audio = audio;
             resolver.TryResolve(out _grassBending);
-            if (_started && isActiveAndEnabled)
+            if (_gate.OnConstructed(isActiveAndEnabled))
                 Activate();
         }
 
@@ -145,7 +146,7 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
             Mover = GetComponent<EnemyMover>();
             Tree = GetComponent<BehaviorTree>();
             Body = GetComponent<Collider>();
-            _started = true;
+            bool injected = _gate.OnStarted();
             if (_marker != null)
             {
                 _markerHeight = _marker.transform.localPosition.y;
@@ -153,7 +154,7 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
             }
             if (_definition == null)
                 Debug.LogError($"{name}: no AnimalDefinition assigned.", this);
-            else if (Herd != null)
+            else if (injected)
                 Activate();
             else
                 Debug.LogError($"{name}: not injected; save the scene so its AnimalInstaller lists it.", this);
@@ -161,7 +162,7 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
 
         void OnEnable()
         {
-            if (_started && Herd != null && _definition != null)
+            if (_gate.OnEnabled() && _definition != null)
                 Activate();
         }
 

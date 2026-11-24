@@ -12,14 +12,12 @@ namespace MB13.Aipocalypse.Core.RobotSystem
     // Walking helpers shared by the tasks.
     static class RobotWalk
     {
-        public static float Flat(Vector3 v) => new Vector2(v.x, v.z).magnitude;
-
         // Sets off toward `point` at `speed`, giving up after the travel timeout for the distance.
         public static void Go(Robot robot, Vector3 point, float speed)
         {
             RobotSettings settings = robot.Settings;
             robot.Mover.SetSpeed(speed);
-            robot.Mover.MoveTo(point, RobotCall.TravelTimeout(Flat(point - robot.transform.position), speed, settings.TravelTimeout));
+            robot.Mover.MoveTo(point, RobotCall.TravelTimeout(FlatMath.Length(point - robot.transform.position), speed, settings.TravelTimeout));
         }
 
         // Walks to a reachable point near `target`; false when there's none.
@@ -31,18 +29,27 @@ namespace MB13.Aipocalypse.Core.RobotSystem
             return true;
         }
 
-        public static bool Near(Robot robot, Vector3 point, float distance) => Flat(point - robot.transform.position) <= distance;
+        public static bool Near(Robot robot, Vector3 point, float distance) => FlatMath.Length(point - robot.transform.position) <= distance;
+    }
+
+    // Base of the robots' yes/no conditions: Success while Check() holds. Abstract, so Behavior Designer and TreeKit
+    // never list it as a task (trees store the concrete task's type name).
+    public abstract class RobotCondition : ConditionalNode
+    {
+        protected Robot _robot;
+
+        public override void OnAwake() => _robot = GetComponent<Robot>();
+        public override TaskStatus OnUpdate() => Check() ? TaskStatus.Success : TaskStatus.Failure;
+
+        protected abstract bool Check();
     }
 
     // ---- Flinch and knockdown ----
 
     [Category("Aipocalypse/Robots")]
-    public sealed class RobotIsHit : ConditionalNode
+    public sealed class RobotIsHit : RobotCondition
     {
-        Robot _robot;
-
-        public override void OnAwake() => _robot = GetComponent<Robot>();
-        public override TaskStatus OnUpdate() => _robot.State.Hit(Time.time) ? TaskStatus.Success : TaskStatus.Failure;
+        protected override bool Check() => _robot.State.Hit(Time.time);
     }
 
     // Stands still while the hit clip plays; knocked over, it lies (crossed eyes, set by the hit), then gets up grumpy (the
@@ -78,12 +85,9 @@ namespace MB13.Aipocalypse.Core.RobotSystem
     // ---- Step aside ----
 
     [Category("Aipocalypse/Robots")]
-    public sealed class RobotIsAskedToStep : ConditionalNode
+    public sealed class RobotIsAskedToStep : RobotCondition
     {
-        Robot _robot;
-
-        public override void OnAwake() => _robot = GetComponent<Robot>();
-        public override TaskStatus OnUpdate() => _robot.State.StepRequested(Time.time) ? TaskStatus.Success : TaskStatus.Failure;
+        protected override bool Check() => _robot.State.StepRequested(Time.time);
     }
 
     // Trots a little way from whoever walked into it: first where its spot allows, else anywhere but a NoGo box (never into
@@ -144,12 +148,9 @@ namespace MB13.Aipocalypse.Core.RobotSystem
     // ---- Raid: brave, then hide ----
 
     [Category("Aipocalypse/Robots")]
-    public sealed class RobotIsScared : ConditionalNode
+    public sealed class RobotIsScared : RobotCondition
     {
-        Robot _robot;
-
-        public override void OnAwake() => _robot = GetComponent<Robot>();
-        public override TaskStatus OnUpdate() => _robot.Roster.Raid ? TaskStatus.Success : TaskStatus.Failure;
+        protected override bool Check() => _robot.Roster.Raid;
     }
 
     // A raid: once per raid a moment of brave boxing, then worried, it trots to its shelter and cowers there, looking round
@@ -234,12 +235,9 @@ namespace MB13.Aipocalypse.Core.RobotSystem
     // ---- Answer a call (the whistle, a welcome home) ----
 
     [Category("Aipocalypse/Robots")]
-    public sealed class RobotIsCalled : ConditionalNode
+    public sealed class RobotIsCalled : RobotCondition
     {
-        Robot _robot;
-
-        public override void OnAwake() => _robot = GetComponent<Robot>();
-        public override TaskStatus OnUpdate() => _robot.Call.Active ? TaskStatus.Success : TaskStatus.Failure;
+        protected override bool Check() => _robot.Call.Active;
     }
 
     // A moment of happy surprise (played when called), a trot to the meeting point (aimed again when the player moves on),
@@ -284,7 +282,7 @@ namespace MB13.Aipocalypse.Core.RobotSystem
                     return TaskStatus.Running;
                 }
                 // The player walked on: aim at where they are now (tried once per move, not every think).
-                if (RobotWalk.Flat(player - _plannedFor) > Replan)
+                if (FlatMath.Length(player - _plannedFor) > Replan)
                 {
                     _plannedFor = player;
                     if (_robot.TryPlanMeet(player, out Vector3 again))
@@ -337,12 +335,9 @@ namespace MB13.Aipocalypse.Core.RobotSystem
     // ---- Nervous ----
 
     [Category("Aipocalypse/Robots")]
-    public sealed class RobotIsNervous : ConditionalNode
+    public sealed class RobotIsNervous : RobotCondition
     {
-        Robot _robot;
-
-        public override void OnAwake() => _robot = GetComponent<Robot>();
-        public override TaskStatus OnUpdate() => _robot.State.Nervous(Time.time) ? TaskStatus.Success : TaskStatus.Failure;
+        protected override bool Check() => _robot.State.Nervous(Time.time);
     }
 
     // A gun pointed at it: it faces the player, worried, and shakes its head.
@@ -373,12 +368,9 @@ namespace MB13.Aipocalypse.Core.RobotSystem
     // ---- Greet and pat ----
 
     [Category("Aipocalypse/Robots")]
-    public sealed class RobotIsGreeting : ConditionalNode
+    public sealed class RobotIsGreeting : RobotCondition
     {
-        Robot _robot;
-
-        public override void OnAwake() => _robot = GetComponent<Robot>();
-        public override TaskStatus OnUpdate() => _robot.State.Greeting(Time.time) ? TaskStatus.Success : TaskStatus.Failure;
+        protected override bool Check() => _robot.State.Greeting(Time.time);
     }
 
     // Stops, turns to the player and waves (now and then) or talks, happy, while the player keeps looking or the greeting
@@ -460,12 +452,9 @@ namespace MB13.Aipocalypse.Core.RobotSystem
     // ---- After a raid: cheer or cry ----
 
     [Category("Aipocalypse/Robots")]
-    public sealed class RobotIsCheering : ConditionalNode
+    public sealed class RobotIsCheering : RobotCondition
     {
-        Robot _robot;
-
-        public override void OnAwake() => _robot = GetComponent<Robot>();
-        public override TaskStatus OnUpdate() => _robot.State.Cheering(Time.time) ? TaskStatus.Success : TaskStatus.Failure;
+        protected override bool Check() => _robot.State.Cheering(Time.time);
     }
 
     // A good night: a win pose, then a dance, excited. A bad one: it cries.
@@ -523,12 +512,9 @@ namespace MB13.Aipocalypse.Core.RobotSystem
     // ---- See the player off ----
 
     [Category("Aipocalypse/Robots")]
-    public sealed class RobotIsSeeingOff : ConditionalNode
+    public sealed class RobotIsSeeingOff : RobotCondition
     {
-        Robot _robot;
-
-        public override void OnAwake() => _robot = GetComponent<Robot>();
-        public override TaskStatus OnUpdate() => _robot.State.SeeingOff(Time.time) ? TaskStatus.Success : TaskStatus.Failure;
+        protected override bool Check() => _robot.State.SeeingOff(Time.time);
     }
 
     // The player walked out of the yard: it stops, turns to them and waves goodbye, happy for a moment, then a little sad.
@@ -570,12 +556,9 @@ namespace MB13.Aipocalypse.Core.RobotSystem
     // ---- Chat with another robot ----
 
     [Category("Aipocalypse/Robots")]
-    public sealed class RobotIsChatting : ConditionalNode
+    public sealed class RobotIsChatting : RobotCondition
     {
-        Robot _robot;
-
-        public override void OnAwake() => _robot = GetComponent<Robot>();
-        public override TaskStatus OnUpdate() => _robot.State.Chatting(Time.time) ? TaskStatus.Success : TaskStatus.Failure;
+        protected override bool Check() => _robot.State.Chatting(Time.time);
     }
 
     // Another robot close by: it stops and faces them. The one that starts waves, then talks; the other talks first, then
@@ -641,12 +624,9 @@ namespace MB13.Aipocalypse.Core.RobotSystem
     // ---- Welcome home ----
 
     [Category("Aipocalypse/Robots")]
-    public sealed class RobotIsWelcoming : ConditionalNode
+    public sealed class RobotIsWelcoming : RobotCondition
     {
-        Robot _robot;
-
-        public override void OnAwake() => _robot = GetComponent<Robot>();
-        public override TaskStatus OnUpdate() => _robot.State.WelcomePending ? TaskStatus.Success : TaskStatus.Failure;
+        protected override bool Check() => _robot.State.WelcomePending;
     }
 
     // The player is back: it looks round, spots them with a happy start, then comes over (a call with the welcome reason);
@@ -692,12 +672,9 @@ namespace MB13.Aipocalypse.Core.RobotSystem
     // ---- Night ----
 
     [Category("Aipocalypse/Robots")]
-    public sealed class RobotIsNight : ConditionalNode
+    public sealed class RobotIsNight : RobotCondition
     {
-        Robot _robot;
-
-        public override void OnAwake() => _robot = GetComponent<Robot>();
-        public override TaskStatus OnUpdate() => _robot.Asleep ? TaskStatus.Success : TaskStatus.Failure;
+        protected override bool Check() => _robot.Asleep;
     }
 
     // Bedtime: a yawn, then a slow walk back to its spot.
@@ -773,12 +750,9 @@ namespace MB13.Aipocalypse.Core.RobotSystem
     // ---- Work (a RobotJob's) ----
 
     [Category("Aipocalypse/Robots")]
-    public sealed class RobotHasWork : ConditionalNode
+    public sealed class RobotHasWork : RobotCondition
     {
-        Robot _robot;
-
-        public override void OnAwake() => _robot = GetComponent<Robot>();
-        public override TaskStatus OnUpdate() => _robot.Work != null && _robot.Work.WantsToWork(Time.time) ? TaskStatus.Success : TaskStatus.Failure;
+        protected override bool Check() => _robot.Work != null && _robot.Work.WantsToWork(Time.time);
     }
 
     // Runs its job's work until a stint is done or something above takes over.

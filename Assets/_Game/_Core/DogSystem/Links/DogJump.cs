@@ -1,4 +1,5 @@
 using System.Collections;
+using MB13.Aipocalypse.Core.Links;
 using Pathfinding;
 using Pathfinding.ECS;
 using Unity.Mathematics;
@@ -41,7 +42,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
             float3 end = context.link.relativeEnd;
             float3 up = context.movementPlane.ToWorld(float2.zero, 1);
             DogLinkInfo info = context.link.gameObject != null ? context.link.gameObject.GetComponent<DogLinkInfo>() : null;
-            while (!context.MoveTowards(start, Facing(context, start, end, up), true, false).reached)
+            while (!context.MoveTowards(start, LinkMoves.Facing(context, start, end, up), true, false).reached)
                 yield return null;
 
             context.DisableLocalAvoidance();
@@ -50,14 +51,8 @@ namespace MB13.Aipocalypse.Core.DogSystem
             if (info != null && info.Via != null)
             {
                 float3 via = info.Via.position;
-                quaternion facing = Facing(context, start, via, up);
-                float time = math.distance(start, via) / WalkSpeed;
-                for (float t = 0f; t < time; t += context.deltaTime)
-                {
-                    context.transform.Position = math.lerp(start, via, t / time);
-                    context.transform.Rotation = Turn(context, facing);
-                    yield return null;
-                }
+                foreach (object step in LinkMoves.Walk(context, start, via, WalkSpeed, LinkMoves.Facing(context, start, via, up), TurnRate))
+                    yield return step;
                 from = via;
             }
 
@@ -68,37 +63,22 @@ namespace MB13.Aipocalypse.Core.DogSystem
             Vector3 a = from, b = end;
             float peak = DogJumpArc.Peak(kind, a, b, obstacle);
             float duration = DogJumpArc.Duration(kind, Vector2.Distance(new Vector2(a.x, a.z), new Vector2(b.x, b.z)));
-            quaternion toward = Facing(context, from, end, up);
+            quaternion toward = LinkMoves.Facing(context, from, end, up);
             // A leap: it stands squared up a moment first (the clip's own crouch is part of the move).
             float pause = kind == JumpKind.Leap && settings != null ? settings.LeapPause : 0f;
-            for (float t = 0f; t < pause; t += context.deltaTime)
-            {
-                context.transform.Position = from;
-                context.transform.Rotation = Turn(context, toward);
-                yield return null;
-            }
+            foreach (object step in LinkMoves.Hold(context, from, toward, pause, TurnRate))
+                yield return step;
             if (_dog != null)
                 _dog.PlayJump(DogJumpArc.AnimatorKind(kind, rise, _dog.ModelScale));
-            for (float t = 0f; t < (kind == JumpKind.Leap ? 0f : WindUp); t += context.deltaTime)
-            {
-                context.transform.Position = from;
-                context.transform.Rotation = Turn(context, toward);
-                yield return null;
-            }
+            foreach (object step in LinkMoves.Hold(context, from, toward, kind == JumpKind.Leap ? 0f : WindUp, TurnRate))
+                yield return step;
             for (float t = 0f; t < duration; t += context.deltaTime)
             {
                 context.transform.Position = (float3)DogJumpArc.Position(kind, a, b, peak, t / duration);
-                context.transform.Rotation = Turn(context, toward);
+                context.transform.Rotation = LinkMoves.Turn(context, toward, TurnRate);
                 yield return null;
             }
             context.transform.Position = end;
         }
-
-        // Turns toward `target` at TurnRate instead of snapping (a link's legs can point another way than the walk in).
-        static quaternion Turn(AgentOffMeshLinkTraversalContext context, quaternion target) =>
-            Quaternion.RotateTowards(context.transform.Rotation, target, TurnRate * context.deltaTime);
-
-        static quaternion Facing(AgentOffMeshLinkTraversalContext context, float3 from, float3 to, float3 up) =>
-            quaternion.LookRotationSafe(context.movementPlane.ToWorld(context.movementPlane.ToPlane(to - from), 0), up);
     }
 }

@@ -7,7 +7,6 @@ using MB13.Aipocalypse.Input;
 using MessagePipe;
 using TMPro;
 using UnityEngine;
-using UnityEngine.InputSystem.UI;
 using UnityEngine.Localization;
 using UnityEngine.UI;
 using VContainer;
@@ -42,17 +41,15 @@ namespace MB13.Aipocalypse.Core.UI
         [SerializeField] ConfirmDialog _confirm;
         [SerializeField] MenuSounds _sounds;
 
+        readonly ModalScreen _modal = new();
         InputService _input;
-        TimeService _time;
         GameSession _session;
         PlayerRegistry _players;
         Canvas _canvas;
         System.IDisposable _savedSubscription;
         System.IDisposable _languageSubscription;
-        bool _open;
-        int _openedFrame;
 
-        public bool IsOpen => _open;
+        public bool IsOpen => _modal.IsOpen;
 
         [Inject]
         void Construct(InputService input, TimeService time, GameSession session, SaveService saves, PlayerRegistry players,
@@ -60,13 +57,11 @@ namespace MB13.Aipocalypse.Core.UI
         {
             _players = players;
             _input = input;
-            _time = time;
             _session = session;
             _slots.Bind(session, saves);
             _savedSubscription = saved.Subscribe(_slots.ShowSaved);
             _languageSubscription = languageChanged.Subscribe(_ => RefreshHint());
-            if (_eventSystem != null && _eventSystem.TryGetComponent(out InputSystemUIInputModule module))
-                _input.ConfigureUiModule(module);
+            _modal.Bind(this, _eventSystem, input, time);
         }
 
         void Awake()
@@ -90,23 +85,21 @@ namespace MB13.Aipocalypse.Core.UI
         {
             _savedSubscription?.Dispose();
             _languageSubscription?.Dispose();
-            if (_open)
-                Release();
-            _open = false;
+            _modal.Close();
         }
 
         void Update()
         {
             if (_input == null || _session == null)
                 return;
-            if (!_open)
+            if (!_modal.IsOpen)
             {
                 // Not while down: the death screen's own click would land on this menu.
                 if (_input.PausePressed && !_input.IsUIRequested && _session.InWorld && !_session.IsLoading && !PlayerDown)
                     Open();
                 return;
             }
-            if (_session.IsLoading || Time.frameCount == _openedFrame || !_input.UiCancelPressed)
+            if (_session.IsLoading || _modal.OpenedThisFrame || !_input.UiCancelPressed)
                 return;
             _sounds?.Back();
             if (_confirm.IsOpen)
@@ -119,42 +112,25 @@ namespace MB13.Aipocalypse.Core.UI
 
         public void Open()
         {
-            if (_open)
+            if (!_modal.Open(pause: true))
                 return;
-            _open = true;
-            _openedFrame = Time.frameCount;
-            _time?.RequestPause(this);
-            _input.RequestUI(this);
-            if (_eventSystem != null)
-                _eventSystem.SetActive(true);
             SetVisible(true);
             ShowPage();
         }
 
         public void Close()
         {
-            if (!_open)
+            if (!_modal.Close())
                 return;
-            _open = false;
-            // Released first, so the game never stays paused whatever happens to the visuals.
-            Release();
             _confirm.Close();
             SetVisible(false);
         }
 
         bool PlayerDown => _players?.Current != null && _players.Current.IsDead;
 
-        void Release()
-        {
-            if (_eventSystem != null)
-                _eventSystem.SetActive(false);
-            _input?.ReleaseUI(this);
-            _time?.ReleasePause(this);
-        }
-
         void ShowPage()
         {
-            if (!_open)
+            if (!_modal.IsOpen)
                 return;
             _page.SetActive(true);
             RefreshHint();
@@ -163,7 +139,7 @@ namespace MB13.Aipocalypse.Core.UI
 
         void RefreshHint()
         {
-            if (!_open)
+            if (!_modal.IsOpen)
                 return;
             bool canSave = _session.CanSave(out string reason);
             _save.interactable = canSave;
