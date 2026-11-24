@@ -4,7 +4,7 @@ If you don't like using AI, don't want to use it, or don't care for it, you can 
 This is here because Unity / the Asset Store now recommends publishers add it.
 
 This folder contains **AI Skills** for Feel: instruction files that teach AI coding agents (Unity AI, Claude Code, and other agents that support skills) how to use Feel correctly in your project.
-When you ask an agent something like "add screen shake when the player gets hit" or "make this button bounce", a skill gives it the exact components, menu paths, APIs and verification steps for Feel 6.1, so it doesn't have to guess.
+When you ask an agent something like "add screen shake when the player gets hit" or "make this button bounce", a skill gives it the exact components, menu paths, APIs and verification steps for Feel 6.4, so it doesn't have to guess.
 
 The skills are plain Markdown. They don't add any code, menus or runtime cost to your project or your builds.
 

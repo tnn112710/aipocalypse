@@ -16,19 +16,24 @@ namespace MoreMountains.Tools
 	/// You can look at the MMGyroParallax class for an example of implementation.
 	/// </summary>
 	[AddComponentMenu("More Mountains/Tools/Gyroscope/MM Gyroscope")]
-	public class MMGyroscope : MonoBehaviour
+	public partial class MMGyroscope : MonoBehaviour
 	{
 		public enum TimeScales { Scaled, Unscaled }
 
 		/// whether or not the gyroscope is active
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		public static bool GyroscopeActive = true;
 		/// the timescale to use (scaled or unscaled)
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		public static TimeScales TimeScale = TimeScales.Scaled;
 		/// the min/max clamp values applied to all acceleration and gravity vectors
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		public static Vector2 Clamps = new Vector2(-1f, 1f);
 		/// the speed at which lerped values move towards their targets
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		public static float LerpSpeed = 1f;
 		/// whether or not to use test values instead of real sensor data
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		public static bool TestMode;
         
 		[Header("Debug")]
@@ -76,19 +81,33 @@ namespace MoreMountains.Tools
 		/// CalibratedGyroscopeGravity smoothed over time using LerpSpeed
 		public static Vector3 LerpedCalibratedGyroscopeGravity { get { GetValues(); return m_LerpedCalibratedGyroscopeGravity; } }
         
-		private static Quaternion m_GyroscopeAttitude;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
+		private static Quaternion m_GyroscopeAttitude = Quaternion.identity;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		private static Vector3 m_GyroscopeRotationRate;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		private static Vector3 m_GyroscopeAcceleration;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		private static Vector3 m_InputAcceleration;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		private static Vector3 m_GyroscopeGravity;
-		private static Quaternion m_InitialGyroscopeAttitude;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
+		private static Quaternion m_InitialGyroscopeAttitude = Quaternion.identity;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		private static Vector3 m_InitialGyroscopeRotationRate;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		private static Vector3 m_InitialGyroscopeAcceleration;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		private static Vector3 m_InitialInputAcceleration;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		private static Vector3 m_InitialGyroscopeGravity;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		private static Vector3 m_CalibratedInputAcceleration;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		private static Vector3 m_CalibratedGyroscopeGravity;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		private static Vector3 m_LerpedCalibratedInputAcceleration;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		private static Vector3 m_LerpedCalibratedGyroscopeGravity;
 
 		[Header("Settings")]
@@ -158,48 +177,20 @@ namespace MoreMountains.Tools
 		public bool GyroscopeInitializationBtn;
 
 		#if !ENABLE_INPUT_SYSTEM || ENABLE_LEGACY_INPUT_MANAGER
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		private static Gyroscope _gyroscope;
 		#endif
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		protected static Vector3 _testVector = Vector3.zero;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		private static bool _initialized = false;
-		private static Matrix4x4 _accelerationMatrix;
-		private static Matrix4x4 _gravityMatrix;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
+		private static Matrix4x4 _accelerationMatrix = Matrix4x4.identity;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
+		private static Matrix4x4 _gravityMatrix = Matrix4x4.identity;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		private static float _lastGetValuesAt = 0f;
 
-		#if UNITY_EDITOR
-		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-		private static void InitializeStatics()
-		{
-			GyroscopeActive = true;
-			TimeScale = TimeScales.Scaled;
-			Clamps = new Vector2(-1f, 1f);
-			LerpSpeed = 1f;
-			TestMode = false;
-			m_GyroscopeAttitude = Quaternion.identity;
-			m_GyroscopeRotationRate = Vector3.zero;
-			m_GyroscopeAcceleration = Vector3.zero;
-			m_InputAcceleration = Vector3.zero;
-			m_GyroscopeGravity = Vector3.zero;
-			m_InitialGyroscopeAttitude = Quaternion.identity;
-			m_InitialGyroscopeRotationRate = Vector3.zero;
-			m_InitialGyroscopeAcceleration = Vector3.zero;
-			m_InitialInputAcceleration = Vector3.zero;
-			m_InitialGyroscopeGravity = Vector3.zero;
-			m_CalibratedInputAcceleration = Vector3.zero;
-			m_CalibratedGyroscopeGravity = Vector3.zero;
-			m_LerpedCalibratedInputAcceleration = Vector3.zero;
-			m_LerpedCalibratedGyroscopeGravity = Vector3.zero;
-			#if !ENABLE_INPUT_SYSTEM || ENABLE_LEGACY_INPUT_MANAGER
-			_gyroscope = null;
-			#endif
-			_testVector = Vector3.zero;
-			_initialized = false;
-			_accelerationMatrix = Matrix4x4.identity;
-			_gravityMatrix = Matrix4x4.identity;
-			_lastGetValuesAt = 0f;
-		}
-		#endif
-        
 		protected virtual void OnEnable()
 		{
 			#if ENABLE_INPUT_SYSTEM && !ENABLE_LEGACY_INPUT_MANAGER
@@ -280,6 +271,7 @@ namespace MoreMountains.Tools
 			}
 			HandleTestMode();
 			GetValues();
+			#pragma warning disable UAL0018 
 			_GyroscopeAttitude = m_GyroscopeAttitude;
 			_GyroscopeRotationRate = m_GyroscopeRotationRate;
 			_GyroscopeAcceleration = m_GyroscopeAcceleration;
@@ -294,6 +286,7 @@ namespace MoreMountains.Tools
 			_CalibratedGyroscopeGravity = m_CalibratedGyroscopeGravity;
 			_LerpedCalibratedInputAcceleration = m_LerpedCalibratedInputAcceleration;
 			_LerpedCalibratedGyroscopeGravity = m_LerpedCalibratedGyroscopeGravity;
+			#pragma warning restore UAL0018
 		}
 
 		public static void GetValues()

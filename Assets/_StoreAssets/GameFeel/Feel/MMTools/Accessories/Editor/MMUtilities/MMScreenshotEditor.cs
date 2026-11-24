@@ -7,8 +7,9 @@ using System.IO;
 namespace MoreMountains.Tools
 {
 	[CustomEditor(typeof(MMAspectRatioSafeZones), true)]
-	public class MMScreenshotEditor : Editor
+	public partial class MMScreenshotEditor : Editor
 	{
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		static string FolderName = "Screenshots";
 
 		[MenuItem("Tools/More Mountains/Screenshot/Take Screenshot Real Size", false, 801)]

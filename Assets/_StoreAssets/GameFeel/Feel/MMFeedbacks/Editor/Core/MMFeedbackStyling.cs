@@ -6,7 +6,7 @@ namespace MoreMountains.Feedbacks
 	/// <summary>
 	/// A class used to regroup most of the styling options for the MMFeedback editors
 	/// </summary>
-	public static class MMFeedbackStyling
+	public static partial class MMFeedbackStyling
 	{
 		public static readonly GUIStyle SmallTickbox = new GUIStyle("ShurikenToggle");
 
@@ -35,6 +35,7 @@ namespace MoreMountains.Feedbacks
 			_paneoptionsiconlight = (Texture2D)EditorGUIUtility.Load("Builtin Skins/LightSkin/Images/pane options.png");
 		}
 
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		private static GUIStyle _timingStyle = new GUIStyle();
 
 		/// <summary>

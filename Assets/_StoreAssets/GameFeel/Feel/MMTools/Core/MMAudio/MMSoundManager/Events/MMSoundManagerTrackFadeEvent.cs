@@ -10,7 +10,7 @@ namespace MoreMountains.Tools
 	/// Example : MMSoundManagerTrackFadeEvent.Trigger(MMSoundManager.MMSoundManagerTracks.Music, 2f, 0.5f, new MMTweenType(MMTween.MMTweenCurve.EaseInCubic));
 	/// will fade the volume of the music track towards 0.5, over 2 seconds, using an ease in cubic tween 
 	/// </summary>
-	public struct MMSoundManagerTrackFadeEvent
+	public partial struct MMSoundManagerTrackFadeEvent
 	{
 		public enum Modes { PlayFade, StopFade }
 
@@ -37,6 +37,7 @@ namespace MoreMountains.Tools
 			FadeTween = fadeTween;
 		}
 
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		static MMSoundManagerTrackFadeEvent e;
 		public static void Trigger(Modes mode, MMSoundManager.MMSoundManagerTracks track, float fadeDuration, float finalVolume, MMTweenType fadeTween, MMSoundManagerCustomTrackSO customTrack = null)
 		{

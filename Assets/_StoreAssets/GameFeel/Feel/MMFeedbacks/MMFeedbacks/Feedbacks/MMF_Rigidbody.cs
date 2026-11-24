@@ -12,10 +12,11 @@ namespace MoreMountains.Feedbacks
 	[FeedbackHelp("This feedback will let you apply forces and torques (relative or not) to a Rigidbody.")]
 	[MovedFrom(false, null, "MoreMountains.Feedbacks")]
 	[System.Serializable]
-	[FeedbackPath("GameObject/Rigidbody")]
-	public class MMF_Rigidbody : MMF_Feedback
+	[FeedbackPath("Physics/Rigidbody")]
+	public partial class MMF_Rigidbody : MMF_Feedback
 	{
 		/// a static bool used to disable all feedbacks of this type at once
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		public static bool FeedbackTypeAuthorized = true;
 		/// sets the inspector color for this feedback
 		#if UNITY_EDITOR

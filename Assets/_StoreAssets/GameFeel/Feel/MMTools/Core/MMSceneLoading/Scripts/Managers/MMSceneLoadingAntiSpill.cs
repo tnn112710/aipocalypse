@@ -12,7 +12,7 @@ namespace MoreMountains.Tools
 	/// <summary>
 	/// This helper class, meant to be used by the MMAdditiveSceneLoadingManager, creates a temporary scene to store objects that might get instantiated, and empties it in the destination scene once loading is complete
 	/// </summary>
-	public class MMSceneLoadingAntiSpill
+	public partial class MMSceneLoadingAntiSpill
 	{
 		protected Scene _antiSpillScene;
 		protected Scene _destinationScene;
@@ -20,6 +20,7 @@ namespace MoreMountains.Tools
 		protected string _sceneToLoadName;
 		protected string _antiSpillSceneName;
 		protected List<GameObject> _spillSceneRoots = new List<GameObject>(50);
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		protected static List<string> _scenesInBuild;
 		
 		/// <summary>

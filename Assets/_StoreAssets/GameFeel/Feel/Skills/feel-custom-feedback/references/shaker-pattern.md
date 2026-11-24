@@ -16,13 +16,13 @@ The example below drives `LineRenderer.widthMultiplier`. It is modelled on Feel'
 using MoreMountains.Feedbacks;
 using UnityEngine;
 
-public struct LineWidthShakeEvent
+// partial: required by [AutoStaticsCleanup], whose generated code clears the event's listeners
+public partial struct LineWidthShakeEvent
 {
+    // static events survive play mode when domain reload is disabled: Unity clears them
+    // automatically on every Play mode transition thanks to [AutoStaticsCleanup]
+    [Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
     static private event Delegate OnEvent;
-
-    // static events survive play mode when domain reload is disabled: clear them on startup
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    private static void RuntimeInitialization() { OnEvent = null; }
 
     static public void Register(Delegate callback) { OnEvent += callback; }
     static public void Unregister(Delegate callback) { OnEvent -= callback; }
@@ -152,8 +152,9 @@ using UnityEngine;
 [System.Serializable]
 [FeedbackHelp("Shakes the width of LineRenderers that have a LineWidthShaker on the same channel.")]
 [FeedbackPath("Renderer/Line Width Shake")]
-public class MMF_LineWidthShake : MMF_Feedback
+public partial class MMF_LineWidthShake : MMF_Feedback
 {
+    [Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
     public static bool FeedbackTypeAuthorized = true;
     public override bool HasChannel => true;
     public override float FeedbackDuration { get { return ApplyTimeMultiplier(Duration); } set { Duration = value; } }
@@ -192,6 +193,7 @@ public class MMF_LineWidthShake : MMF_Feedback
 
 ## Checks
 
+- The scripts compile without UAL0010 / UAL0013 warnings (every static member carries a statics cleanup attribute).
 - Add `LineWidthShaker` to an object with a `LineRenderer`; its `Channel` (0 by default) must match the feedback's.
 - In Play mode, playing an MMF Player with `Renderer/Line Width Shake` widens the line and restores it after `Duration`.
 - `MMShaker` members used above (`ShakeDuration`, `Interruptible`, `Shaking`, `OnlyUseShakerValues`, `TimescaleMode`, `ForwardDirection`, `_resetShakerValuesAfterShake`, `_resetTargetValuesAfterShake`, `CheckEventAllowed`, `ShakeFloat`, `Play`, `Stop`) are defined in `Assets/Feel/MMFeedbacks/MMFeedbacks/Core/MMShaker.cs`.

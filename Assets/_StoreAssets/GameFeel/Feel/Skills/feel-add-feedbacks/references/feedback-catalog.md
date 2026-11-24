@@ -102,8 +102,6 @@ To print the list actually available in the current project (respecting installe
 | GameObject/Layer | `MMF_Layer` | `MoreMountains.Feedbacks` | `MM_UI` |
 | GameObject/MMRadioSignal | `MMF_RadioSignal` | `MoreMountains.Feedbacks` | none |
 | GameObject/Property | `MMF_Property` | `MoreMountains.Feedbacks` | none |
-| GameObject/Rigidbody | `MMF_Rigidbody` | `MoreMountains.Feedbacks` | none |
-| GameObject/Rigidbody2D | `MMF_Rigidbody2D` | `MoreMountains.Feedbacks` | `MM_PHYSICS2D` |
 | GameObject/Set Active | `MMF_SetActive` | `MoreMountains.Feedbacks` | none |
 
 ## Haptics
@@ -146,6 +144,18 @@ To print the list actually available in the current project (respecting installe
 |---|---|---|---|
 | Pause/Holding Pause | `MMF_HoldingPause` | `MoreMountains.Feedbacks` | none |
 | Pause/Pause | `MMF_Pause` | `MoreMountains.Feedbacks` | none |
+
+## Physics
+
+| Menu path | Class | Namespace | Requires |
+|---|---|---|---|
+| Physics/Explosion Force | `MMF_ExplosionForce` | `MoreMountains.Feedbacks` | none |
+| Physics/Explosion Force 2D | `MMF_ExplosionForce2D` | `MoreMountains.Feedbacks` | `MM_PHYSICS2D` |
+| Physics/Gravity | `MMF_Gravity` | `MoreMountains.Feedbacks` | none (its 2D option needs `MM_PHYSICS2D`) |
+| Physics/Rigidbody | `MMF_Rigidbody` | `MoreMountains.Feedbacks` | none |
+| Physics/Rigidbody2D | `MMF_Rigidbody2D` | `MoreMountains.Feedbacks` | `MM_PHYSICS2D` |
+
+`MMF_ExplosionForce` calls `Rigidbody.AddExplosionForce` on its `TargetRigidbody` and `ExtraTargetRigidbodies` (`TargetMode = Rigidbodies`) or on every rigidbody found within `Radius` (`TargetMode = Overlap`, filtered by `OverlapLayerMask`). `MMF_ExplosionForce2D` does the same for 2D (Unity has no 2D explosion API, so it pushes each body away from the center, scaled by its `Falloff` curve, with an optional random torque). Both use the `ExplosionCenter` transform, or the position passed to `PlayFeedbacks(position)` when it's empty, plus `ExplosionCenterOffset`. `MMF_Gravity` changes `Physics.gravity` and/or `Physics2D.gravity` (`Dimension`) by a `Multiplier` or towards a `TargetGravity`, `Instant`, `InstantThenReset` (default) or `OverTime`. It does nothing outside Play mode (physics doesn't simulate there), and puts the project's gravity back when exiting Play mode. `MMF_Rigidbody` and `MMF_Rigidbody2D` used to be under `GameObject/`: only their menu path changed, so players that already contain them are unaffected.
 
 ## PostProcess
 
@@ -297,6 +307,7 @@ To print the list actually available in the current project (respecting installe
 |---|---|---|---|
 | UI/CanvasGroup | `MMF_CanvasGroup` | `MoreMountains.Feedbacks` | none |
 | UI/CanvasGroup BlocksRaycasts | `MMF_CanvasGroupBlocksRaycasts` | `MoreMountains.Feedbacks` | none |
+| UI/Cursor | `MMF_Cursor` | `MoreMountains.Feedbacks` | none |
 | UI/Floating Text | `MMF_FloatingText` | `MoreMountains.Feedbacks` | none |
 | UI/Graphic | `MMF_Graphic` | `MoreMountains.Feedbacks` | `MM_UI` |
 | UI/Graphic CrossFade | `MMF_GraphicCrossFade` | `MoreMountains.Feedbacks` | `MM_UI` |

@@ -11,7 +11,7 @@ namespace MoreMountains.Tools
 	/// Example : MMSoundManagerTrackPitchFadeEvent.Trigger(MMSoundManagerTrackPitchFadeEvent.Modes.PlayFade, MMSoundManager.MMSoundManagerTracks.Music, 2f, 0.5f, new MMTweenType(MMTween.MMTweenCurve.EaseInCubic));
 	/// will fade the pitch of the music track towards 0.5, over 2 seconds, using an ease in cubic tween 
 	/// </summary>
-	public struct MMSoundManagerTrackPitchFadeEvent
+	public partial struct MMSoundManagerTrackPitchFadeEvent
 	{
 		public enum Modes { PlayFade, StopFade }
 
@@ -38,6 +38,7 @@ namespace MoreMountains.Tools
 			FadeTween = fadeTween;
 		}
 
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		static MMSoundManagerTrackPitchFadeEvent e;
 		public static void Trigger(Modes mode, MMSoundManager.MMSoundManagerTracks track, float fadeDuration, float finalPitch, MMTweenType fadeTween, MMSoundManagerCustomTrackSO customTrack = null)
 		{

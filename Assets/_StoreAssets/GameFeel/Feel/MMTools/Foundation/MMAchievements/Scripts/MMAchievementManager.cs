@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
 
 namespace MoreMountains.Tools
 {
@@ -11,33 +10,26 @@ namespace MoreMountains.Tools
 	/// <summary>
 	/// This static class is in charge of storing the current state of the achievements, unlocking/locking them, and saving them to data files
 	/// </summary>
-	public static class MMAchievementManager
+	public static partial class MMAchievementManager
 	{
 		public static List<MMAchievement> AchievementsList { get { return _achievements; }}
 
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		private static List<MMAchievement> _achievements;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		private static MMAchievement _achievement = null;
 
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		public static string _defaultFileName = "Achievements";
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		public static string _saveFolderName = "MMAchievements/";
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		public static string _saveFileExtension = ".achievements";
 
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		public static string SaveFileName;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		public static string ListID;
-
-		#if UNITY_EDITOR
-		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-		private static void InitializeStatics()
-		{
-			_achievements = null;
-			_achievement = null;
-			_defaultFileName = "Achievements";
-			_saveFolderName = "MMAchievements/";
-			_saveFileExtension = ".achievements";
-			SaveFileName = null;
-			ListID = null;
-		}
-		#endif
 
 		/// <summary>
 		/// You'll need to call this method to initialize the manager

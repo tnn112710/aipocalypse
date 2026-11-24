@@ -4,7 +4,7 @@ description: "Use this skill whenever the user wants to play or control sounds a
 metadata:
   asset: "Feel"
   publisher: "More Mountains"
-  asset-version: "6.1"
+  asset-version: "6.4"
   skill-version: "1.1.0"
   unity: "6000.5+"
   render-pipelines: "Built-in, URP, HDRP"
@@ -12,7 +12,7 @@ metadata:
   asset-store-url: "https://assetstore.unity.com/packages/tools/particles-effects/feel-183370"
   documentation-url: "https://feel-docs.moremountains.com/"
   support-url: "https://feel.moremountains.com/"
-  last-verified: "2026-10-17"
+  last-verified: "2026-11-20"
 ---
 
 # Play and Control Sound with MMSoundManager

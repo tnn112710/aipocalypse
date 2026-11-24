@@ -12,7 +12,7 @@ namespace MoreMountains.Tools
 	#if UNITY_EDITOR
 	[CustomEditor(typeof(MMSoundManager), true)]
 	[CanEditMultipleObjects]
-	public class MMSoundManagerEditor : Editor
+	public partial class MMSoundManagerEditor : Editor
 	{
 		public override bool RequiresConstantRepaint()
 		{
@@ -21,6 +21,7 @@ namespace MoreMountains.Tools
 		protected MMSoundManagerSettingsSO _settingsSO;
 		protected MMSoundManager _mmSoundManager;
         
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		private static float _masterVolume, _musicVolume, _sfxVolume, _uiVolume;
 
 		protected Color _originalBackgroundColor;

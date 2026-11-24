@@ -14,7 +14,7 @@ namespace MoreMountains.Feedbacks
 	[System.Serializable]
 	[FeedbackPath("Renderer/MMBlink")]
 	[MovedFrom(false, null, "MoreMountains.Feedbacks.MMTools")]
-	public class MMF_Blink : MMF_Feedback
+	public partial class MMF_Blink : MMF_Feedback
 	{
 		/// sets the inspector color for this feedback
 		#if UNITY_EDITOR
@@ -31,6 +31,7 @@ namespace MoreMountains.Feedbacks
 		protected override void AutomateMultipleTargetAcquisition() => ExtraTargetBlinks = FindAutomatedTargets<MMBlink>(ExtraTargetBlinks, TargetBlink);
         
 		/// a static bool used to disable all feedbacks of this type at once
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		public static bool FeedbackTypeAuthorized = true;
 
 		/// the possible modes for this feedback, that correspond to MMBlink's public methods

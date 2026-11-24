@@ -8,7 +8,7 @@ using UnityEditor;
 namespace MoreMountains.Feedbacks
 {
 	[ExecuteAlways]
-	public class MMShaker : MMMonoBehaviour
+	public partial class MMShaker : MMMonoBehaviour
 	{
 		/// the maximum delta time allowed in editor preview mode
 		public const float MaxEditorPreviewDeltaTime = 0.05f;
@@ -104,6 +104,8 @@ namespace MoreMountains.Feedbacks
 				shaker.Shaking = false;
 				shaker._journey = 0f;
 				shaker._listeningToEvents = false;
+				shaker._shakeStartedTimestamp = -Single.MaxValue;
+				shaker._shakeStartedTimestampUnscaled = -Single.MaxValue;
 				if (!shaker.PlayOnAwake)
 				{
 					shaker.enabled = false;
@@ -117,16 +119,26 @@ namespace MoreMountains.Feedbacks
 			MMShaker[] shakers = FindObjectsByType<MMShaker>(FindObjectsInactive.Include);
 			foreach (MMShaker shaker in shakers)
 			{
-				if (!shaker._listeningToEvents)
-				{
-					shaker.StartListening();
-				}
+				shaker.RestartListening();
 
 				if (Application.isPlaying && shaker.PlayOnAwake && shaker.isActiveAndEnabled && !shaker.Shaking)
 				{
 					shaker.Initialization();
 					shaker.StartShaking();
 				}
+			}
+		}
+
+		/// <summary>
+		/// [AutoStaticsCleanup] attribute isn't enough to guarantee that shakers will be registered after a domain reload, so we re-register them here
+		/// </summary>
+		[OnEnteringPlayMode]
+		private static void RestartShakersListeningOnEnteringPlayMode()
+		{
+			MMShaker[] shakers = FindObjectsByType<MMShaker>(FindObjectsInactive.Include);
+			foreach (MMShaker shaker in shakers)
+			{
+				shaker.RestartListening();
 			}
 		}
 		#endif
@@ -406,6 +418,16 @@ namespace MoreMountains.Feedbacks
 		}
 
 		/// <summary>
+		/// Stops then starts listening for events, which guarantees this shaker is registered exactly once,
+		/// whether or not its events' listeners got cleared since it last registered
+		/// </summary>
+		public virtual void RestartListening()
+		{
+			StopListening();
+			StartListening();
+		}
+
+		/// <summary>
 		/// Returns true if this shaker should listen to events, false otherwise
 		/// </summary>
 		/// <param name="channel"></param>
@@ -441,10 +463,13 @@ namespace MoreMountains.Feedbacks
 		{
 			get
 			{
+				if (CooldownBetweenShakes <= 0f)
+				{
+					return false;
+				}
 				float startedTimeStamp = TimescaleMode == TimescaleModes.Scaled ? _shakeStartedTimestamp : _shakeStartedTimestampUnscaled;
-
-				float test = GetTime() - startedTimeStamp;
-				return (GetTime() - startedTimeStamp < CooldownBetweenShakes);	
+				float elapsedTime = GetTime() - startedTimeStamp;
+				return (elapsedTime >= 0f) && (elapsedTime < CooldownBetweenShakes);
 			}
 		}
 		

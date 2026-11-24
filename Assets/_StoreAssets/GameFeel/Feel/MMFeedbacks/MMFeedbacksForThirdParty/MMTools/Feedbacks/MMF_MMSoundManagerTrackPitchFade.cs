@@ -14,9 +14,10 @@ namespace MoreMountains.Feedbacks
 	[FeedbackHelp("This feedback will let you fade the pitch of all the sounds on a specific track at once (master, UI, music, sfx, or a custom track). " +
 	              "The track pitch is a multiplier applied on top of each sound's own pitch, to sounds currently playing on that track as well as to sounds played on it later. " +
 	              "The Master track's pitch impacts all sounds. Set a fade duration of 0 to set the pitch instantly. You will need a MMSoundManager in your scene for this to work.")]
-	public class MMF_MMSoundManagerTrackPitchFade : MMF_Feedback
+	public partial class MMF_MMSoundManagerTrackPitchFade : MMF_Feedback
 	{
 		/// a static bool used to disable all feedbacks of this type at once
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		public static bool FeedbackTypeAuthorized = true;
 		/// sets the inspector color for this feedback
 		#if UNITY_EDITOR

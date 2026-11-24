@@ -11,7 +11,7 @@ using UnityEditor;
 
 namespace MoreMountains.Feedbacks
 {
-	public struct MMF_PlayerEvent
+	public partial struct MMF_PlayerEvent
 	{
 		public enum Modes
 		{
@@ -32,6 +32,7 @@ namespace MoreMountains.Feedbacks
 			RefreshCache
 		}
 		
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		static MMF_PlayerEvent e;
 		public MMChannelData ChannelData;
 		public bool UsePosition;
@@ -55,7 +56,7 @@ namespace MoreMountains.Feedbacks
 	[ExecuteAlways]
 	[AddComponentMenu("More Mountains/Feedbacks/MMF Player")]
 	[DisallowMultipleComponent]
-	public class MMF_Player : MMFeedbacks, MMEventListener<MMF_PlayerEvent>
+	public partial class MMF_Player : MMFeedbacks, MMEventListener<MMF_PlayerEvent>
 	{
 		/// the possible play modes for feedbacks
 		public enum PlayModes
@@ -145,6 +146,57 @@ namespace MoreMountains.Feedbacks
         
 		#region INITIALIZATION
 
+		#if UNITY_EDITOR
+		/// <summary>
+		/// [AutoStaticsCleanup] isn't enough to make sure players listening to events are re-registered when entering play mode with domain reload disabled, so we do it manually here
+		/// </summary>
+		[OnEnteringPlayMode]
+		private static void RestartPlayersListeningOnEnteringPlayMode()
+		{
+			bool sceneReloadDisabled = EditorSettings.enterPlayModeOptionsEnabled
+			                           && ((EditorSettings.enterPlayModeOptions & EnterPlayModeOptions.DisableSceneReload) != 0);
+			if (!sceneReloadDisabled)
+			{
+				return;
+			}
+			RestartAllPlayersListening();
+		}
+
+		/// <summary>
+		/// After the first scene load, makes sure every player listens to its play mode events again, whatever order the statics cleanup and the players' own registration ran in
+		/// </summary>
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+		private static void RestartPlayersListeningAfterSceneLoad()
+		{
+			RestartAllPlayersListening();
+		}
+
+		/// <summary>
+		/// Registers every player on an active game object to the events it listens to in play mode
+		/// </summary>
+		private static void RestartAllPlayersListening()
+		{
+			MMF_Player[] players = FindObjectsByType<MMF_Player>(FindObjectsInactive.Exclude);
+			foreach (MMF_Player player in players)
+			{
+				player.RestartPlayModeListening();
+			}
+		}
+		#endif
+
+		/// <summary>
+		/// Registers this player to the events it listens to in play mode
+		/// </summary>
+		protected virtual void RestartPlayModeListening()
+		{
+			this.MMEventStartListening<MMF_PlayerEvent>();
+			if (OnlyPlayIfWithinRange && isActiveAndEnabled)
+			{
+				MMSetFeedbackRangeCenterEvent.Unregister(OnMMSetFeedbackRangeCenterEvent);
+				MMSetFeedbackRangeCenterEvent.Register(OnMMSetFeedbackRangeCenterEvent);
+			}
+		}
+
 		/// <summary>
 		/// On Awake we initialize our feedbacks if we're in auto mode
 		/// </summary>
@@ -232,6 +284,11 @@ namespace MoreMountains.Feedbacks
 		/// </summary>
 		protected override void OnEnable()
 		{
+			if (Application.isPlaying)
+			{
+				this.MMEventStartListening<MMF_PlayerEvent>();
+			}
+
 			if (!_startHasRun && RunFirstOnEnableOnlyAfterStart)
 			{
 				return;
@@ -578,7 +635,8 @@ namespace MoreMountains.Feedbacks
 			// if we are in cooldown, we're not allowed to play
 			if (CooldownDuration > 0f)
 			{
-				if (GetTime() - _lastStartAt < CooldownDuration)
+				float elapsedSinceLastStart = GetTime() - _lastStartAt;
+				if ((elapsedSinceLastStart >= 0f) && (elapsedSinceLastStart < CooldownDuration))
 				{
 					return false;
 				}

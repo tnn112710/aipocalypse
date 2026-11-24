@@ -14,7 +14,7 @@ namespace MoreMountains.Feedbacks
 {
 	[CanEditMultipleObjects]
 	[CustomEditor(typeof(MMF_Player), true)]
-	public class MMF_PlayerEditorUITK : Editor
+	public partial class MMF_PlayerEditorUITK : Editor
 	{
 		public struct FeedbackTypePair
 		{
@@ -59,8 +59,11 @@ namespace MoreMountains.Feedbacks
 
 		// Properties
 		public MMF_Player TargetMmfPlayer;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		public static List<string> _typeDisplays;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		public static List<string> _typeNamesDisplays;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		public static List<FeedbackTypePair> _typesAndNames = new List<FeedbackTypePair>();
 
 		// Protected
@@ -567,7 +570,7 @@ namespace MoreMountains.Feedbacks
 			}
 
 			// Retrieve available feedbacks
-			List<System.Type> types = (from domainAssembly in System.AppDomain.CurrentDomain.GetAssemblies()
+			List<System.Type> types = (from domainAssembly in UnityEngine.Assemblies.CurrentAssemblies.GetLoadedAssemblies()
 				from assemblyType in domainAssembly.GetTypes()
 				where assemblyType.IsSubclassOf(typeof(MMF_Feedback))
 				select assemblyType).ToList();

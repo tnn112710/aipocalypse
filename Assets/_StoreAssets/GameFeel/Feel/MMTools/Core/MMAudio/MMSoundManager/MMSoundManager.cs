@@ -41,14 +41,6 @@ namespace MoreMountains.Tools
 		MMEventListener<MMSoundManagerTrackFadeEvent>,
 		MMEventListener<MMSoundManagerTrackPitchFadeEvent>
 	{
-		/// <summary>
-		/// Statics initialization to support enter play modes
-		/// </summary>
-		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-		protected static void InitializeStatics()
-		{
-			_instance = null;
-		}
 		
 		/// the possible ways to manage a track
 		public enum MMSoundManagerTracks { Sfx, Music, UI, Master, Other}

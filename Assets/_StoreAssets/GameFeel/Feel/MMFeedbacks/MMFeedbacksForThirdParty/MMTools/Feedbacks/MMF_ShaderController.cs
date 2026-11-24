@@ -15,9 +15,10 @@ namespace MoreMountains.Feedbacks
 	[MovedFrom(false, null, "MoreMountains.Feedbacks.MMTools")]
 	[System.Serializable]
 	[FeedbackPath("Renderer/ShaderController")]
-	public class MMF_ShaderController : MMF_Feedback
+	public partial class MMF_ShaderController : MMF_Feedback
 	{
 		/// a static bool used to disable all feedbacks of this type at once
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		public static bool FeedbackTypeAuthorized = true;
 		/// the different possible modes 
 		public enum Modes { OneTime, ToDestination }

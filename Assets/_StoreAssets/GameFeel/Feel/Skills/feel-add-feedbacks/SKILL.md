@@ -4,15 +4,15 @@ description: "Use this skill whenever the user wants to add juice, game feel or 
 metadata:
   asset: "Feel"
   publisher: "More Mountains"
-  asset-version: "6.1"
-  skill-version: "1.1.0"
+  asset-version: "6.4"
+  skill-version: "1.2.0"
   unity: "6000.5+"
   render-pipelines: "Built-in, URP, HDRP"
   category: "tools/particles-effects"
   asset-store-url: "https://assetstore.unity.com/packages/tools/particles-effects/feel-183370"
   documentation-url: "https://feel-docs.moremountains.com/"
   support-url: "https://feel.moremountains.com/"
-  last-verified: "2026-10-17"
+  last-verified: "2026-11-20"
 ---
 
 # Add Feedbacks with the MMF Player
@@ -130,7 +130,7 @@ public class Pickup : MonoBehaviour
 
 **Steps:**
 1. Expand the feedback's **Feedback Settings** group. Feedbacks that support it show **Automated Target Acquisition** (main target). Set its `Mode` (default `None`): `Self` (the MMF Player's GameObject), `AnyChild`, `ChildAtIndex`, `Parent`, or a reference holder mode (`FirstReferenceHolder`, `PreviousReferenceHolder`, `ClosestReferenceHolder`, `NextReferenceHolder`, `LastReferenceHolder`). A non-`None` mode also clears the missing-target warning icon.
-2. Feedbacks with a list of extra targets also show **Automated Multiple Target Acquisition**, which fills that list with every matching component it finds. Supported feedbacks and the list they fill: `Renderer > Flicker` (`ExtraBoundRenderers`), `Renderer > Material Set Property` (`ExtraTargetRenderers`, each added with the feedback's `MaterialID`), `Renderer > MMBlink` (`ExtraTargetBlinks`), `Renderer > ShaderController` (`TargetShaderControllerList`), `Lights > Light` (`ExtraLights`), `Animation > Animation Parameter` / `Animator Play State` / `Animation Crossfade` (`ExtraBoundAnimators`), `GameObject > FloatController` (`ExtraTargetFloatControllers`), `GameObject > Rigidbody` / `Rigidbody2D` (`ExtraTargetRigidbodies` / `ExtraTargetRigidbodies2D`), `GameObject > Set Active` / `Destroy` (`ExtraTargetGameObjects`).
+2. Feedbacks with a list of extra targets also show **Automated Multiple Target Acquisition**, which fills that list with every matching component it finds. Supported feedbacks and the list they fill: `Renderer > Flicker` (`ExtraBoundRenderers`), `Renderer > Material Set Property` (`ExtraTargetRenderers`, each added with the feedback's `MaterialID`), `Renderer > MMBlink` (`ExtraTargetBlinks`), `Renderer > ShaderController` (`TargetShaderControllerList`), `Lights > Light` (`ExtraLights`), `Animation > Animation Parameter` / `Animator Play State` / `Animation Crossfade` (`ExtraBoundAnimators`), `GameObject > FloatController` (`ExtraTargetFloatControllers`), `Physics > Rigidbody` / `Rigidbody2D` (`ExtraTargetRigidbodies` / `ExtraTargetRigidbodies2D`), `Physics > Explosion Force` / `Explosion Force 2D` (`ExtraTargetRigidbodies` / `ExtraTargetRigidbodies2D`, used when `TargetMode` is `Rigidbodies`), `GameObject > Set Active` / `Destroy` (`ExtraTargetGameObjects`).
 3. Set its fields:
    - `Mode` (default `None`): `Self`, `Children` (all descendants of the MMF Player's GameObject, not the GameObject itself), `SelfAndChildren`, `ChildAtIndex`, `Parents`, `AllReferenceHolders` (every `MMF Reference Holder` in the player), or one of the five single reference holder modes.
    - `ChildIndex` (default 0, `ChildAtIndex` only).

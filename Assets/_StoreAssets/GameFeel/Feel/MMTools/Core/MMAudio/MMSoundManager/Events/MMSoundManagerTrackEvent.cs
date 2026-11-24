@@ -25,7 +25,7 @@ namespace MoreMountains.Tools
 	/// Example :  MMSoundManagerTrackEvent.Trigger(MMSoundManagerTrackEventTypes.SetPitchTrack, MMSoundManager.MMSoundManagerTracks.Sfx, pitch: 0.5f);
 	/// will set the pitch multiplier of the entire Sfx track to 0.5 (every sound on it will play at half its own pitch)
 	/// </summary>
-	public struct MMSoundManagerTrackEvent
+	public partial struct MMSoundManagerTrackEvent
 	{
 		/// the order to pass to the track
 		public MMSoundManagerTrackEventTypes TrackEventType;
@@ -47,6 +47,7 @@ namespace MoreMountains.Tools
 			Pitch = pitch;
 		}
 
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		static MMSoundManagerTrackEvent e;
 		public static void Trigger(MMSoundManagerTrackEventTypes trackEventType, MMSoundManager.MMSoundManagerTracks track = MMSoundManager.MMSoundManagerTracks.Master, float volume = 1f, MMSoundManagerCustomTrackSO customTrack = null, float pitch = 1f)
 		{

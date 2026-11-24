@@ -140,11 +140,11 @@ namespace MoreMountains.FeedbacksForThirdParty
 	/// <summary>
 	/// An event used to pilot priorities on cinemachine virtual cameras and brain transitions
 	/// </summary>
-	public struct MMCinemachinePriorityEvent
+	public partial struct MMCinemachinePriorityEvent
 	{
 		#if MM_CINEMACHINE || MM_CINEMACHINE3
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		static private event Delegate OnEvent;
-		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)] private static void RuntimeInitialization() { OnEvent = null; }
 		static public void Register(Delegate callback) { OnEvent += callback; }
 		static public void Unregister(Delegate callback) { OnEvent -= callback; }
 

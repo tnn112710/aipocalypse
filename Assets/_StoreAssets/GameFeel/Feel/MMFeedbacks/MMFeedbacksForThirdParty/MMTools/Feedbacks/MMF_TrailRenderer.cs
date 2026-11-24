@@ -11,9 +11,10 @@ namespace MoreMountains.Feedbacks
 	[FeedbackHelp("This feedback will let you control the length, width and color of a target TrailRenderer over time")]
 	[System.Serializable]
 	[FeedbackPath("Renderer/Trail Renderer")]
-	public class MMF_TrailRenderer : MMF_Feedback
+	public partial class MMF_TrailRenderer : MMF_Feedback
 	{
 		/// a static bool used to disable all feedbacks of this type at once
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		public static bool FeedbackTypeAuthorized = true;
 		/// sets the inspector color for this feedback
 		#if UNITY_EDITOR

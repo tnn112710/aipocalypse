@@ -4,15 +4,15 @@ description: "Use this skill whenever the user wants to set up or configure Feel
 metadata:
   asset: "Feel"
   publisher: "More Mountains"
-  asset-version: "6.1"
-  skill-version: "1.0.0"
+  asset-version: "6.4"
+  skill-version: "1.0.1"
   unity: "6000.5+"
   render-pipelines: "Built-in, URP, HDRP"
   category: "tools/particles-effects"
   asset-store-url: "https://assetstore.unity.com/packages/tools/particles-effects/feel-183370"
   documentation-url: "https://feel-docs.moremountains.com/"
   support-url: "https://feel.moremountains.com/"
-  last-verified: "2026-10-11"
+  last-verified: "2026-11-20"
 ---
 
 # Set Up the Sound Manager and Playlist Manager
@@ -158,7 +158,7 @@ public static class FeelAudioSetup
 **Steps:**
 1. In the settings asset's **Settings**, `AutoLoad` is on by default (saved settings load at startup) and `AutoSave` is off. Turn on `AutoSave` to save whenever settings change, or save explicitly.
 2. Explicit calls: `MMSoundManagerEvent.Trigger(MMSoundManagerEventTypes.SaveSettings)`, `LoadSettings`, `ResetSettings`; or the `Audio > MMSoundManager Save and Load` feedback.
-3. Saves go through `MMSaveLoadManager` (folder `MMSoundManager/`). During development, `Tools > More Mountains > Delete all saved data` clears them. That deletes every MMTools save file, so ask first.
+3. Saves go through `MMSaveLoadManager` (folder `MMSoundManager/`), using its default Json method unless an `MMSaveLoadManagerMethod` component or `MMSaveLoadManager.SaveLoadMethod` picks another. During development, `Tools > More Mountains > Delete all saved data` clears them. That deletes every MMTools save file, so ask first.
 
 **Expected result:** after saving a lowered Music volume and restarting Play mode, Music starts at the saved volume.
 
@@ -277,6 +277,7 @@ MMPlaylistStopEvent.Trigger(0);
 - **Volume slider does nothing** → `onValueChanged` isn't bound to `UpdateVolume`, or `Track` is wrong → bind it as a dynamic float.
 - **Custom track volume never changes** → the mixer parameter isn't exposed, or its name differs from `VolumeParameter` → expose it and match the names exactly.
 - **Everything is silent after testing** → saved muted settings are reloaded (`AutoLoad`) → unmute, `ResetSettings`, or delete saved data (with permission).
+- **Saved audio settings are ignored after updating Feel, with an `[MMSaveLoadManager]` warning** → the file was written by an older version (binary default, BinaryFormatter format), which can't be read anymore → save again (or `ResetSettings`) to write a new file.
 - **Feel update reverted my mixer changes** → Feel's default assets were edited → use duplicated settings and mixer assets in a project folder.
 
 ## Boundaries

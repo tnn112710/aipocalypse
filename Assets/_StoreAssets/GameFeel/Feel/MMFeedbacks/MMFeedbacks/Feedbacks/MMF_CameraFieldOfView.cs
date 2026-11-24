@@ -19,9 +19,10 @@ namespace MoreMountains.Feedbacks
 	[FeedbackPath("Camera/Field of View")]
 	[FeedbackHelp(
 		"This feedback lets you control a camera's field of view over time. You'll need a MMCameraFieldOfViewShaker on your camera.")]
-	public class MMF_CameraFieldOfView : MMF_Feedback
+	public partial class MMF_CameraFieldOfView : MMF_Feedback
 	{
 		/// a static bool used to disable all feedbacks of this type at once
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		public static bool FeedbackTypeAuthorized = true;
 
 		/// sets the inspector color for this feedback

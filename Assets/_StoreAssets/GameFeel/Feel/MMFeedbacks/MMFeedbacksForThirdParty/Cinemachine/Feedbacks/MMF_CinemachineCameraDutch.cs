@@ -20,9 +20,10 @@ namespace MoreMountains.Feedbacks
 	[FeedbackPath("Camera/Cinemachine Dutch")]
 	[FeedbackHelp(
 		"This feedback lets you control a Cinemachine camera's dutch angle (it tilt over the z axis) over time. You'll need a MMCinemachineDutchShaker on your camera.")]
-	public class MMF_CinemachineCameraDutch : MMF_Feedback
+	public partial class MMF_CinemachineCameraDutch : MMF_Feedback
 	{
 		/// a static bool used to disable all feedbacks of this type at once
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		public static bool FeedbackTypeAuthorized = true;
 
 		/// sets the inspector color for this feedback

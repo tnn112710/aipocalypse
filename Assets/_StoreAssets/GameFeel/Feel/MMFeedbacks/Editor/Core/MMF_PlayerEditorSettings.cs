@@ -5,9 +5,11 @@ namespace MoreMountains.Feedbacks
 	/// <summary>
 	/// Editor preferences specific to the MMF Player .
 	/// </summary>
-	public static class MMF_PlayerEditorSettings
+	public static partial class MMF_PlayerEditorSettings
 	{
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		public static bool PreviewBarSettingCached;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		public static bool CachedPreviewBarEnabled;
 
 		private const string _showPreviewBarPrefKey = "MMShowMMFPlayerPreview";

@@ -197,7 +197,9 @@ namespace MoreMountains.Feedbacks
 		public virtual Color FeedbackColor => Color.white;
 		#endif
 		/// returns true if this feedback is in cooldown at this time (and thus can't play), false otherwise
+		/// (a negative elapsed time means the last play timestamp comes from another time base, like an edit mode preview, so it doesn't count)
 		public virtual bool InCooldown => (Timing.CooldownDuration > 0f) &&
+		                                  (FeedbackTime - _lastPlayTimestamp >= 0f) &&
 		                                  (FeedbackTime - _lastPlayTimestamp < Timing.CooldownDuration);
 
 		/// if this is true, this feedback is currently playing

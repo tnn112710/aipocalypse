@@ -12,8 +12,9 @@ namespace MoreMountains.Tools
 {
 	public enum MMCinemachineZoneEventTypes { Enter, Exit }
 	
-	public struct MMCinemachineZoneEvent
+	public partial struct MMCinemachineZoneEvent
 	{
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		static MMCinemachineZoneEvent e;
 
 		public MMCinemachineZone Zone;

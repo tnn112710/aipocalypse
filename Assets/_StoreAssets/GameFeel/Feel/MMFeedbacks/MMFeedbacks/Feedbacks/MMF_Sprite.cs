@@ -9,9 +9,10 @@ namespace MoreMountains.Feedbacks
 	[FeedbackHelp("This feedback will let you change the sprite of a target SpriteRenderer.")]
 	[System.Serializable]
 	[FeedbackPath("Renderer/Sprite")]
-	public class MMF_Sprite : MMF_Feedback
+	public partial class MMF_Sprite : MMF_Feedback
 	{
 		/// a static bool used to disable all feedbacks of this type at once
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		public static bool FeedbackTypeAuthorized = true;
 		/// sets the inspector color for this feedback
 		#if UNITY_EDITOR

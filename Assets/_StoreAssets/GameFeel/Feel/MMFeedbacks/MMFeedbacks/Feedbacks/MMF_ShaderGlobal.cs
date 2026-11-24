@@ -13,9 +13,10 @@ namespace MoreMountains.Feedbacks
 	[MovedFrom(false, null, "MoreMountains.Feedbacks")]
 	[System.Serializable]
 	[FeedbackPath("Renderer/Shader Global")]
-	public class MMF_ShaderGlobal : MMF_Feedback
+	public partial class MMF_ShaderGlobal : MMF_Feedback
 	{
 		/// a static bool used to disable all feedbacks of this type at once
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		public static bool FeedbackTypeAuthorized = true;
 		/// sets the inspector color for this feedback
 		#if UNITY_EDITOR
@@ -24,7 +25,7 @@ namespace MoreMountains.Feedbacks
 		public override bool HasCustomInspectors => true;
 		#endif
 
-		public enum Modes { SetGlobalColor, SetGlobalFloat, SetGlobalInt, SetGlobalMatrix, SetGlobalTexture, SetGlobalVector, EnableKeyword, DisableKeyword, WarmupAllShaders }
+		public enum Modes { SetGlobalColor, SetGlobalFloat, SetGlobalInt, SetGlobalMatrix, SetGlobalTexture, SetGlobalVector, EnableKeyword, DisableKeyword }
 
 		[MMFInspectorGroup("Shader Global", true, 24)]
 		/// the selected mode for this feedback
@@ -193,9 +194,6 @@ namespace MoreMountains.Feedbacks
 					break;
 				case Modes.DisableKeyword:
 					Shader.DisableKeyword(Keyword);
-					break;
-				case Modes.WarmupAllShaders:
-					Shader.WarmupAllShaders();
 					break;
 			}
 		}

@@ -4,15 +4,15 @@ description: "Use this skill whenever the user wants to write C# that extends Fe
 metadata:
   asset: "Feel"
   publisher: "More Mountains"
-  asset-version: "6.1"
-  skill-version: "1.1.0"
+  asset-version: "6.4"
+  skill-version: "1.2.0"
   unity: "6000.5+"
   render-pipelines: "Built-in, URP, HDRP"
   category: "tools/particles-effects"
   asset-store-url: "https://assetstore.unity.com/packages/tools/particles-effects/feel-183370"
   documentation-url: "https://feel-docs.moremountains.com/"
   support-url: "https://feel.moremountains.com/"
-  last-verified: "2026-10-17"
+  last-verified: "2026-11-20"
 ---
 
 # Write a Custom Feel Feedback
@@ -56,9 +56,10 @@ using UnityEngine;
 [System.Serializable]
 [FeedbackHelp("Heals the target Health component by the specified amount when played.")]
 [FeedbackPath("Gameplay/Heal")]
-public class MMF_Heal : MMF_Feedback
+public partial class MMF_Heal : MMF_Feedback
 {
     /// a static bool used to disable all feedbacks of this type at once
+    [Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
     public static bool FeedbackTypeAuthorized = true;
 
     #if UNITY_EDITOR
@@ -112,7 +113,8 @@ public class MMF_Heal : MMF_Feedback
 4. Respect the player context: use `ComputeIntensity(feedbacksIntensity, position)` for strength, `NormalPlayDirection` to support reverse play, and `FeedbackDeltaTime` / `FeedbackTime` instead of `Time.deltaTime` so scaled/unscaled settings and editor preview work.
 5. Optional editor polish inside `#if UNITY_EDITOR`: `FeedbackColor` (colors in `MMFeedbacksInspectorColors`), `EvaluateRequiresSetup()`, `RequiresSetupText`, `RequiredTargetText`. Group fields with `[MMFInspectorGroup("Name", true, colorIndex, requiresSetup)]`: the last argument puts the warning icon on that group.
 6. Add `[Tooltip]`s to public fields; they show in the inspector.
-7. Optional automatic targets: override `HasAutomatedTargetAcquisition => true` and `AutomateTargetAcquisition()` to set the main target with `FindAutomatedTarget<T>()` (or `FindAutomatedTargetGameObject()`). If the feedback also has a list of extra targets, override `HasAutomatedMultipleTargetAcquisition => true` and `AutomateMultipleTargetAcquisition()`, and fill the list with `FindAutomatedTargets<T>(list, mainTarget)` (or `FindAutomatedTargetGameObjects(list, mainTarget)`). These helpers return the list (created if null), honour the user's `ListMode`, skip duplicates and never add `mainTarget`. Both run before `CustomInitialization`, so size any per-target caches there. Example (`MMF_Flicker` works this way):
+7. Give every static field, auto-property or event a statics cleanup attribute, or Unity's analyzer warns (UAL0010 / UAL0013). Feel uses `[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]`, which resets the member to its initializer on every Play mode transition, as a domain reload used to. It requires the class (and any containing class) to be `partial`, which is why the template is `public partial class`. Use `[NoAutoStaticsCleanup]` only when a value must survive exiting Play mode, or is set by a static constructor (auto cleanup does not re-run it). Feel requires Unity 6000.5+, so the attribute needs no `#if` guard.
+8. Optional automatic targets: override `HasAutomatedTargetAcquisition => true` and `AutomateTargetAcquisition()` to set the main target with `FindAutomatedTarget<T>()` (or `FindAutomatedTargetGameObject()`). If the feedback also has a list of extra targets, override `HasAutomatedMultipleTargetAcquisition => true` and `AutomateMultipleTargetAcquisition()`, and fill the list with `FindAutomatedTargets<T>(list, mainTarget)` (or `FindAutomatedTargetGameObjects(list, mainTarget)`). These helpers return the list (created if null), honour the user's `ListMode`, skip duplicates and never add `mainTarget`. Both run before `CustomInitialization`, so size any per-target caches there. Example (`MMF_Flicker` works this way):
 
 ```csharp
 public Renderer TargetRenderer;
@@ -249,7 +251,7 @@ public class MMF_MyCanvasGroupAlpha : MMF_FeedbackBase
 **Goal:** a feedback that drives any number of receivers on a channel, like Feel's post-processing and camera feedbacks.
 
 **Steps:**
-1. Write an event struct with a static `Delegate`, `Register`, `Unregister`, `Trigger`, and a `[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]` method that nulls the event (so domain-reload-disabled play mode starts clean).
+1. Write a `partial` event struct with a static `Delegate`, `Register`, `Unregister` and `Trigger`. Mark its static event `[AutoStaticsCleanup]`, so its listeners are cleared on every Play mode transition when domain reload is disabled, as Feel's own events do. No `SubsystemRegistration` reset method is needed.
 2. Write a shaker deriving from `MoreMountains.Feedbacks.MMShaker`: override `Initialization()`, `Shake()` (use `ShakeFloat(curve, remapMin, remapMax, relative, initial)`), `GrabInitialValues()`, `ResetTargetValues()`, `ResetShakerValues()`, and `StartListening()` / `StopListening()` to register the event handler. The handler checks `CheckEventAllowed(channelData)` then calls `Play()`. `MMShaker` already calls `StartListening()` from `OnEnable`, which matters because static events are reset on domain reload.
 3. Write the feedback: `HasChannel => true`, and in `CustomPlayFeedback` call `YourEvent.Trigger(..., ChannelData, ...)`.
 4. Read [references/shaker-pattern.md](references/shaker-pattern.md) for a complete, compilable three-part example modelled on Feel's `MMAudioSourceVolumeShaker`.
@@ -291,6 +293,8 @@ public class MMF_MyCanvasGroupAlpha : MMF_FeedbackBase
 - **The feedback ignores timescale settings or freezes in editor preview** → it uses `Time.deltaTime` → use `FeedbackDeltaTime`.
 - **Changes are lost after updating Feel** → the custom file was placed inside `Assets/Feel` (or a Feel file was edited) → keep custom feedbacks in your own folder and extend rather than modify.
 - **CS0246 type or namespace not found for Feel types** → the script's assembly definition doesn't reference `MoreMountains.Tools` → add the reference.
+- **Console warns UAL0010 / UAL0013 ("A type with static fields, automatic properties or events must have a ... AutoStaticsCleanup or NoAutoStaticsCleanup attribute")** → a static member has no statics cleanup attribute → put `[AutoStaticsCleanup]` (or `[NoAutoStaticsCleanup]`) on each static member, not on the class (a class-level attribute raises UAL0019). `[AutoStaticsCleanup]` needs the type and every containing type to be `partial` (UAL0012); use `new T[] { ... }` rather than a bare `{ ... }` array initializer, which Unity's generator copies into invalid code.
+- **A static is null or false after entering or exiting Play mode** → it is `[AutoStaticsCleanup]` but was set by a static constructor or a load-time method, which auto cleanup doesn't re-run → give it a field initializer, or mark it `[NoAutoStaticsCleanup]` if its value never changes.
 - **Shaker stops reacting after a script recompile** → the shaker doesn't re-register its event → register in `StartListening()` (called from `MMShaker.OnEnable`), not only in `Awake`.
 
 ## Boundaries

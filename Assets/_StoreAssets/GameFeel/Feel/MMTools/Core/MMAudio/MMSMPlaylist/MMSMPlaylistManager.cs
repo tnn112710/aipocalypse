@@ -5,7 +5,7 @@ using Random = UnityEngine.Random;
 
 namespace MoreMountains.Tools
 {
-	public class MMSMPlaylistManager : MMMonoBehaviour
+	public partial class MMSMPlaylistManager : MMMonoBehaviour
 	{
 		/// the possible states this playlist can be in
 		public enum PlaylistManagerStates
@@ -180,6 +180,7 @@ namespace MoreMountains.Tools
 		protected bool _shouldResumeOnApplicationPause = false;
 		public static bool HasInstance => _instance != null;
 		public static MMSMPlaylistManager Current => _instance;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		protected static MMSMPlaylistManager _instance;
 		protected int _queuedSongIndex = -1;
 		protected AudioSource _currentlyPlayingAudioSource;
@@ -188,14 +189,6 @@ namespace MoreMountains.Tools
 		protected float _lastTestPlaybackSpeedControl = 1f;
 		internal bool _listeningToEvents = false;
 		protected bool _initialized = false;
-
-		#if UNITY_EDITOR
-		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-		private static void InitializeStatics()
-		{
-			_instance = null;
-		}
-		#endif
 
 		#region INITIALIZATION
 

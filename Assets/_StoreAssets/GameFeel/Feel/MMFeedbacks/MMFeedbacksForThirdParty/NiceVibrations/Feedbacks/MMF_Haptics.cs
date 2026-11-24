@@ -14,9 +14,10 @@ namespace MoreMountains.FeedbacksForThirdParty
 	[FeedbackPath("Haptics/Haptics DEPRECATED!")]
 	[MovedFrom(false, null, "MoreMountains.Feedbacks.NiceVibrations")]
 	[FeedbackHelp("This feedback has been deprecated, and is just here to avoid errors in case you were to update from an old version. Use any of the new haptic feedbacks instead.")]
-	public class MMF_Haptics : MMF_Feedback
+	public partial class MMF_Haptics : MMF_Feedback
 	{
 		/// a static bool used to disable all feedbacks of this type at once
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		public static bool FeedbackTypeAuthorized = true;
 		
 		[Header("Deprecated Feedback")] 

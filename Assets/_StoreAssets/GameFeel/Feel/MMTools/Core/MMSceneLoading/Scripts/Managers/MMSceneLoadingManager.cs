@@ -14,7 +14,7 @@ namespace MoreMountains.Tools
 	/// A class to load scenes using a loading screen instead of just the default API
 	/// This class used to be known as LoadingSceneManager, and has now been renamed to MMSceneLoadingManager for consistency
 	/// </summary>
-	public class MMSceneLoadingManager : MonoBehaviour 
+	public partial class MMSceneLoadingManager : MonoBehaviour 
 	{
 		public enum LoadingStatus
 		{
@@ -22,7 +22,7 @@ namespace MoreMountains.Tools
 			LoadProgressComplete, InterpolatedLoadProgressComplete, BeforeSceneActivation, ExitFade, DestinationSceneActivation, UnloadSceneLoader, LoadTransitionComplete, AfterSceneActivation
 		}
 
-		public struct LoadingSceneEvent
+		public partial struct LoadingSceneEvent
 		{
 			public LoadingStatus Status;
 			public string SceneName;
@@ -31,6 +31,7 @@ namespace MoreMountains.Tools
 				Status = status;
 				SceneName = sceneName;
 			}
+			[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 			static LoadingSceneEvent e;
 			public static void Trigger(string sceneName, LoadingStatus status)
 			{
@@ -42,6 +43,7 @@ namespace MoreMountains.Tools
 
 		[Header("Binding")]
 		/// The name of the scene to load while the actual target scene is loading (usually a loading screen)
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		public static string LoadingScreenSceneName="LoadingScreen";
 
 		[Header("GameObjects")]
@@ -67,6 +69,7 @@ namespace MoreMountains.Tools
 		public float LoadCompleteDelay=0.5f;
 
 		protected AsyncOperation _asyncOperation;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		protected static string _sceneToLoad = "";
 		protected float _fadeDuration = 0.5f;
 		protected float _fillTarget=0f;
@@ -75,21 +78,12 @@ namespace MoreMountains.Tools
 		protected Image _progressBarImage;
 		#endif
 
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		protected static MMTweenType _tween;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		protected static bool _editorMode = false;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		protected static string _sceneToLoadPath = "";
-
-		#if UNITY_EDITOR
-		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-		private static void InitializeStatics()
-		{
-			LoadingScreenSceneName = "LoadingScreen";
-			_sceneToLoad = "";
-			_tween = null;
-			_editorMode = false;
-			_sceneToLoadPath = "";
-		}
-		#endif
 
 		/// <summary>
 		/// Call this static method to load a scene from anywhere

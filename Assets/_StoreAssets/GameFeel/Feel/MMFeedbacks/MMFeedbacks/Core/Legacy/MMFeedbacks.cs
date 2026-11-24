@@ -17,7 +17,7 @@ namespace MoreMountains.Feedbacks
 	/// You can either use it on its own, or bind it from another class and trigger it from there.
 	/// </summary>
 	[AddComponentMenu("")]
-	public class MMFeedbacks : MonoBehaviour
+	public partial class MMFeedbacks : MonoBehaviour
 	{
 		/// the possible directions MMFeedbacks can be played
 		public enum Directions { TopToBottom, BottomToTop }
@@ -141,16 +141,9 @@ namespace MoreMountains.Feedbacks
         
 		/// a global switch used to turn all feedbacks on or off globally
 		[Tooltip("a global switch used to turn all feedbacks on or off globally")]
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		public static bool GlobalMMFeedbacksActive = true;
 
-		#if UNITY_EDITOR
-		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-		private static void InitializeStatics()
-		{
-			GlobalMMFeedbacksActive = true;
-		}
-		#endif
-        
 		[HideInInspector]
 		/// whether or not this MMFeedbacks is in debug mode
 		public bool DebugActive = false;

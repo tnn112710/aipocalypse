@@ -115,7 +115,7 @@ namespace MoreMountains.Tools
 	/// A class to load scenes using a loading screen instead of just the default API
 	/// This is a new version of the classic LoadingSceneManager (now renamed to MMSceneLoadingManager for consistency)
 	/// </summary>
-	public class MMAdditiveSceneLoadingManager : MMMonoBehaviour 
+	public partial class MMAdditiveSceneLoadingManager : MMMonoBehaviour 
 	{
 		/// The possible orders in which to play fades (depends on the fade you've set in your loading screen
 		public enum FadeModes { FadeInThenOut, FadeOutThenIn }
@@ -130,6 +130,7 @@ namespace MoreMountains.Tools
 		public int FaderID = 500;
 		/// whether or not to output debug messages to the console
 		[Tooltip("whether or not to output debug messages to the console")]
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		public static bool DebugMode = false;
 
 		[MMInspectorGroup("Progress Events", true, 11)]
@@ -182,24 +183,41 @@ namespace MoreMountains.Tools
 		[Tooltip("an event that will be invoked when the scene loader gets unloaded")]
 		public UnityEvent OnUnloadSceneLoader;
 
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		protected static bool _interpolateProgress;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		protected static float _progressInterpolationSpeed;
-		protected static List<MMSceneLoadingSpeedInterval> _speedIntervals;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
+		protected static List<MMSceneLoadingSpeedInterval> _speedIntervals = new List<MMSceneLoadingSpeedInterval>();
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		protected static float _beforeEntryFadeDelay;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		protected static MMTweenType _entryFadeTween;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		protected static float _entryFadeDuration;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		protected static float _afterEntryFadeDelay;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		protected static float _beforeSceneActivationDelay;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		protected static float _afterSceneActivationDelay;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		protected static MMTweenType _exitFadeTween;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		protected static float _exitFadeDuration;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		protected static FadeModes _fadeMode;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		protected static string _sceneToLoadName = "";
-		protected static string _loadingScreenSceneName;
-		protected static List<string> _scenesInBuild;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
+		protected static string _loadingScreenSceneName = "";
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
+		protected static List<string> _scenesInBuild = new List<string>();
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		protected static Scene[] _initialScenes;
 		protected float _loadProgress = 0f;
 		protected float _interpolatedLoadProgress;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		protected static bool _loadingInProgress = false;
 		protected AsyncOperation _unloadOriginAsyncOperation;
 		protected AsyncOperation _loadDestinationAsyncOperation;
@@ -208,11 +226,16 @@ namespace MoreMountains.Tools
 		protected bool _setInterpolatedProgressValueIsNull;
 		protected const float _asyncProgressLimit = 0.9f;
 		protected MMSceneLoadingAntiSpill _antiSpill = new MMSceneLoadingAntiSpill();
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		protected static string _antiSpillSceneName = "";
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		protected static bool _editorMode = false;
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		protected static string _sceneToLoadPath = "";
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		protected static string _loadingScreenScenePath = "";
 
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		protected static Dictionary<HoldModes, bool> _holds = new Dictionary<HoldModes, bool>
 		{
 			{HoldModes.AfterEntryFade, false},
@@ -221,43 +244,6 @@ namespace MoreMountains.Tools
 			{HoldModes.BeforeExitFade, false}
 		};
 		
-		/// <summary>
-		/// Statics initialization to support enter play modes
-		/// </summary>
-		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-		protected static void InitializeStatics()
-		{
-			_loadingInProgress = false;
-			DebugMode = false;
-			_interpolateProgress = false;
-			_progressInterpolationSpeed = 0f;
-			_speedIntervals = new List<MMSceneLoadingSpeedInterval>();
-			_beforeEntryFadeDelay = 0f;
-			_entryFadeTween = null;
-			_entryFadeDuration = 0f;
-			_afterEntryFadeDelay = 0f;
-			_beforeSceneActivationDelay = 0f;
-			_afterSceneActivationDelay = 0f;
-			_exitFadeTween = null;
-			_exitFadeDuration = 0f;
-			_fadeMode = FadeModes.FadeInThenOut;
-			_sceneToLoadName = "";
-			_loadingScreenSceneName = "";
-			_scenesInBuild = new List<string>();
-			_initialScenes = null;
-			_antiSpillSceneName = "";
-			_editorMode = false;
-			_sceneToLoadPath = "";
-			_loadingScreenScenePath = "";
-			_holds = new Dictionary<HoldModes, bool>
-			{
-				{HoldModes.AfterEntryFade, false},
-				{HoldModes.AfterUnloadOriginScene, false},
-				{HoldModes.BeforeSceneActivation, false},
-				{HoldModes.BeforeExitFade, false}
-			};
-		}
-
 		/// <summary>
 		/// Call this static method to load a scene from anywhere (packed settings signature)
 		/// </summary>

@@ -9,7 +9,7 @@ namespace MoreMountains.Feedbacks
 	/// A class collecting target acquisition settings
 	/// </summary>
 	[System.Serializable]
-	public class MMFeedbackTargetAcquisition
+	public partial class MMFeedbackTargetAcquisition
 	{
 		public enum Modes { None, Self, AnyChild, ChildAtIndex, Parent, FirstReferenceHolder, PreviousReferenceHolder, ClosestReferenceHolder, NextReferenceHolder, LastReferenceHolder }
 		
@@ -33,6 +33,7 @@ namespace MoreMountains.Feedbacks
 		[MMFEnumCondition("Mode", (int)Modes.ChildAtIndex)]
 		public int ChildIndex = 0;
 
+		[Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
 		private static MMF_ReferenceHolder _referenceHolder;
 
 		public static MMF_ReferenceHolder GetReferenceHolder(MMFeedbackTargetAcquisition settings, MMF_Player owner, int currentFeedbackIndex)
