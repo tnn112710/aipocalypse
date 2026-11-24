@@ -121,7 +121,7 @@ namespace MB13.Aipocalypse.Core.EnvironmentSystem
         {
             if (_camera == null)
             {
-                Camera main = Camera.main;
+                Camera main = ViewCamera.Current;
                 if (main == null)
                     return;
                 _camera = main.transform;

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -45,15 +46,30 @@ namespace MB13.Aipocalypse.Core.Bootstrap
                 Debug.LogWarning($"{name}: {message}", context);
         }
 
+        // Installers live in Core and in the system assemblies split from it (Animals, Dogs, Robots...).
         static Type[] InstallerTypes()
         {
             if (_installerTypes != null)
                 return _installerTypes;
             var types = new List<Type>();
-            foreach (Type type in typeof(SceneInstaller).Assembly.GetTypes())
-                if (!type.IsAbstract && typeof(SceneInstaller).IsAssignableFrom(type))
-                    types.Add(type);
+            string core = typeof(SceneInstaller).Assembly.GetName().Name;
+            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                if (assembly.GetName().Name != core && !References(assembly, core))
+                    continue;
+                foreach (Type type in assembly.GetTypes())
+                    if (!type.IsAbstract && typeof(SceneInstaller).IsAssignableFrom(type))
+                        types.Add(type);
+            }
             return _installerTypes = types.ToArray();
+        }
+
+        static bool References(Assembly assembly, string name)
+        {
+            foreach (AssemblyName reference in assembly.GetReferencedAssemblies())
+                if (reference.Name == name)
+                    return true;
+            return false;
         }
     }
 }

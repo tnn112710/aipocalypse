@@ -56,7 +56,7 @@ namespace MB13.Aipocalypse.Core.UI
         void LateUpdate()
         {
             IPlayer player = Player;
-            Camera view = Camera.main;
+            Camera view = ViewCamera.Current;
             if (player == null || player.Health == null || player.Health.IsDead || _registry == null || _template == null || view == null
                 || (_input != null && _input.IsUIRequested))
             {

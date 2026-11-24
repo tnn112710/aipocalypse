@@ -62,7 +62,7 @@ namespace MB13.Aipocalypse.Core.EnvironmentSystem
             bool on = intensity > 0.001f;
             if (_light.enabled != on)
                 _light.enabled = on;
-            Camera view = Camera.main;
+            Camera view = ViewCamera.Current;
             if (!on || view == null)
                 return;
             _light.intensity = intensity;

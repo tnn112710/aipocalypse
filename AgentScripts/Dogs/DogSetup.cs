@@ -1438,7 +1438,7 @@ public static class DogSetup
             so.ApplyModifiedPropertiesWithoutUndo();
             bar.ApplyStyle();
             var icon = barObject.GetComponentsInChildren<UnityEngine.UI.Image>(true).FirstOrDefault(i => i.name == "Icon");
-            var hud = node.gameObject.AddComponent<MB13.Aipocalypse.Core.UI.DogHud>();
+            var hud = node.gameObject.AddComponent<MB13.Aipocalypse.Core.DogSystem.DogHud>();
             hud.Setup(group, bar, icon);
             EditorUtility.SetDirty(hud);
             PrefabUtility.SaveAsPrefabAsset(root, HudPath, out bool saved);

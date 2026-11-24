@@ -56,7 +56,7 @@ namespace MB13.Aipocalypse.Core.UI
             else if (_lostAt == float.PositiveInfinity)
                 _lostAt = now;
 
-            Camera view = Camera.main;
+            Camera view = ViewCamera.Current;
             bool show = false;
             if (_target != null && now - _lostAt < _linger && view != null && _target.TryGetNameTag(out string name, out Sprite icon, out Vector3 point))
             {

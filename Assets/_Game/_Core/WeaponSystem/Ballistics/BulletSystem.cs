@@ -125,7 +125,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
                 return;
 
             using var _ = AdvanceMarker.Auto();
-            Camera eye = Camera.main;
+            Camera eye = ViewCamera.Current;
             bool hasEye = eye != null;
             Vector3 eyePosition = hasEye ? eye.transform.position : default;
             float eyeTan = hasEye ? Mathf.Tan(eye.fieldOfView * 0.5f * Mathf.Deg2Rad) : 1f;

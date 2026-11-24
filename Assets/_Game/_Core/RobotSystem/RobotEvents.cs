@@ -1,6 +1,4 @@
-using MB13.Aipocalypse.Core.RobotSystem;
-
-namespace MB13.Aipocalypse.Core.Events
+namespace MB13.Aipocalypse.Core.RobotSystem
 {
     // The player pressed E on a service robot: its menu's UI opens (nothing listens yet: the robot just greets).
     public readonly struct RobotServiceRequested

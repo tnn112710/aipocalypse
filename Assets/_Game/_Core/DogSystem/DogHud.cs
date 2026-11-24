@@ -1,9 +1,9 @@
-using MB13.Aipocalypse.Core.DogSystem;
+using MB13.Aipocalypse.Core.UI;
 using UnityEngine;
 using UnityEngine.UI;
 using VContainer;
 
-namespace MB13.Aipocalypse.Core.UI
+namespace MB13.Aipocalypse.Core.DogSystem
 {
     // The companion dog's toughness bar with its icon: shown while it follows within HudRange or fights, faded out
     // otherwise; the warning colour below HudWarnBelow; a dimmed icon while it's down. Hidden unless DogSettings.ShowBar,

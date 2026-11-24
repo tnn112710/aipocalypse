@@ -7,6 +7,9 @@
   <!-- VContainer builds our services through reflected constructors; BD trees store our task types by name;
        Feel feedbacks are [SerializeReference] types. -->
   <assembly fullname="MB13.Aipocalypse.Core" preserve="all"/>
+  <assembly fullname="MB13.Aipocalypse.Animals" preserve="all"/>
+  <assembly fullname="MB13.Aipocalypse.Dogs" preserve="all"/>
+  <assembly fullname="MB13.Aipocalypse.Robots" preserve="all"/>
 
   <!-- DI: reflected constructors, open generic brokers resolved at runtime. -->
   <assembly fullname="VContainer" preserve="all"/>
