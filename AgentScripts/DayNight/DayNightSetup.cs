@@ -70,7 +70,16 @@ public static class DayNightSetup
         var ambience = BuildAmbience(resetLooks);
         var style = BuildClockStyle();
 
-        AssetDatabase.SaveAssets();
+        // Only what this wrote (AGENTS.md: never SaveAssets, it writes every dirty asset in the editor).
+        AssetDatabase.SaveAssetIfDirty(clock);
+        foreach (var look in looks.Values)
+            AssetDatabase.SaveAssetIfDirty(look);
+        foreach (var grade in grades.Values)
+            AssetDatabase.SaveAssetIfDirty(grade);
+        AssetDatabase.SaveAssetIfDirty(profile);
+        AssetDatabase.SaveAssetIfDirty(sky);
+        AssetDatabase.SaveAssetIfDirty(ambience);
+        AssetDatabase.SaveAssetIfDirty(style);
         return $"assets: clock {(newClock ? "new" : "kept")}, {looks.Count} looks, {grades.Count} grades, {profile.Keys.Count} keys, sky {sky.name}, ambience {ambience.Beds.Length} beds, style {style.name}";
     }
 

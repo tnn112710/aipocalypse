@@ -23,6 +23,8 @@ namespace MB13.Aipocalypse.Core.DefenseSystem
         public float Normalized => _current / _max;
         public bool IsBroken => _broken;
         public bool IsWhole => _current >= _max;
+        // Still down at full health (knocks landed while something stood in the gap) needs a knock to stand it up.
+        public bool NeedsRepair => _broken || !IsWhole;
 
         // Returns the damage taken; a broken barrier takes none.
         public float Damage(float amount)

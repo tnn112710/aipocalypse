@@ -49,6 +49,18 @@ namespace MB13.Aipocalypse.Tests
         }
 
         [Test]
+        public void Health_RepairedToFullWhileStillDown_StillNeedsRepair()
+        {
+            var health = new BarrierHealth(100f);
+            health.Damage(100f);
+            health.Repair(100f);
+            Assert.That(health.IsWhole && health.IsBroken, Is.True, "knocks landed while something stood in the gap");
+            Assert.That(health.NeedsRepair, Is.True, "a knock must still be able to stand it up");
+            health.Stand();
+            Assert.That(health.NeedsRepair, Is.False);
+        }
+
+        [Test]
         public void Health_NewMaximum_KeepsTheShare()
         {
             var health = new BarrierHealth(200f);

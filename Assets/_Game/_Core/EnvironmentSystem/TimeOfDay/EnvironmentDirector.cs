@@ -297,7 +297,8 @@ namespace MB13.Aipocalypse.Core.EnvironmentSystem
                 _ => hour,
             };
 
-            if (_transition == LookTransition.Continuous || _lookTarget < 0f || _transitionDuration <= 0f)
+            // A skip (sleep) runs behind a black screen: snap, so the player wakes to the hour's look, not a glide hours behind.
+            if (_transition == LookTransition.Continuous || _lookTarget < 0f || _transitionDuration <= 0f || _clock.IsSkipping)
             {
                 _lookTarget = _lookFrom = target;
                 _lookSpan = 0f;

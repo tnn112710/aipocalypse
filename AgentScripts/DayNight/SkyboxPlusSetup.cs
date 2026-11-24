@@ -8,12 +8,13 @@ public static class SkyboxPlusSetup
     const string PresetDir = "Assets/_StoreAssets/Rendering/Kronnect/SkyboxPlus/Materials/";
     const string SkyPath = "Assets/_Game/Data/Environment/TimeOfDay/SkyboxPlus_Sky.mat";
     const string TimeOfDaySkyPath = "Assets/_Game/Data/Environment/TimeOfDay/TimeOfDay_Sky.mat";
-    const string StarMapPath = "Assets/_Game/Data/Environment/TimeOfDay/StarMap/StarMap.png";
+    // The star map SkyboxPlus_Sky.mat uses (DAYNIGHT.md → Sky).
+    const string StarMapPath = "Assets/_Game/Data/Environment/TimeOfDay/StarMap/StarMap_NASA2020_Stylized3.png";
     // First-party fork of the vendor Clouds shader with a star map layer (SkyStarMap.shader).
     const string StarMapShader = "Aipocalypse/Skybox/Skybox Plus Star Map";
 
     // Copies a vendor preset (e.g. "Clouds-B1") to the first-party sky with night, stars and the scene's fog colour on,
-    // on the star map fork (StarMap.png when it exists, else the procedural stars). Overwrites SkyboxPlus_Sky.mat: hand tuning is lost.
+    // on the star map fork (StarMapPath when it exists, else the procedural stars). Overwrites SkyboxPlus_Sky.mat: hand tuning is lost.
     public static object Create(string preset)
     {
         var source = AssetDatabase.LoadAssetAtPath<Material>(PresetDir + preset + ".mat");
@@ -53,17 +54,17 @@ public static class SkyboxPlusSetup
         }
         else
             AssetDatabase.CreateAsset(sky, SkyPath);
-        AssetDatabase.SaveAssets();
+        AssetDatabase.SaveAssetIfDirty(AssetDatabase.LoadAssetAtPath<Material>(SkyPath));
         return "sky from " + preset + ": " + string.Join(" ", AssetDatabase.LoadAssetAtPath<Material>(SkyPath).shaderKeywords);
     }
 
-    // Imports StarMap.png as a cubemap and turns the star map on (or back to the procedural stars) on SkyboxPlus_Sky.mat.
+    // Imports the StarMapPath texture as a cubemap and turns the star map on (or back to the procedural stars) on SkyboxPlus_Sky.mat.
     public static object StarMap(bool on, float intensity)
     {
         var sky = AssetDatabase.LoadAssetAtPath<Material>(SkyPath);
         string result = SetStarMap(sky, on, intensity);
         EditorUtility.SetDirty(sky);
-        AssetDatabase.SaveAssets();
+        AssetDatabase.SaveAssetIfDirty(sky);
         return result;
     }
 

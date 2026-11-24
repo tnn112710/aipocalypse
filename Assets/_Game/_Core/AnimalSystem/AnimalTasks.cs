@@ -31,6 +31,7 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
         EnemyMover _mover;
         bool _towardsPen;
         float _retryAt;
+        bool _started;
 
         public override void OnAwake()
         {
@@ -38,7 +39,11 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
             _mover = GetComponent<EnemyMover>();
         }
 
-        public override void OnStart() => Plan();
+        public override void OnStart()
+        {
+            _started = true;
+            Plan();
+        }
 
         public override TaskStatus OnUpdate()
         {
@@ -51,6 +56,9 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
 
         public override void OnEnd()
         {
+            if (!_started)
+                return;
+            _started = false;
             _mover.Halt();
             _animal.Calm();
         }
@@ -99,6 +107,7 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
         EnemyMover _mover;
         float _until;
         bool _runs;
+        bool _started;
 
         public override void OnAwake()
         {
@@ -106,7 +115,11 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
             _mover = GetComponent<EnemyMover>();
         }
 
-        public override void OnStart() => Plan();
+        public override void OnStart()
+        {
+            _started = true;
+            Plan();
+        }
 
         public override TaskStatus OnUpdate()
         {
@@ -131,6 +144,9 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
 
         public override void OnEnd()
         {
+            if (!_started)
+                return;
+            _started = false;
             _mover.Halt();
             _animal.ResumePace();
             _animal.Settle();
@@ -183,6 +199,7 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
     {
         Animal _animal;
         EnemyMover _mover;
+        bool _started;
 
         public override void OnAwake()
         {
@@ -192,12 +209,19 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
 
         public override void OnStart()
         {
+            _started = true;
             _mover.Halt();
             _animal.Sleeping = true;
         }
 
         public override TaskStatus OnUpdate() => TaskStatus.Running;
-        public override void OnEnd() => _animal.Sleeping = false;
+        public override void OnEnd()
+        {
+            if (!_started)
+                return;
+            _started = false;
+            _animal.Sleeping = false;
+        }
     }
 
     // Picks where it eats next. Mostly a short step on from where it stands (DriftChance; a chicken may dart it), kept to
@@ -349,6 +373,7 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
         Animal _animal;
         EnemyMover _mover;
         int _orders;
+        bool _started;
 
         public override void OnAwake()
         {
@@ -358,6 +383,7 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
 
         public override void OnStart()
         {
+            _started = true;
             _orders = _animal.OrdersVersion;
             if (_animal.Darting)
                 _mover.SetSpeed(_animal.HurrySpeed);
@@ -373,6 +399,9 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
 
         public override void OnEnd()
         {
+            if (!_started)
+                return;
+            _started = false;
             _mover.Halt();
             _animal.Calm();
             if (_animal.Darting)
@@ -403,6 +432,7 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
         bool _idle;
         int _fidget;
         bool _faced;
+        bool _started;
 
         public override void OnAwake()
         {
@@ -412,6 +442,7 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
 
         public override void OnStart()
         {
+            _started = true;
             AnimalDefinition definition = _animal.Definition;
             _idle = Random.value < definition.IdleChance;
             Vector2 time = _idle ? definition.IdleTime : definition.GrazeTime;
@@ -458,6 +489,9 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
 
         public override void OnEnd()
         {
+            if (!_started)
+                return;
+            _started = false;
             _animal.Eating = false;
             _animal.Fidget = 0;
             _mover.Halt();

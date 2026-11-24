@@ -1,22 +1,37 @@
+using System;
 using System.Collections.Generic;
 using MB13.Aipocalypse.Core.AudioSystem;
 using MB13.Aipocalypse.Core.Effects;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace MB13.Aipocalypse.Core.SurfaceSystem
 {
     // Root service: what a collider is made of at a point (terrain: its strongest layer there; anything else: the first
     // rule keyword in its name, its parents' or its material's, remembered per collider), and that surface's sounds.
-    public sealed class SurfaceService
+    public sealed class SurfaceService : IDisposable
     {
         // Parents whose names are read with the collider's own.
         const int ParentDepth = 2;
+        // Alphamap texels per side of a terrain tile read in one GetAlphamaps call.
+        const int TileSize = 64;
+
+        // Strongest layer per alphamap texel of one TerrainData, a tile filled on its first query.
+        sealed class TerrainLookup
+        {
+            public TerrainLayer[] Layers;
+            public int Width;
+            public int Height;
+            public int TilesX;
+            public byte[][] Tiles;
+        }
 
         readonly SurfaceSettings _settings;
         readonly AudioService _audio;
         readonly EffectPool _effects;
         readonly Dictionary<Collider, SurfaceKind> _colliders = new();
         readonly Dictionary<TerrainLayer, SurfaceKind> _layers = new();
+        readonly Dictionary<TerrainData, TerrainLookup> _terrains = new();
         int _impactFrame = -1;
         int _impactsThisFrame;
 
@@ -25,6 +40,7 @@ namespace MB13.Aipocalypse.Core.SurfaceSystem
             _settings = settings;
             _audio = audio;
             _effects = effects;
+            SceneManager.sceneUnloaded += OnSceneUnloaded;
             if (!Enabled || _settings.Looks == null)
                 return;
             foreach (SurfaceLook look in _settings.Looks.Values)
@@ -33,6 +49,15 @@ namespace MB13.Aipocalypse.Core.SurfaceSystem
         }
 
         public bool Enabled => _settings != null && _settings.Enabled;
+
+        public void Dispose() => SceneManager.sceneUnloaded -= OnSceneUnloaded;
+
+        // Root service outliving scenes: forget the unloaded scene's colliders and terrains.
+        void OnSceneUnloaded(Scene scene)
+        {
+            _colliders.Clear();
+            _terrains.Clear();
+        }
 
         public SurfaceKind KindOf(Collider collider, Vector3 point)
         {
@@ -97,20 +122,16 @@ namespace MB13.Aipocalypse.Core.SurfaceSystem
         SurfaceKind TerrainKind(TerrainCollider collider, Vector3 point)
         {
             TerrainData data = collider.terrainData;
-            TerrainLayer[] layers = data != null ? data.terrainLayers : null;
-            if (layers == null || layers.Length == 0)
+            if (data == null)
+                return _settings.DefaultTerrain;
+            TerrainLookup lookup = LookupFor(data);
+            if (lookup.Layers.Length == 0)
                 return _settings.DefaultTerrain;
 
             Vector3 local = point - collider.transform.position;
-            int x = Mathf.Clamp(Mathf.RoundToInt(local.x / data.size.x * (data.alphamapWidth - 1)), 0, data.alphamapWidth - 1);
-            int y = Mathf.Clamp(Mathf.RoundToInt(local.z / data.size.z * (data.alphamapHeight - 1)), 0, data.alphamapHeight - 1);
-            float[,,] weights = data.GetAlphamaps(x, y, 1, 1);
-            int strongest = 0;
-            for (int i = 1; i < layers.Length && i < weights.GetLength(2); i++)
-                if (weights[0, 0, i] > weights[0, 0, strongest])
-                    strongest = i;
-
-            TerrainLayer layer = layers[strongest];
+            int x = Mathf.Clamp(Mathf.RoundToInt(local.x / data.size.x * (lookup.Width - 1)), 0, lookup.Width - 1);
+            int y = Mathf.Clamp(Mathf.RoundToInt(local.z / data.size.z * (lookup.Height - 1)), 0, lookup.Height - 1);
+            TerrainLayer layer = lookup.Layers[StrongestAt(data, lookup, x, y)];
             if (layer == null)
                 return _settings.DefaultTerrain;
             if (_layers.TryGetValue(layer, out SurfaceKind known))
@@ -120,6 +141,53 @@ namespace MB13.Aipocalypse.Core.SurfaceSystem
                 : _settings.DefaultTerrain;
             _layers[layer] = kind;
             return kind;
+        }
+
+        TerrainLookup LookupFor(TerrainData data)
+        {
+            if (_terrains.TryGetValue(data, out TerrainLookup lookup))
+                return lookup;
+            int width = data.alphamapWidth;
+            int height = data.alphamapHeight;
+            int tilesX = (width + TileSize - 1) / TileSize;
+            lookup = new TerrainLookup
+            {
+                Layers = data.terrainLayers ?? Array.Empty<TerrainLayer>(),
+                Width = width,
+                Height = height,
+                TilesX = tilesX,
+                Tiles = new byte[tilesX * ((height + TileSize - 1) / TileSize)][],
+            };
+            _terrains[data] = lookup;
+            return lookup;
+        }
+
+        // The index of the strongest layer at texel (x, y); the first of equal weights wins.
+        static int StrongestAt(TerrainData data, TerrainLookup lookup, int x, int y)
+        {
+            int tileX = x / TileSize;
+            int tileY = y / TileSize;
+            int x0 = tileX * TileSize;
+            int y0 = tileY * TileSize;
+            int width = Mathf.Min(TileSize, lookup.Width - x0);
+            ref byte[] tile = ref lookup.Tiles[tileY * lookup.TilesX + tileX];
+            if (tile == null)
+            {
+                int height = Mathf.Min(TileSize, lookup.Height - y0);
+                float[,,] weights = data.GetAlphamaps(x0, y0, width, height);
+                int count = Mathf.Min(lookup.Layers.Length, weights.GetLength(2));
+                tile = new byte[width * height];
+                for (int j = 0; j < height; j++)
+                    for (int i = 0; i < width; i++)
+                    {
+                        int strongest = 0;
+                        for (int k = 1; k < count; k++)
+                            if (weights[j, i, k] > weights[j, i, strongest])
+                                strongest = k;
+                        tile[j * width + i] = (byte)strongest;
+                    }
+            }
+            return tile[(y - y0) * width + (x - x0)];
         }
     }
 }

@@ -133,7 +133,7 @@ Birds and fish that only decorate are one `Spawnable` per flock (`Flock` + a `Fl
 
 ### Raids
 
-`RaidSpawner` asks for each wave group with `SpawnRequest.Group(card, zone, count).WithRules(RaidSettings.Spawning)`, plays the card's arrival cue at the group's anchor once it's placed, counts its handles' `Alive` against `AliveCap`, and withdraws with `Despawn(Now)` (death, stop) or `Despawn(WhenUnseen)` (dawn). Details: [RAIDS.md](RAIDS.md).
+`RaidSpawner` asks for each wave group with `SpawnRequest.Group(card, zone, count).WithRules(RaidSettings.Spawning)`, plays the card's arrival cue at the group's anchor once it's placed, counts its handles' `Alive` against `AliveCap`, and withdraws with `Despawn(Now)` (death, stop) or `Despawn(WhenUnseen)` (dawn). A handle despawned `WhenUnseen` keeps its members listed (`InPlay` while any is still around), so a later `Despawn(Now)` reaches the ones not gone yet (a death after dawn). Details: [RAIDS.md](RAIDS.md).
 
 ## Reference
 

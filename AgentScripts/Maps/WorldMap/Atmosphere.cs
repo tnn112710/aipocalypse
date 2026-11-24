@@ -140,7 +140,7 @@ public static class Atmosphere
         AssetDatabase.SaveAssetIfDirty(renderer);
 
         QualitySettings.lodBias = 1f;
-        AssetDatabase.SaveAssets();
+        AssetDatabase.SaveAssetIfDirty(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/QualitySettings.asset")[0]);
         return new { asset.shadowDistance, asset.shadowCascadeCount, asset.mainLightShadowmapResolution, ssao = ssao.isActive, renderer.depthPrimingMode, QualitySettings.lodBias };
     }
 

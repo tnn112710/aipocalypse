@@ -95,11 +95,13 @@ namespace MB13.Aipocalypse.Core.RobotSystem
 
         Robot _robot;
         bool _moving;
+        bool _started;
 
         public override void OnAwake() => _robot = GetComponent<Robot>();
 
         public override void OnStart()
         {
+            _started = true;
             RobotSettings settings = _robot.Settings;
             Vector3 position = _robot.transform.position;
             Vector3 away = position - _robot.State.StepFrom;
@@ -131,6 +133,9 @@ namespace MB13.Aipocalypse.Core.RobotSystem
 
         public override void OnEnd()
         {
+            if (!_started)
+                return;
+            _started = false;
             _robot.Mover.Halt();
             _robot.Mover.SetSpeed(_robot.Settings.WalkSpeed);
         }
@@ -158,11 +163,13 @@ namespace MB13.Aipocalypse.Core.RobotSystem
         bool _walking;
         bool _hidden;
         float _nextLook;
+        bool _started;
 
         public override void OnAwake() => _robot = GetComponent<Robot>();
 
         public override void OnStart()
         {
+            _started = true;
             float now = Time.time;
             RobotSettings settings = _robot.Settings;
             _robot.Mover.Halt();
@@ -216,6 +223,9 @@ namespace MB13.Aipocalypse.Core.RobotSystem
 
         public override void OnEnd()
         {
+            if (!_started)
+                return;
+            _started = false;
             _robot.Mover.SetSpeed(_robot.Settings.WalkSpeed);
             _robot.ClearMood();
         }
@@ -246,11 +256,13 @@ namespace MB13.Aipocalypse.Core.RobotSystem
         Vector3 _heading;
         Vector3 _plannedFor;
         bool _walking;
+        bool _started;
 
         public override void OnAwake() => _robot = GetComponent<Robot>();
 
         public override void OnStart()
         {
+            _started = true;
             _walking = false;
             _plannedFor = _robot.Roster.PlayerPosition;
             _robot.Mover.Halt();
@@ -314,6 +326,9 @@ namespace MB13.Aipocalypse.Core.RobotSystem
 
         public override void OnEnd()
         {
+            if (!_started)
+                return;
+            _started = false;
             _robot.Mover.SetSpeed(_robot.Settings.WalkSpeed);
             _robot.ClearMood();
         }
@@ -374,11 +389,13 @@ namespace MB13.Aipocalypse.Core.RobotSystem
         Robot _robot;
         int _version;
         int _patVersion;
+        bool _started;
 
         public override void OnAwake() => _robot = GetComponent<Robot>();
 
         public override void OnStart()
         {
+            _started = true;
             _robot.Mover.Halt();
             _version = -1;
             React();
@@ -393,7 +410,13 @@ namespace MB13.Aipocalypse.Core.RobotSystem
             return TaskStatus.Running;
         }
 
-        public override void OnEnd() => _robot.ClearMood();
+        public override void OnEnd()
+        {
+            if (!_started)
+                return;
+            _started = false;
+            _robot.ClearMood();
+        }
 
         void React()
         {
@@ -454,11 +477,13 @@ namespace MB13.Aipocalypse.Core.RobotSystem
 
         Robot _robot;
         float _danceAt;
+        bool _started;
 
         public override void OnAwake() => _robot = GetComponent<Robot>();
 
         public override void OnStart()
         {
+            _started = true;
             _robot.Mover.Halt();
             _danceAt = float.PositiveInfinity;
             if (_robot.State.Cheer == RobotCheer.Win)
@@ -486,7 +511,13 @@ namespace MB13.Aipocalypse.Core.RobotSystem
             return _robot.State.Cheering(Time.time) ? TaskStatus.Running : TaskStatus.Success;
         }
 
-        public override void OnEnd() => _robot.ClearMood();
+        public override void OnEnd()
+        {
+            if (!_started)
+                return;
+            _started = false;
+            _robot.ClearMood();
+        }
     }
 
     // ---- See the player off ----
@@ -505,11 +536,13 @@ namespace MB13.Aipocalypse.Core.RobotSystem
     public sealed class RobotSeeOff : ActionNode
     {
         Robot _robot;
+        bool _started;
 
         public override void OnAwake() => _robot = GetComponent<Robot>();
 
         public override void OnStart()
         {
+            _started = true;
             _robot.Mover.Halt();
             _robot.Emote(RobotEmote.Hello);
             _robot.SetMood(RobotExpression.Sad);
@@ -525,7 +558,13 @@ namespace MB13.Aipocalypse.Core.RobotSystem
             return TaskStatus.Running;
         }
 
-        public override void OnEnd() => _robot.ClearMood();
+        public override void OnEnd()
+        {
+            if (!_started)
+                return;
+            _started = false;
+            _robot.ClearMood();
+        }
     }
 
     // ---- Chat with another robot ----
@@ -546,11 +585,13 @@ namespace MB13.Aipocalypse.Core.RobotSystem
     {
         Robot _robot;
         bool _answered;
+        bool _started;
 
         public override void OnAwake() => _robot = GetComponent<Robot>();
 
         public override void OnStart()
         {
+            _started = true;
             _robot.Mover.Halt();
             _robot.Mover.Face(_robot.State.ChatWith);
             _robot.SetMood(RobotExpression.Happy);
@@ -588,7 +629,13 @@ namespace MB13.Aipocalypse.Core.RobotSystem
             _robot.Hold(RobotExpression.Talk, _robot.Settings.ChatTime * 0.5f);
         }
 
-        public override void OnEnd() => _robot.ClearMood();
+        public override void OnEnd()
+        {
+            if (!_started)
+                return;
+            _started = false;
+            _robot.ClearMood();
+        }
     }
 
     // ---- Welcome home ----
@@ -661,11 +708,13 @@ namespace MB13.Aipocalypse.Core.RobotSystem
 
         Robot _robot;
         bool _walking;
+        bool _started;
 
         public override void OnAwake() => _robot = GetComponent<Robot>();
 
         public override void OnStart()
         {
+            _started = true;
             RobotSettings settings = _robot.Settings;
             _robot.SetMood(RobotExpression.Yawn);
             _walking = !RobotWalk.Near(_robot, _robot.Home, Near)
@@ -677,6 +726,9 @@ namespace MB13.Aipocalypse.Core.RobotSystem
 
         public override void OnEnd()
         {
+            if (!_started)
+                return;
+            _started = false;
             _robot.Mover.SetSpeed(_robot.Settings.WalkSpeed);
             _robot.ClearMood();
         }
@@ -688,11 +740,13 @@ namespace MB13.Aipocalypse.Core.RobotSystem
     public sealed class RobotStandby : ActionNode
     {
         Robot _robot;
+        bool _started;
 
         public override void OnAwake() => _robot = GetComponent<Robot>();
 
         public override void OnStart()
         {
+            _started = true;
             _robot.Mover.Face(_robot.Home + _robot.HomeFacing * 3f);
             _robot.SetStandby(true);
         }
@@ -701,6 +755,9 @@ namespace MB13.Aipocalypse.Core.RobotSystem
 
         public override void OnEnd()
         {
+            if (!_started)
+                return;
+            _started = false;
             _robot.SetStandby(false);
             if (_robot.Roster.Night)
                 _robot.Hold(RobotExpression.Surprised, 1f);
@@ -729,12 +786,26 @@ namespace MB13.Aipocalypse.Core.RobotSystem
     public sealed class RobotDoWork : ActionNode
     {
         Robot _robot;
+        bool _started;
 
         public override void OnAwake() => _robot = GetComponent<Robot>();
-        public override void OnStart() => _robot.Work.Begin(Time.time);
+
+        public override void OnStart()
+        {
+            _started = true;
+            _robot.Work.Begin(Time.time);
+        }
+
         public override TaskStatus OnUpdate() => _robot.Work.Tick(Time.time) ? TaskStatus.Running : TaskStatus.Success;
+
         // Stopping the tree (a scene unload) ends every task, even on a robot with no job.
-        public override void OnEnd() => _robot?.Work?.End(Time.time);
+        public override void OnEnd()
+        {
+            if (!_started)
+                return;
+            _started = false;
+            _robot?.Work?.End(Time.time);
+        }
     }
 
     // ---- Home life ----
@@ -805,11 +876,13 @@ namespace MB13.Aipocalypse.Core.RobotSystem
 
         Robot _robot;
         bool _walking;
+        bool _started;
 
         public override void OnAwake() => _robot = GetComponent<Robot>();
 
         public override void OnStart()
         {
+            _started = true;
             _walking = false;
             RobotSettings settings = _robot.Settings;
             bool home = !RobotWalk.Near(_robot, _robot.Home, AwayFromCenter);
@@ -836,6 +909,9 @@ namespace MB13.Aipocalypse.Core.RobotSystem
 
         public override void OnEnd()
         {
+            if (!_started)
+                return;
+            _started = false;
             if (_walking)
                 _robot.Mover.Halt();
         }

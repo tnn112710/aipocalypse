@@ -17,6 +17,8 @@ namespace MB13.Aipocalypse.Core.RaidSystem
         readonly RaidSettings _settings;
         readonly IReadOnlyList<SpawnZone> _zones;
         readonly List<SpawnHandle> _groups = new();
+        // Groups withdrawn out of sight whose members may still be around (dawn), for a later Withdraw(true) (a death).
+        readonly List<SpawnHandle> _leaving = new();
         readonly List<(SpawnHandle Group, EnemySpawnCard Card)> _announcing = new();
         readonly Dictionary<EnemySpawnCard, int> _planned = new();
         readonly HashSet<string> _unknownZones = new();
@@ -78,6 +80,17 @@ namespace MB13.Aipocalypse.Core.RaidSystem
         {
             foreach (SpawnHandle group in _groups)
                 group.Despawn(now ? DespawnMode.Now : DespawnMode.WhenUnseen);
+            if (now)
+            {
+                foreach (SpawnHandle group in _leaving)
+                    group.Despawn(DespawnMode.Now);
+                _leaving.Clear();
+            }
+            else
+            {
+                _leaving.RemoveAll(group => !group.InPlay);
+                _leaving.AddRange(_groups);
+            }
             _groups.Clear();
             _announcing.Clear();
         }

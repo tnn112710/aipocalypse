@@ -2185,7 +2185,9 @@ public static class WorldMapLayout
             EditorUtility.SetDirty(m);
         }
         var under = MaterialCopy(pond, WaterFolder + "/Water_RiverUnderside.mat", m => m.SetFloat("_Cull", 1));   // back faces only
-        AssetDatabase.SaveAssets();
+        // Only these materials: SaveAssets would also write the open WorldMap's 59 MB TerrainData (AGENTS.md).
+        foreach (var m in new[] { still, pond, swamp, under })
+            AssetDatabase.SaveAssetIfDirty(m);
 
         var group = WaterGroup("Underwater");
         var report = new List<string>();

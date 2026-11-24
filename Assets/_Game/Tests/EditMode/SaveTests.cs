@@ -6,6 +6,7 @@ using MB13.Aipocalypse.Core.EquipmentSystem;
 using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Core.RandomSystem;
 using MB13.Aipocalypse.Core.SaveSystem;
+using MB13.Aipocalypse.Core.Stats;
 using MB13.Aipocalypse.Core.WeaponSystem;
 using NUnit.Framework;
 using UnityEditor;
@@ -175,6 +176,41 @@ namespace MB13.Aipocalypse.Tests
             Assert.IsTrue(File.Exists(_saves.PathOf(1) + ".bak"), "a readable older backup exists");
             Assert.IsFalse(_saves.TryRead(1, out _, out string problem));
             Assert.AreEqual(SaveService.NewerVersion.Text(), problem);
+        }
+
+        [Test]
+        public void Write_OverASaveFromAnotherVersion_KeepsItBesideTheSlot()
+        {
+            Write(1, Saved(1));
+            string path = _saves.PathOf(1);
+            string other = System.Text.RegularExpressions.Regex.Replace(File.ReadAllText(path),
+                $@"""Version""\s*:\s*{SaveService.Version}\b", "\"Version\" : 999");
+            File.WriteAllText(path, other);
+
+            Assert.IsNull(Write(1, Saved(2)));
+            Assert.IsNull(Write(1, Saved(3)));
+
+            string kept = SaveService.OtherVersionPath(path, 999);
+            Assert.IsTrue(File.Exists(kept), "the other version's save survives the overwrite");
+            Assert.AreEqual(other, File.ReadAllText(kept), "and later saves don't replace it");
+            Assert.IsTrue(_saves.TryRead(1, out SaveData read, out string problem), problem);
+            read.TryGet("test", out TestEntry entry);
+            Assert.AreEqual(3, entry.Number);
+        }
+
+        [Test]
+        public void StartFresh_DropsTheLastGamesStatModifiers()
+        {
+            var registry = new SaveRegistry();
+            var stats = new StatModifiers();
+            var section = new StatSaveSection(registry, stats);
+            section.Initialize();
+            stats.Set("upgrade", StatId.WalkSpeed, multiply: 2f);
+
+            registry.StartFresh();
+
+            Assert.IsEmpty(stats.All, "a new game doesn't inherit the loaded game's upgrades");
+            section.Dispose();
         }
 
         [Test]

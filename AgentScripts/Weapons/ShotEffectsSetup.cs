@@ -39,7 +39,6 @@ public static class ShotEffectsSetup
         var flashCore = AssetDatabase.LoadAssetAtPath<Material>(VendorMaterials + "/Impact02_SGAddScroll.mat");
         var vendorGlow = AssetDatabase.LoadAssetAtPath<Material>(VendorMaterials + "/UniqueProjectiles_Add_8x8.mat");
         Light lightTemplate = LightPrefab(log);
-        AssetDatabase.SaveAssets();
 
         EditPrefab(Dir + "/MuzzleFlash.prefab", root =>
         {

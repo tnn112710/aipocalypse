@@ -79,7 +79,7 @@ namespace MB13.Aipocalypse.Core.DefenseSystem
         public bool IsDead => IsBroken;
         public float RemainingHealth => _health != null ? _health.Current : 0f;
         public Vector3 Span => _blocker != null ? _blocker.transform.TransformVector(_blocker.size.x * 0.5f, 0f, 0f) : transform.right;
-        public bool NeedsRepair => _health != null && !_health.IsWhole;
+        public bool NeedsRepair => _health != null && _health.NeedsRepair;
         // Its model as it stands or lies now, for highlights over it (RepairHighlight).
         public GhostShape Overlay => _look != null ? _overlay ??= _look.CaptureLive() : null;
 

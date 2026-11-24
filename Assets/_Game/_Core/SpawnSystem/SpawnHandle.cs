@@ -67,14 +67,28 @@ namespace MB13.Aipocalypse.Core.SpawnSystem
             Pending = 0;
         }
 
-        // Cancels the rest, and despawns its members in play: dead ones are left to lie.
+        // Cancels the rest, and despawns its members in play: dead ones are left to lie. Members sent off WhenUnseen stay
+        // listed, so a later Despawn(Now) still reaches the ones not gone yet.
         public void Despawn(DespawnMode mode)
         {
             Cancel();
             foreach (Member member in _members)
                 if (member.IsCurrent && member.Instance.State is SpawnState.Active or SpawnState.Leaving)
                     _service.Despawn(member.Instance, mode);
-            _members.Clear();
+            if (mode == DespawnMode.Now)
+                _members.Clear();
+        }
+
+        // Some member is still in play, leaving ones included.
+        public bool InPlay
+        {
+            get
+            {
+                foreach (Member member in _members)
+                    if (member.IsCurrent && member.Instance.State is SpawnState.Active or SpawnState.Leaving)
+                        return true;
+                return false;
+            }
         }
 
         // Its members in play and alive, added to `into`.

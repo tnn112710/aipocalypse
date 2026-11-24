@@ -25,6 +25,9 @@ namespace MB13.Aipocalypse.Core.Stats
             _stats.Restore(saved?.Modifiers);
         }
 
+        // Root service: a new game must not keep the last game's upgrades.
+        public override void StartFresh() => _stats.Restore(null);
+
         [Serializable]
         public sealed class StatSave
         {

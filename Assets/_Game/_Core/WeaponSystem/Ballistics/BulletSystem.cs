@@ -4,6 +4,7 @@ using MB13.Aipocalypse.Core.Effects;
 using MB13.Aipocalypse.Core.SurfaceSystem;
 using Unity.Profiling;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using VContainer.Unity;
 
 namespace MB13.Aipocalypse.Core.WeaponSystem
@@ -38,7 +39,7 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
 
     // Every bullet in flight as plain data: moved and ray-tested each frame, no rigidbodies, one central tick.
     // Hits damage IDamageables through DamageService and spawn pooled impacts and bullet holes.
-    public sealed class BulletSystem : ITickable
+    public sealed class BulletSystem : ITickable, System.IDisposable
     {
         struct Bullet
         {
@@ -75,7 +76,13 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
             _effects = effects;
             _damage = damage;
             _surfaces = surfaces;
+            SceneManager.sceneUnloaded += OnSceneUnloaded;
         }
+
+        public void Dispose() => SceneManager.sceneUnloaded -= OnSceneUnloaded;
+
+        // Root service: bullets still in flight belong to the unloaded scene (their shooter, tracer and targets are gone).
+        void OnSceneUnloaded(Scene scene) => _bullets.Clear();
 
         public void Fire(in BulletShot shot)
         {

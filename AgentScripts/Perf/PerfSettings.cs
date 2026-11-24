@@ -24,7 +24,7 @@ public static class PerfSettings
             PlayerSettings.SetScriptingDefineSymbols(standalone, string.Join(";", defines));
         }
 
-        AssetDatabase.SaveAssets();
+        AssetDatabase.SaveAssetIfDirty(quality.targetObject);
         return State();
     }
 

@@ -137,10 +137,11 @@ namespace MB13.Aipocalypse.Core.SaveSystem
             if (!_saves.TryRead(slot, out SaveData data, out message, out bool fromBackup))
                 return false;
             string scene = string.IsNullOrEmpty(data.Header.Scene) ? _settings.WorldScene : data.Header.Scene;
+            GameState before = State;
             _pending = data;
             // The world being left stays this session's until its scene unloads (WorldSaver.Dispose), so a load that
-            // fails mid-way leaves it playable.
-            if (!_scenes.Load(scene, () => _pending = null))
+            // fails mid-way leaves it playable, saving to its own slot.
+            if (!_scenes.Load(scene, () => Revert(before)))
             {
                 _pending = null;
                 message = CantOpenScene.Format(scene);
@@ -166,7 +167,7 @@ namespace MB13.Aipocalypse.Core.SaveSystem
                 message = NoSlot.Format(slot);
                 return false;
             }
-            if (!_scenes.Load(_settings.WorldScene))
+            if (!_scenes.Load(_settings.WorldScene, RevertTo(State)))
             {
                 message = CantOpenScene.Format(_settings.WorldScene);
                 return false;
@@ -187,7 +188,7 @@ namespace MB13.Aipocalypse.Core.SaveSystem
         // A quick fresh game in the world scene, as pressing Play there in the editor: no slot to pick (see the class).
         public bool StartPrototype(out string message)
         {
-            if (!_scenes.Load(_settings.WorldScene))
+            if (!_scenes.Load(_settings.WorldScene, RevertTo(State)))
             {
                 message = CantOpenScene.Format(_settings.WorldScene);
                 return false;
@@ -209,7 +210,7 @@ namespace MB13.Aipocalypse.Core.SaveSystem
 
         public bool ReturnToMainMenu()
         {
-            if (!_scenes.Load(_settings.MainMenuScene))
+            if (!_scenes.Load(_settings.MainMenuScene, RevertTo(State)))
                 return false;
             _started = false;
             _pending = null;
@@ -244,7 +245,9 @@ namespace MB13.Aipocalypse.Core.SaveSystem
             _world = world;
             _raid = false;
             _autosaveDue = false;
-            if (_pending != null)
+            if (_pending == null)
+                _sections.StartFresh();
+            else
             {
                 SaveData data = _pending;
                 _pending = null;
@@ -336,6 +339,42 @@ namespace MB13.Aipocalypse.Core.SaveSystem
             _autosaveDue = true;
             _autosaveRetryAt = Time.unscaledTime + AutosaveRetrySeconds;
             Debug.LogWarning($"{message}; trying again in {AutosaveRetrySeconds:0} s");
+        }
+
+        // What starting another game changes, put back when its scene load throws part-way and the old world keeps running.
+        readonly struct GameState
+        {
+            public readonly int Slot;
+            public readonly double PlayTime;
+            public readonly SaveData Carry;
+            public readonly bool Started;
+            public readonly bool AutosaveDue;
+            public readonly int Game;
+
+            public GameState(int slot, double playTime, SaveData carry, bool started, bool autosaveDue, int game)
+            {
+                Slot = slot;
+                PlayTime = playTime;
+                Carry = carry;
+                Started = started;
+                AutosaveDue = autosaveDue;
+                Game = game;
+            }
+        }
+
+        GameState State => new(Slot, PlayTime, _carry, _started, _autosaveDue, _game);
+
+        Action RevertTo(GameState state) => () => Revert(state);
+
+        void Revert(GameState state)
+        {
+            Slot = state.Slot;
+            PlayTime = state.PlayTime;
+            _carry = state.Carry;
+            _started = state.Started;
+            _autosaveDue = state.AutosaveDue;
+            _game = state.Game;
+            _pending = null;
         }
 
         static ulong NewSeed() => (ulong)DateTime.UtcNow.Ticks ^ ((ulong)Environment.TickCount << 32);

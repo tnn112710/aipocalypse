@@ -178,7 +178,7 @@ namespace MB13.Aipocalypse.Core.EnemySystem
             if (RegistryIndex >= 0)
                 Mover.Teleport(transform.position);
             _orders = info.Handle?.Tag is SpawnOrders orders ? orders : default;
-            if (_orders.Elite && !IsElite && _definition.Elite != null)
+            if (Stats != null && _orders.Elite && !IsElite && _definition.Elite != null)
                 MakeElite(_definition.Elite);
             Appear();
         }
@@ -224,6 +224,15 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         {
             if (_awareness.Notice(Time.time))
                 Noticed(alarm);
+        }
+
+        // Hit by `source`: a hit from the player (or from nothing known) gives the player away and alarms its neighbours. A
+        // dog's bite or a fence's thorns don't: the dog's bite makes it Retaliate instead.
+        public void NoticeHitFrom(GameObject source)
+        {
+            ITargetable player = _targetRegistry != null ? _targetRegistry.Player : null;
+            if (source == null || player == null || source == player.Transform.gameObject)
+                Notice(true);
         }
 
         // One think (EnemyManager): ends a flinch that ran out; nothing while appearing or staggered, else a look for the
@@ -418,6 +427,7 @@ namespace MB13.Aipocalypse.Core.EnemySystem
         void StopActing()
         {
             _appearRequested = false;
+            _orders = default;
             Target = null;
             _slots?.Release(this);
             _targets?.Forget(this);
@@ -443,7 +453,6 @@ namespace MB13.Aipocalypse.Core.EnemySystem
             _appearEnd = 0f;
             _flinchEnd = 0f;
             _staggerEnd = 0f;
-            _orders = default;
             _awareness.Reset();
             _nextSense = Time.time + Random.value * SenseInterval;
             IsElite = false;
@@ -454,6 +463,9 @@ namespace MB13.Aipocalypse.Core.EnemySystem
             Stats.AddModifier(new EnemyStatModifier(EnemyStat.MoveSpeed, this,
                 multiply: CrowdSpread.SpeedFactor(_definition.SpeedVariance, Random.value)));
             if (_definition.Elite != null && _random != null && _random.Stream(EliteStream).Chance(_definition.Elite.Chance))
+                MakeElite(_definition.Elite);
+            // A fresh instance takes its orders before Start activates it (pooled ones get them after, in OnSpawned).
+            if (_orders.Elite && !IsElite && _definition.Elite != null)
                 MakeElite(_definition.Elite);
             Stats.Changed += ApplyStat;
             Mover.Initialize(_navigation, _definition, Stats);

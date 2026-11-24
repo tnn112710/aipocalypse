@@ -26,6 +26,10 @@ namespace MB13.Aipocalypse.Core.SaveSystem
 
         // Puts a saved state back, on the first frame of a freshly loaded scene (after every Start).
         public abstract void Restore(SaveData save);
+
+        // A new game starts (no save loaded): a root section drops what the last game left. Scene sections start fresh with
+        // their scene, so most do nothing.
+        public virtual void StartFresh() { }
     }
 
     // Restore order: the clock first (others react to the time), the player last (it may stand in what was restored).
@@ -98,6 +102,12 @@ namespace MB13.Aipocalypse.Core.SaveSystem
                 }
             }
             return failed;
+        }
+
+        public void StartFresh()
+        {
+            foreach (SaveSection section in _sections)
+                section.StartFresh();
         }
     }
 }

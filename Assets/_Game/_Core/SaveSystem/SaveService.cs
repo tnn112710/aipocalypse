@@ -115,13 +115,13 @@ namespace MB13.Aipocalypse.Core.SaveSystem
             }
             Flush();
             string path = PathOf(slot);
-            if (TryReadFile(path, out data, out problem, out bool otherVersion))
+            if (TryReadFile(path, out data, out problem, out int? otherVersion))
             {
                 MarkReadable(slot, path);
                 return true;
             }
             // A save from another version isn't damaged: its older backup must not stand in for it.
-            if (otherVersion)
+            if (otherVersion != null)
                 return false;
             if (TryReadFile(path + BackupSuffix, out data, out string backupProblem, out _))
             {
@@ -138,7 +138,8 @@ namespace MB13.Aipocalypse.Core.SaveSystem
         }
 
         // Starts writing the slot and returns at once: the task ends with null, or why the disk refused. The bytes are taken
-        // now (so `data` can change afterwards); the previous save becomes the .bak if it reads.
+        // now (so `data` can change afterwards); the previous save becomes the .bak if it reads, and a save from another
+        // version is kept beside it as .v<version> (overwriting it from the slot list must not destroy it).
         public Task<string> WriteAsync(int slot, SaveData data)
         {
             if (!IsValidSlot(slot))
@@ -163,8 +164,15 @@ namespace MB13.Aipocalypse.Core.SaveSystem
             string folder = FolderPath;
             string path = PathOf(slot);
             // Only a readable save is worth keeping as the backup: never let a damaged file push out the last good one.
-            bool backup = File.Exists(path) && (IsKnownReadable(slot, path) || TryReadFile(path, out _, out _, out _));
-            Task<string> write = Task.Run(() => WriteFile(slot, folder, path, bytes, backup));
+            string keepAs = null;
+            if (File.Exists(path))
+            {
+                if (IsKnownReadable(slot, path) || TryReadFile(path, out _, out _, out int? otherVersion))
+                    keepAs = path + BackupSuffix;
+                else if (otherVersion != null)
+                    keepAs = OtherVersionPath(path, otherVersion.Value);
+            }
+            Task<string> write = Task.Run(() => WriteFile(slot, folder, path, bytes, keepAs));
             _writing = write;
             return write;
         }
@@ -184,7 +192,7 @@ namespace MB13.Aipocalypse.Core.SaveSystem
         }
 
         // Thread pool: the new file goes to .tmp first, so a failed write leaves the slot as it was.
-        string WriteFile(int slot, string folder, string path, byte[] bytes, bool backup)
+        string WriteFile(int slot, string folder, string path, byte[] bytes, string keepAs)
         {
             try
             {
@@ -193,8 +201,8 @@ namespace MB13.Aipocalypse.Core.SaveSystem
                 File.WriteAllBytes(temp, bytes);
                 if (File.Exists(path))
                 {
-                    if (backup)
-                        File.Copy(path, path + BackupSuffix, true);
+                    if (keepAs != null)
+                        File.Copy(path, keepAs, true);
                     File.Replace(temp, path, null);
                 }
                 else
@@ -228,11 +236,15 @@ namespace MB13.Aipocalypse.Core.SaveSystem
 
         string NoSlot(int slot) => slot == 0 ? NoSlotPicked.Text() : NoSlotInRange.Format(slot, SlotCount);
 
-        bool TryReadFile(string path, out SaveData data, out string problem, out bool otherVersion)
+        // Where a save from another version is kept when its slot is overwritten.
+        public static string OtherVersionPath(string path, int version) => $"{path}.v{version}";
+
+        // otherVersion: the file's version when it reads but belongs to another version, else null.
+        bool TryReadFile(string path, out SaveData data, out string problem, out int? otherVersion)
         {
             data = null;
             problem = null;
-            otherVersion = false;
+            otherVersion = null;
             if (!File.Exists(path))
             {
                 problem = MissingFile.Text();
@@ -249,7 +261,7 @@ namespace MB13.Aipocalypse.Core.SaveSystem
                 var header = file.Load<SaveHeader>(SaveData.HeaderKey);
                 if (header.Version != Version)
                 {
-                    otherVersion = true;
+                    otherVersion = header.Version;
                     problem = header.Version > Version ? NewerVersion.Text() : OldFormat.Format(header.Version);
                     return false;
                 }
