@@ -11,6 +11,21 @@ namespace MB13.Aipocalypse.Tests
         static readonly TimeWindow Day = new(6f, 20f);
         const float DayLength = 14f;
 
+        // 14 animals thinking every 0.2 s (12 frames at 60 fps): their first thinks fall at most 2 to a frame, not all at once.
+        [Test]
+        public void ThinkOffset_SpreadsTheHerdOverTheInterval()
+        {
+            const float interval = 0.2f;
+            var perFrame = new int[12];
+            for (int order = 1; order <= 14; order++)
+            {
+                float offset = AnimalManager.ThinkOffset(order, interval);
+                Assert.That(offset, Is.InRange(0f, interval));
+                perFrame[Mathf.Min(11, (int)(offset / interval * 12f))]++;
+            }
+            Assert.That(perFrame, Has.All.LessThanOrEqualTo(2));
+        }
+
         [Test]
         public void Earn_OverAWholeWakingDay_GivesTheDayRate()
         {

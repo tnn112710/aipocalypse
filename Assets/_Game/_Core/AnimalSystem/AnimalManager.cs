@@ -98,6 +98,10 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
             }
         }
 
+        // When the `order`th animal to join first thinks, after it joins: spread over the interval by the golden ratio, so the
+        // herd's trees don't all run in one frame (14 at once was a spike every ThinkInterval).
+        public static float ThinkOffset(int order, float interval) => interval * Mathf.Repeat(order * 0.618034f, 1f);
+
         // The clock was put somewhere else (a loaded save): the next frame earns nothing for the jump.
         public void ForgetClock() => _lastHours = double.NaN;
 

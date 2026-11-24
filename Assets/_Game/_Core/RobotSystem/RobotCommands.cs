@@ -102,5 +102,27 @@ namespace MB13.Aipocalypse.Core.RobotSystem
                     return robot;
             return null;
         }
-    }
+
+        // Switched off by `robot.active off` (they leave the roster while off, so they're kept here to switch back on).
+        readonly System.Collections.Generic.List<GameObject> _switchedOff = new();
+
+        [Command("Switch every robot off or back on (to measure what they cost)")]
+        string Active(bool on)
+        {
+            if (!on)
+            {
+                foreach (Robot robot in _roster.Robots)
+                    _switchedOff.Add(robot.gameObject);
+                foreach (GameObject go in _switchedOff)
+                    go.SetActive(false);
+                return $"{_switchedOff.Count} robots off.";
+            }
+            int count = _switchedOff.Count;
+            foreach (GameObject go in _switchedOff)
+                if (go != null)
+                    go.SetActive(true);
+            _switchedOff.Clear();
+            return $"{count} robots on.";
+        }
+}
 }

@@ -90,6 +90,55 @@ public static class PerfSuite
         return Finish($"views_{hour:00}", sb);
     }
 
+    // Home life's cost (clock frozen at `hour`, partly cloudy and breezy): the player in the yard facing the pen, measured with every
+    // animal, robot and the dog on, then with each group switched off (SetActive false on their GameObjects), then none.
+    public static async Task<string> HomeLife(float seconds = 6f, bool profile = true, float hour = 9f)
+    {
+        if (!EditorApplication.isPlaying) return "enter play mode first";
+        var sb = Header($"home life {hour}h");
+        var resolver = Object.FindAnyObjectByType<GameLifetimeScope>().Container;
+        sb.AppendLine("weather: " + resolver.Resolve<MB13.Aipocalypse.Core.Debugging.CommandRegistry>().Execute("weather.set PartlyCloudy Breezy 0").Message);
+        using var s = new Session(input: false, profile);
+        using var frozen = new FrozenClock(hour);
+        await Seconds(4f);
+        var pen = Object.FindAnyObjectByType<MB13.Aipocalypse.Core.AnimalSystem.AnimalPen>();
+        var yard = Object.FindAnyObjectByType<MB13.Aipocalypse.Core.RobotSystem.RobotYard>();
+        Vector3 toPen = Vector3.ProjectOnPlane(pen.transform.position - yard.transform.position, Vector3.up).normalized;
+        Vector3 at = pen.transform.position - toPen * 14f;
+        Teleport(Player, Ground(at.x, at.z), Quaternion.LookRotation(toPen).eulerAngles.y, 0f);
+        GameObject[] Group<T>() where T : Component => Object.FindObjectsByType<T>().Select(c => c.gameObject).ToArray();
+        GameObject[] dog = Group<MB13.Aipocalypse.Core.DogSystem.Dog>();
+        GameObject[] animals = Group<MB13.Aipocalypse.Core.AnimalSystem.Animal>();
+        GameObject[] robots = Group<MB13.Aipocalypse.Core.RobotSystem.Robot>();
+        sb.AppendLine($"dog {dog.Length}, animals {animals.Length}, robots {robots.Length}");
+        (string Name, GameObject[][] Off)[] cases =
+        {
+            ("all_on", new GameObject[0][]), ("no_dog", new[] { dog }), ("no_animals", new[] { animals }), ("no_robots", new[] { robots }),
+            ("none", new[] { dog, animals, robots }),
+        };
+        try
+        {
+            foreach ((string name, GameObject[][] off) in cases)
+            {
+                foreach (GameObject go in off.SelectMany(g => g))
+                    go.SetActive(false);
+                await Seconds(2f);
+                var seg = await Measure(name, s, seconds, null, profile);
+                sb.AppendLine(Row(seg));
+                if (profile) sb.Append(Analyze(seg, 14, 2));
+                foreach (GameObject go in off.SelectMany(g => g))
+                    go.SetActive(true);
+            }
+        }
+        finally
+        {
+            foreach (GameObject go in dog.Concat(animals).Concat(robots))
+                if (go != null)
+                    go.SetActive(true);
+        }
+        return Finish($"homelife_{hour:00}", sb);
+    }
+
     // At the spawn by day (clock frozen at `hour`): idle, look, walk, sprint, jump, then with guns: idle, hip fire, aim fire,
     // fire while turning, weapon switching, reload, then melee.
     public static async Task<string> Actions(float seconds = 5f, float hour = 9f, string only = "")
@@ -755,6 +804,16 @@ public static class PerfSuite
         if (water) Keep(() => water.activeSelf, a => water.SetActive(a));
         var sun = RenderSettings.sun;
         Keep(() => sun.cookie, c => sun.cookie = c);
+        // COZY's weather-blocking camera (renders the scene from above so rain stops under roofs).
+        var fxCamera = Camera.allCameras.FirstOrDefault(c => c.name == "FX Blocking Camera");
+        if (fxCamera) Keep(() => fxCamera.enabled, e => fxCamera.enabled = e);
+        var particleRenderers = Object.FindObjectsByType<ParticleSystemRenderer>().Where(r => r.enabled).ToArray();
+        restore.Add(() => { foreach (var r in particleRenderers) if (r) r.enabled = true; });
+        void Particles(Func<ParticleSystemRenderer, bool> which) { foreach (var r in particleRenderers) if (r && which(r)) r.enabled = false; }
+        GameObject[] home = Object.FindObjectsByType<MB13.Aipocalypse.Core.DogSystem.Dog>().Select(c => c.gameObject)
+            .Concat(Object.FindObjectsByType<MB13.Aipocalypse.Core.AnimalSystem.Animal>().Select(c => c.gameObject))
+            .Concat(Object.FindObjectsByType<MB13.Aipocalypse.Core.RobotSystem.Robot>().Select(c => c.gameObject)).ToArray();
+        restore.Add(() => { foreach (var go in home) if (go) go.SetActive(true); });
 
         var configs = new List<(string name, Action apply)>
         {
@@ -791,6 +850,16 @@ public static class PerfSuite
             ("mip streaming off", () => QualitySettings.streamingMipmapsActive = false),
             ("water height prepass off", () => heightEnable?.SetValue(heightSettings, false)),
             ("hud off", () => Root("HUD", false)),
+            ("terrain details off", () => terrain.detailObjectDistance = 0f),
+            ("terrain trees off", () => terrain.treeDistance = 0f),
+            ("ssao off", () => Feature("ScreenSpaceAmbientOcclusion", false)),
+            ("volumetric fog off", () => Feature("VolumetricFogRenderFeature", false)),
+            ("cozy feature off", () => Feature("CozyRendererFeature", false)),
+            ("cozy fx camera off", () => { if (fxCamera) fxCamera.enabled = false; }),
+            ("fog particles off", () => Particles(p => p.name.StartsWith("Fog"))),
+            ("dust particles off", () => Particles(p => p.name.StartsWith("TEM_Dust"))),
+            ("all particles off", () => Particles(_ => true)),
+            ("home life off", () => { foreach (var go in home) go.SetActive(false); }),
             ("baseline again", () => { }),
         };
         var wanted = only.Length == 0 ? null : only.Split(',').Select(x => x.Trim()).ToHashSet();

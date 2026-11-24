@@ -10,7 +10,8 @@ using UnityEditor.Build.Reporting;
 //   Builds/Perf/aipocalypse.exe -screen-fullscreen 0 -screen-width 1920 -screen-height 1080
 //     -profiler-enable -profiler-log-file <path>.raw -profiler-capture-frame-count 3000 -profiler-maxusedmemory 268435456
 //     -console "app.background on; cheat.god on; cheat.infammo on; cheat.take ak47; clock.set 21; raid.start; cheat.autopilot on"
-// then read it in the editor with PerfSuite.Capture(<path>.raw). Builds/ is gitignored.
+// then read it in the editor with PerfSuite.Capture(<path>.raw). Builds/ is gitignored. On 2026-11-24 the .raw held only the
+// loading frames: connect the editor's profiler instead (map-generation skill, performance.md → Measuring).
 // Run: unity command script run --file AgentScripts/Perf/PerfBuild.cs --entry PerfBuild.Build --timeout 3600
 public static class PerfBuild
 {

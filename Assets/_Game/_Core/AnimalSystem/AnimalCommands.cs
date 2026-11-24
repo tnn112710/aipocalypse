@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using MB13.Aipocalypse.Core.Debugging;
 using MB13.Aipocalypse.Core.PlayerSystem;
+using UnityEngine;
 
 namespace MB13.Aipocalypse.Core.AnimalSystem
 {
@@ -77,5 +79,27 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
         }
 
         PenGate Gate() => _herd.Pen != null ? _herd.Pen.Gate : null;
-    }
+
+        // Switched off by `animal.active off` (they leave the herd while off, so they're kept here to switch back on).
+        readonly List<GameObject> _switchedOff = new();
+
+        [Command("Switch every animal off or back on (to measure what they cost)")]
+        string Active(bool on)
+        {
+            if (!on)
+            {
+                foreach (Animal animal in _herd.Animals)
+                    _switchedOff.Add(animal.gameObject);
+                foreach (GameObject go in _switchedOff)
+                    go.SetActive(false);
+                return $"{_switchedOff.Count} animals off.";
+            }
+            int count = _switchedOff.Count;
+            foreach (GameObject go in _switchedOff)
+                if (go != null)
+                    go.SetActive(true);
+            _switchedOff.Clear();
+            return $"{count} animals on.";
+        }
+}
 }

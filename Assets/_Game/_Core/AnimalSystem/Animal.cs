@@ -199,6 +199,7 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
             Mover.Initialize(_navigation, WalkSpeed, _definition.StopDistance, holdGround: true, faceTurnSpeed: Herd.Settings.FaceTurnSpeed);
             Tree.StartBehavior();
             Herd.Add(this);
+            NextThinkAt = Time.time + AnimalManager.ThinkOffset(Herd.Animals.Count, Herd.Settings.ThinkInterval);
             if (_grassBending != null && _definition.GrassBendRadius > 0f)
                 _grassBending.Add(transform, _definition.GrassBendRadius);
         }

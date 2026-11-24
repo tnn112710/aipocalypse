@@ -42,6 +42,15 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             }
         }
 
+        [Command("Move the player to a point (x,y,z), facing `yaw` degrees (0 = north)")]
+        CommandResult Tp(Vector3 position, float yaw = 0f)
+        {
+            if (Current is not { } player)
+                return NoPlayer;
+            player.Teleport(position, yaw);
+            return CommandResult.Ok(CommandParser.Format(position));
+        }
+
         [Command("Kill the player with a real hit")]
         CommandResult Kill()
         {

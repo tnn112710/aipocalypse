@@ -53,7 +53,7 @@ AnimalSettings (SO, Data/Animals)        Enabled, think interval, waking hours, 
 AnimalHerd (scene service)               the animals in play (hierarchy order), HerdOrders, the pen and pasture, Asleep, the player's position, LeaderOf
 HerdOrders (pure, AnimalTests)           GateOpen, Called, Released, Version
 AnimalEarnings (pure, AnimalTests)       Earn over waking hours up to a cap, Collect whole Tokens, AwakeHours(from, to, window)
-AnimalManager (scene entry point)        every frame: earnings, animation, marker, calls, the player's position, step-asides; a think every ThinkInterval;
+AnimalManager (scene entry point)        every frame: earnings, animation, marker, calls, the player's position, step-asides; a think every ThinkInterval (each animal's first think spread over the interval, `AnimalManager.ThinkOffset`: all 14 at once was a Behavior Designer spike);
                                          ShotFired → scares; HandOver (from Animal's C); shuts the gate
 AnimalTasks (Behavior Designer)          CalledHome, WalkHome, IsStartled, MoveAway, IsNight, SleepHere, ChooseGrazeSpot, WalkToGrazeSpot, GrazeHere
 AnimalPen / AnimalPasture / PenGate / AnimalBell   scene components

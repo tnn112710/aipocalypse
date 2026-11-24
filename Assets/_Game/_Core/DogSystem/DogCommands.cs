@@ -140,5 +140,27 @@ namespace MB13.Aipocalypse.Core.DogSystem
             float fromPlayer = _roster.HasPlayer ? Vector3.Distance(dog.transform.position, _roster.PlayerPosition) : -1f;
             return $"{dog.name}: {doing}, pose {dog.Pose}, {fromPlayer:0.0} m from you, at {dog.transform.position}";
         }
-    }
+
+        // Switched off by `dog.active off` (it leaves the roster while off, so it's kept here to switch back on).
+        GameObject _switchedOff;
+
+        [Command("Switch the dog off or back on (to measure what it costs)")]
+        string Active(bool on)
+        {
+            if (!on)
+            {
+                if (_roster.Dog == null)
+                    return "No dog.";
+                _switchedOff = _roster.Dog.gameObject;
+                _switchedOff.SetActive(false);
+                return $"{_switchedOff.name} off.";
+            }
+            if (_switchedOff == null)
+                return "Nothing switched off.";
+            _switchedOff.SetActive(true);
+            string name = _switchedOff.name;
+            _switchedOff = null;
+            return $"{name} on.";
+        }
+}
 }
