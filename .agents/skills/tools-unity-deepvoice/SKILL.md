@@ -1,6 +1,6 @@
 ---
 name: tools-unity-deepvoice
-description: DeepVoice Pro (AiKodex) in aipocalypse — the editor-only cloud text-to-speech window that writes voice lines as WAVs, plus its trimmer / joiner / equalizer. Covers who presses Generate, the private invoice number, the monthly character quota, writing line sheets (voice, model, pace, instructions, file names), prompt tricks for pauses and emotion, the output location, and routing a clip into BroAudio. Use for any spoken line, voice-over, dialogue audio, talking drone / robot / NPC voice, or anything touching Assets/Plugins/DeepVoicePro.
+description: DeepVoice Pro (AiKodex) in aipocalypse — the editor-only cloud text-to-speech window that writes voice lines as WAVs, plus its trimmer / joiner / equalizer. Covers who presses Generate, the private invoice number, the monthly character quota, the candidate → listen → promote flow for final voice lines, writing line sheets (voice, model, pace, instructions, file names), prompt tricks for pauses and emotion, the output location, and routing an accepted clip into BroAudio. Use for any spoken line, voice-over, dialogue audio, talking drone / robot / NPC voice, voice candidates, or anything touching Assets/Plugins/DeepVoicePro.
 ---
 
 # DeepVoice Pro (aipocalypse)
@@ -13,7 +13,7 @@ A **cloud** text-to-speech service wrapped in an editor window (`Window > DeepVo
 
 ## Status in this repo
 
-- **Tag:** Undecided (PLUGINS.md → Audio). Ask the user before relying on it for anything beyond what they requested.
+- **Tag:** Should (PLUGINS.md → Audio): the user chose DeepVoice for the game's final voices on 2026-11-24. It is the only text-to-speech tool here.
 - **Install location is not the vendor default.** The window hard-codes `Assets/DeepVoicePro/...` for its logo, icons, voice previews and default output folder (`Assets/DeepVoicePro/Voices`, created when the window opens), but the pack sits in `Assets/Plugins/DeepVoicePro`. Expect missing icons and previews, and an output folder outside `Plugins/`. Not tested here because opening the window creates the folder. Fixing it (move the pack, or patch the paths with a documented local patch) is the user's decision; don't do either unasked.
 - **No voiced characters are built.** The GDD floats a cheerful tech-support drone voice (IDEAS.md), which is a proposal: don't generate lines for it unless the user asks.
 
@@ -32,9 +32,24 @@ A **cloud** text-to-speech service wrapped in an editor window (`Window > DeepVo
    | Settings | Multi: pace 0.7–1.2, variability 0–1, clarity 0–1 (window defaults 0.5 / 0.3 / 0.75). Instruct: the instruction block |
    | File | `<Voice>_<Body>_<take>.wav`: see the naming trap |
 
-4. **Generated lines are AI-generated audio**: they go to `Assets/_Placeholder/Audio/Voice/` (ASSETS.md → `_Placeholder`, nothing ships from there) until the user says a line is final and where it lives. Add a line to `Assets/_Placeholder/Audio/SOURCES.txt` for each batch (model, voice, source text).
+4. **DeepVoice lines are the project's final voices** (user decision 2026-11-24), so they do not go to `_Placeholder`. But nothing goes into the game until the user has listened: see the candidate flow below.
 5. **Into the game** the same way as any clip (`tools-unity-broaudio`): a BroAudio entity in the right library (adding entities and `SoundID`s is Library Manager authoring, ask first), played through `AudioService`, never an `AudioClip` field in game code. Spoken text that also shows on screen is a localization row (`docs/technicals/LOCALIZATION.md`), not a string in the clip's name or a script.
-6. **Import settings:** a voice line is usually 2–60 s, so it gets `AudioImport_Medium`. Run the BroAudio skill's `Apply` on the new files; a hand-set import is undone by the next `Apply`.
+6. **Import settings:** a voice line is usually 2–60 s, so it gets `AudioImport_Medium`. Run the BroAudio skill's `Apply` on the accepted files only; a hand-set import is undone by the next `Apply`.
+7. **Steam's store page asks about generative AI** (`oss-gamedev:steam-publish`, Content Survey). Voices from this tool count; keep `SOURCES.txt` accurate so the answer is easy.
+
+## Candidate flow
+
+Generating costs quota and a voice is a taste call, so every line goes through candidates first.
+
+1. **Agree the line and the owner.** The user names the character or thing and the line. Don't invent lines or characters from the GDD (AGENTS.md → Prompt first); propose, then wait.
+2. **Prepare the inbox.** Candidates live next to what will use them: `Assets/_Game/Content/<Kind>/<Name>/Voice/Candidates/` (create it in the editor; the window throws on a folder that doesn't exist). A voice that belongs to no one thing (a narrator): ask where. Candidates are not referenced by anything, so they don't ship, and they get no import preset.
+3. **Write the line sheet** (rule 3) with 2–3 candidates per line: different voices, or one voice with a different pace or instruction block. Say what each is meant to sound like. Tell the user the character cost.
+4. **The user generates.** They set **Voices Folder** to the inbox (untick Auto and type the path; the window resets it to the default whenever it reopens, so check it before each batch), then press Generate once per row.
+5. **Check what you can, then hand over.** For each new WAV: it exists, `length` > 0, not silent, no clipped peak, no long dead tail; flag a tag that needs trimming (emotion tag spoken aloud). Report a table `take → length → issues`. Don't judge the voice; that is the user's ear.
+6. **The user picks.** Rejected rows go back to step 3 with a changed prompt, not the same one again.
+7. **Promote only accepted takes.** Trim if needed (Audio Tools), then move the file out of `Candidates/` into `Voice/` inside the editor (`AssetDatabase.MoveAsset`, which keeps the `.meta`) and rename it to the project's clip name. Run `Apply` (rule 6), add the BroAudio entity and `SoundID` (rule 5, ask first), and play it in the game.
+8. **Record it.** Add a row to `Voice/SOURCES.txt` beside the clip: model, voice, pace / variability / clarity or the instruction block, the exact source text, the date. The plugin keeps none of this, and a clip can't be regenerated without it.
+9. **Rejected candidates:** list them and ask before deleting (AGENTS.md → ask first for deleting assets); keep the accepted take's source text.
 
 ## Models and voices
 
@@ -57,7 +72,7 @@ The AI reads exactly what it is given.
 
 - Writes `<folder>/<Voice>_<Body>_<take>.wav` and refreshes the AssetDatabase. The take number goes up by one after each success; the name tag shows `[Overwrite Name]` (red) when a file with that name exists and `[Available Name]` otherwise. An overwrite replaces the file silently.
 - **Naming trap:** the first File Name field is also the **voice id sent to the server**. Editing it to a character name makes the request fail. Name a clip through the middle field (`Body`, e.g. `Drone_Greeting`) and leave the first one alone. A tidy per-character name comes from renaming the file in the Editor afterwards (with its `.meta`).
-- The **Voices Folder** is locked to the default while Auto is ticked. Untick it to type another path; the `. . /` button opens a system folder picker and can return a path outside the project.
+- The **Voices Folder** is locked to the default while Auto is ticked. Untick it to type another path (the folder must already exist); the `. . /` button opens a system folder picker and can return a path outside the project. It goes back to the default when the window is reopened.
 - Audio Trimmer / Joiner / Equalizer write new WAVs into the same folder (through a `Temp_data` subfolder). Audio Tools (`tools-unity-broaudio` → Clip editing) does the same jobs and is the project's choice for trimming and normalizing; use this window's tools only when a clip is already open there.
 
 ## Errors
@@ -74,5 +89,5 @@ The window only logs these to the Unity console, so after a user-run generation 
 
 ## Checks
 
-- After the user generates: the WAV exists, is non-silent and plays (`AudioClip.length` > 0), and `git status` shows only the new clip and its `.meta`.
-- After routing into the game: `Apply` reports `would change 0` on a re-run, and the entity plays through `AudioService` in play mode.
+- After the user generates: the WAV exists, is non-silent and plays (`AudioClip.length` > 0), and `git status` shows only the new clips and their `.meta` files in the inbox.
+- After promoting an accepted take: `Apply` reports `would change 0` on a re-run, and the entity plays through `AudioService` in play mode.
