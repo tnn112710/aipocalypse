@@ -36,6 +36,20 @@ Still suggested:
   - Later hooks, each to confirm: water or rain short-circuits them; an EMP weapon; rescued service robots are discarded enemy builds
   - Keep the farm animals and Loki real, so Ending 3's "I built this" keeps its weight (???)
 
+### Screen modes: nightmare, glitch, retro, outlines (user, 2026-11-24)
+
+- User: post effects that change the atmosphere (nightmare, glitch, retro, edge detection), in the game or in night fights
+- Suggested framing: the world is the AI's render, so a screen mode is the AI changing its render settings. Each mode means something (a state, an event, a patch), never decoration only
+- Two layers: one sustained mode at a time (an event or a night's patch), plus short bursts on top as feedback (an android dying, a jackpot, the drone's patch notes)
+- Modes and where they could appear:
+  - Nightmare (desaturated, dark red vignette, double vision pulses, grain, slight radial blur): Blood Moons, low sanity, the outer zone at night. Gives Sanity its first visible effects (still open in CORE). Ref: Amnesia: The Dark Descent — sanity loss blurs and warps the view; Eternal Darkness — sanity effects that mess with the player
+  - Glitch (colour split jitter, scanlines, blocky mosaic bursts, hue shift): android deaths as a short spike, the intro where the HUD is taken, the drone's announcements, Threat rising, the eclipse. Ref: Doki Doki Literature Club, Inscryption — glitches as storytelling
+  - Retro (pixelize, dithering, posterize, CRT curve and scanlines): a night's random AI patch ("Render mode: 1998"), a cursed box's punishment for a day, the screensaver sleep. Ref: Return of the Obra Dinn — dithered 1-bit look
+  - Outlines / debug view (edge detection, comic or sketch): an AI "debug render" night where everything is outlined; may also make enemies easier to read at night. Ref: Lethal Company — low resolution and posterized post effects as its identity; Borderlands — outlines
+- Rules suggested: enemies stay readable in every mode (checked at night per mode); no rapid full-screen flashing (photosensitivity); a "reduce screen effects" setting; each mode measured against the 60 fps budget (edge detection needs a depth / normals pass)
+- Tools: SC Screen Effects (installed, Undecided in PLUGINS.md) has edge detection, scanlines, CRT tube distortion, colour split, pixelize, dithering, posterize, sketch, double vision, radial blur, mosaic and ready profiles (Dithered Retro, Comic Book, Sketch Book, Night Vision, Body Cam); URP volumes add grain, vignette, chromatic aberration and lens distortion. Blends with the time-of-day grades owned by `EnvironmentDirector` (DAYNIGHT.md)
+- Open (???): which modes first; sustained modes only on events, or also random on ordinary nights; whether the player can ever choose a mode (an unlock, a "filter" upgrade)
+
 ### Gacha and random fun (user, 2026-11-24)
 
 - User: more gacha and random fun, even if awkward and stupidly fun: chances on when fights happen, fishing, reward boxes, looting, crates
