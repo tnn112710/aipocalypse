@@ -24,7 +24,7 @@ Options (one bool each on the asset; a new option is a new field plus its postfi
 
 **Addressables first.** Each build first builds the Addressables content for its platform (Localization's string tables and locales: [LOCALIZATION.md](LOCALIZATION.md)) into `Library/com.unity.addressables/aa/`, and stops with an error if that fails: a player without it shows no text. The player build then copies that content into `StreamingAssets/aa`. The project setting "Build Addressables on Player Build" is on, so builds from File > Build Profiles also include it; Autobuild switches it off for the length of its own build so the content isn't built twice. The content build unloads every asset only code holds, so Autobuild keeps its `BuildConfig` assets loaded (`HideFlags.DontUnloadUnusedAsset`, cleared afterwards) while it builds.
 
-Name: `<product>_<version>_<platform>_<distribution|development>[_profiler][_cheat][_pipeline]`, product and version from Player Settings. Output: `_builds/<name>/` (gitignored), cleaned before each build. Scenes: the enabled Build Settings scenes. A config's own Pipeline / cheat choice wins over Player Settings: the build removes a stray `ENABLE_CHEAT` or Pipeline toggle from them for its duration.
+Name: `<product>_<version>_<platform>_<distribution|development>[_profiler][_cheat][_pipeline]`, product and version from Player Settings. Output: `_builds/<name>/` (gitignored). The build goes to `_builds/<name>.building/` first and replaces the last build only when it succeeds, so a failed build keeps the previous one. Scenes: the enabled Build Settings scenes. A config's own Pipeline / cheat choice wins over Player Settings: the build removes a stray `ENABLE_CHEAT` or Pipeline toggle from them for its duration.
 
 ## Code stripping
 

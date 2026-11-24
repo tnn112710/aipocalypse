@@ -40,50 +40,7 @@ public static class HandFistReview
         }
         return new{fixture,passed,failed=failures.Count,failures};
     }
-    public static object Weapon(string weapon="AK47",float time=1.65f)
-    {
-        var scene=EditorSceneManager.NewPreviewScene();
-        MB13.Aipocalypse.Core.WeaponSystem.GunAnimation animation=null;
-        try
-        {
-            var set=AssetDatabase.LoadAssetAtPath<HandSet>("Assets/_Game/Data/Hands/HandSet.asset");
-            var gun=UnityEngine.Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/Content/Weapons/" + weapon + "/" + weapon + ".prefab"));
-            SceneManager.MoveGameObjectToScene(gun,scene);gun.transform.position=set.PreviewItemPosition;
-            var held=new SerializedObject(gun.GetComponent<MB13.Aipocalypse.Core.WeaponSystem.HeldGun>());
-            var pivot=(Transform)held.FindProperty("_posePivot").objectReferenceValue;
-            var hip=(Transform)held.FindProperty("_hipPose").objectReferenceValue;
-            pivot.localPosition=hip.localPosition;pivot.localRotation=hip.localRotation;
-            animation=gun.GetComponentInChildren<MB13.Aipocalypse.Core.WeaponSystem.GunAnimation>();
-            animation.StartAction(MB13.Aipocalypse.Core.WeaponSystem.GunAction.ClearingJam,false);
-            animation.Tick(.016f,time/4f);
-            var hands=gun.GetComponent<ItemHands>();
-            foreach(HandSide side in new[]{HandSide.Left,HandSide.Right})
-            {
-                var rig=UnityEngine.Object.Instantiate(set.Get(side));
-                SceneManager.MoveGameObjectToScene(rig.gameObject,scene);
-                rig.transform.localScale*=hands.HandScale;
-                var grip=hands.GetDefault(side);
-                grip.Resolve(rig,set.Elbow(side),out var position,out var rotation);
-                rig.Place(position,rotation);rig.Apply(grip.Shape);
-            }
-            var lamp=new GameObject("Light",typeof(Light));SceneManager.MoveGameObjectToScene(lamp,scene);
-            lamp.GetComponent<Light>().type=LightType.Directional;lamp.GetComponent<Light>().intensity=1.3f;lamp.transform.rotation=Quaternion.Euler(35,-25,0);
-            var go=new GameObject("Camera",typeof(Camera));SceneManager.MoveGameObjectToScene(go,scene);
-            var camera=go.GetComponent<Camera>();camera.scene=scene;camera.fieldOfView=70;camera.nearClipPlane=.01f;
-            camera.clearFlags=CameraClearFlags.SolidColor;camera.backgroundColor=new Color(.13f,.16f,.2f);
-            var rt=new RenderTexture(960,720,24);var texture=new Texture2D(960,720,TextureFormat.RGB24,false);
-            var previous=RenderTexture.active;
-            try
-            {
-                camera.targetTexture=rt;camera.Render();RenderTexture.active=rt;
-                texture.ReadPixels(new Rect(0,0,960,720),0,0);texture.Apply();
-                Directory.CreateDirectory("Temp/HandFist");File.WriteAllBytes("Temp/HandFist/"+weapon+"_"+time.ToString("F2",System.Globalization.CultureInfo.InvariantCulture)+".png",texture.EncodeToPNG());
-            }
-            finally {camera.targetTexture=null;RenderTexture.active=previous;UnityEngine.Object.DestroyImmediate(rt);UnityEngine.Object.DestroyImmediate(texture);}
-            return new{weapon,time};
-        }
-        finally {if(animation!=null)animation.Stop();EditorSceneManager.ClosePreviewScene(scene);}
-    }
+    // Player-view weapon renders: AgentScripts/Hands/ArmReview.cs (this file's old Weapon render predated ItemHands).
     public static object Apply()
     {
         foreach(string side in new[]{"Left","Right"})

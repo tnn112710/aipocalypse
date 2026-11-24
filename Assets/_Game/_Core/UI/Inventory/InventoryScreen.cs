@@ -36,6 +36,8 @@ namespace MB13.Aipocalypse.Core.UI
         const float MessageSeconds = 2.5f;
         static readonly LocalizedString BackpackTitle = Loc.UI("inventory.backpack_title");
         static readonly LocalizedString WeightFormat = Loc.UI("inventory.weight");
+        static readonly LocalizedString Kilograms = Loc.UI("unit.weight");
+        static readonly LocalizedString StackWeight = Loc.UI("unit.weight_stack");
         static readonly LocalizedString NoRoom = Loc.UI("inventory.no_room");
         static readonly LocalizedString NowhereToWear = Loc.UI("inventory.nowhere");
         static readonly LocalizedString BackpackFull = Loc.UI("inventory.backpack_full");
@@ -641,7 +643,7 @@ namespace MB13.Aipocalypse.Core.UI
             }
             else if (slot.Container == _inventory.Backpack)
             {
-                if (!Equip(slot))
+                if (!Equip(slot, out refusal))
                     refusal = NowhereToWear.Text();
             }
             else if (_inventory.SendTo(slot.Container, slot.Index, _inventory.Backpack, out refusal) == 0 && refusal == null)
@@ -653,9 +655,11 @@ namespace MB13.Aipocalypse.Core.UI
             ShowMessage(refusal);
         }
 
-        // From the backpack into a free slot that takes it (active or gear), else swapped with the first one that does.
-        bool Equip(SlotRef from)
+        // From the backpack into a free slot that takes it (active or gear), else swapped with the first one that does. True
+        // with a `refusal` when a swap was refused (e.g. the worn backpack isn't empty): the caller shows it, once.
+        bool Equip(SlotRef from, out string refusal)
         {
+            refusal = null;
             ItemInstance item = from.Container[from.Index];
             ItemContainer[] targets = { _inventory.Hotbar, _inventory.Gear };
             foreach (ItemContainer target in targets)
@@ -670,11 +674,10 @@ namespace MB13.Aipocalypse.Core.UI
                 {
                     if (!target.CanPlace(i, item))
                         continue;
-                    if (_inventory.TryMove(from.Container, from.Index, target, i, out string refusal))
+                    if (_inventory.TryMove(from.Container, from.Index, target, i, out refusal))
                         return true;
                     if (refusal == null)
                         continue;
-                    ShowMessage(refusal);
                     return true;
                 }
             }
@@ -927,8 +930,8 @@ namespace MB13.Aipocalypse.Core.UI
                     break;
                 ItemDefinition definition = item.Definition;
                 string weight = definition.Stacks
-                    ? $"{item.Count:N0} x {definition.Weight:0.###} kg = {item.Weight:0.##} kg"
-                    : $"{definition.Weight:0.##} kg";
+                    ? StackWeight.Format(item.Count, definition.Weight, item.Weight)
+                    : Kilograms.Format(definition.Weight);
                 string uses = item is ConsumableInstance multiUse ? "\n" + UsesFormat.Format(multiUse.UsesLeft, multiUse.Consumable.Uses) : null;
                 string locked = item.Locked
                     ? $"\n<color=#{ColorUtility.ToHtmlStringRGB(_style != null ? _style.LockedColor : Color.white)}>{LockedText.Text()}</color>"

@@ -112,6 +112,10 @@ namespace MB13.Aipocalypse.Core.EnvironmentSystem
                 passed++;
             if (passed > 0)
                 _plan.RemoveRange(0, passed);
+            // Forced spells that have ended can't affect the plan again (it only grows from its end, past `time`).
+            for (int i = _forced.Count - 1; i >= 0; i--)
+                if (_forced[i].End <= time)
+                    _forced.RemoveAt(i);
             return _plan[0];
         }
 

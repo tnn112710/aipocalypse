@@ -17,7 +17,8 @@ namespace MB13.Aipocalypse.Core.QuickTimeSystem
         [Range(0f, 1f), Tooltip("Minimum normalized zone movement after a miss, limited by the available track space.")]
         public float MinimumZoneShift = 0.16f;
 
-        public override IQteSession CreateSession(bool ownerControlled = false) => new TimingQteSession(this, ownerControlled);
+        public override IQteSession CreateSession(bool ownerControlled = false, System.Func<float> random = null) =>
+            new TimingQteSession(this, ownerControlled, random);
     }
 
     public sealed class TimingQteSession : IQteSession

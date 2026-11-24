@@ -21,6 +21,7 @@ namespace MB13.Aipocalypse.Core.RaidSystem
         readonly List<SpawnHandle> _leaving = new();
         readonly List<(SpawnHandle Group, EnemySpawnCard Card)> _announcing = new();
         readonly Dictionary<EnemySpawnCard, int> _planned = new();
+        readonly Dictionary<Spawnable, int> _prefabs = new();
         readonly HashSet<string> _unknownZones = new();
 
         public RaidSpawner(SpawnService spawns, AudioService audio, RaidSettings settings, IReadOnlyList<SpawnZone> zones)
@@ -58,8 +59,12 @@ namespace MB13.Aipocalypse.Core.RaidSystem
                 foreach (RaidWaveEntry entry in wave.Entries)
                     if (entry.Card != null && entry.Count > 0)
                         _planned[entry.Card] = (_planned.TryGetValue(entry.Card, out int sum) ? sum : 0) + entry.Count;
+            // Summed per prefab: cards sharing a prefab would otherwise replace each other's reservation.
+            _prefabs.Clear();
             foreach ((EnemySpawnCard card, int count) in _planned)
-                _spawns.Prewarm(card, Mathf.Min(count, instances), this);
+                SpawnService.AddShares(card, Mathf.Min(count, instances), _prefabs);
+            foreach ((Spawnable prefab, int copies) in _prefabs)
+                _spawns.Prewarm(prefab, Mathf.Min(copies, instances), this);
         }
 
         public int SpawnGroup(EnemySpawnCard card, int count, string zone, bool announce)

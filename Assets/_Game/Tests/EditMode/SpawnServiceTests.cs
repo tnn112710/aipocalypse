@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using MB13.Aipocalypse.Core.PlayerSystem;
 using MB13.Aipocalypse.Core.SpawnSystem;
@@ -241,6 +242,22 @@ namespace MB13.Aipocalypse.Tests
             Assert.That(first.IsAlive, Is.False);
             Assert.That(second.IsAlive && third.IsAlive, Is.True);
             Assert.That(_spawns.CountAlive(_coin), Is.EqualTo(2));
+        }
+
+        [Test]
+        public void AddShares_CardsSharingAPrefab_AddUp()
+        {
+            Spawnable shared = _coin.Variants.Keys.First();
+            var other = Track(ScriptableObject.CreateInstance<SpawnCard>());
+            other.SetVariant(shared, 1f);
+            other.SetVariant(_chest.Variants.Keys.First(), 1f);
+            var shares = new Dictionary<Spawnable, int>();
+
+            SpawnService.AddShares(_coin, 3, shares);
+            SpawnService.AddShares(other, 4, shares);
+
+            Assert.That(shares[shared], Is.EqualTo(5), "3 from the first card + half of 4 from the second");
+            Assert.That(shares[_chest.Variants.Keys.First()], Is.EqualTo(2));
         }
 
         SpawnCard Card(string name, SpawnCategory category)

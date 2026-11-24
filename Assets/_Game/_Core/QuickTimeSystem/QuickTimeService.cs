@@ -1,5 +1,6 @@
 using System;
 using MB13.Aipocalypse.Core.Events;
+using MB13.Aipocalypse.Core.RandomSystem;
 using MB13.Aipocalypse.Core.TimeSystem;
 using MB13.Aipocalypse.Input;
 using MessagePipe;
@@ -21,10 +22,15 @@ namespace MB13.Aipocalypse.Core.QuickTimeSystem
         object _owner;
         readonly IDisposable _playerDied;
         readonly IDisposable _playerChanged;
+        // Where a timing zone moves after a miss decides the repair: a gameplay roll.
+        readonly Func<float> _roll;
 
-        public QuickTimeService(InputService input, TimeService time, IPublisher<QteStarted> started, IPublisher<QteEnded> ended,
-            ISubscriber<PlayerDied> playerDied, ISubscriber<ActivePlayerChanged> playerChanged, IPublisher<QteAttempted> attempted)
+        public QuickTimeService(InputService input, TimeService time, RandomService random, IPublisher<QteStarted> started,
+            IPublisher<QteEnded> ended, ISubscriber<PlayerDied> playerDied, ISubscriber<ActivePlayerChanged> playerChanged,
+            IPublisher<QteAttempted> attempted)
         {
+            RandomStream stream = random.Stream("qte");
+            _roll = () => stream.Value;
             _input = input;
             _time = time;
             _started = started;
@@ -39,11 +45,14 @@ namespace MB13.Aipocalypse.Core.QuickTimeSystem
         public bool IsActive => Session != null;
         public bool IsActiveFor(object owner) => IsActive && ReferenceEquals(owner, _owner);
 
+        // Gameplay input is on: a QTE started now can be answered (not while a menu is open).
+        public bool CanAnswer => _input.GameplayEnabled;
+
         public bool TryStart(object owner, QteChallenge challenge, Action<QteResult> completed, bool ownerControlled = false)
         {
             if (IsActive || owner == null || challenge == null)
                 return false;
-            IQteSession session = challenge.CreateSession(ownerControlled);
+            IQteSession session = challenge.CreateSession(ownerControlled, _roll);
             if (session == null)
                 return false;
             _owner = owner;

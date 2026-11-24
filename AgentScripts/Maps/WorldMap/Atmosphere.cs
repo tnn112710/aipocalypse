@@ -111,39 +111,6 @@ public static class Atmosphere
         return new { sun = sun.transform.eulerAngles.ToString(), sky = skyPath, fog = RenderSettings.fogDensity };
     }
 
-    // Project URP settings for open vistas: sun shadows to 150 m (URP template 50; Komorebi demo 500, HIGHLANDS 120).
-    // Performance: SSAO off and screen-space decals, because SSAO's depth-normals source and DBuffer decals each force a
-    // depth-normals prepass that re-draws every grass blade (~4k draws, 2-4 ms GPU at the spawn). LOD bias 1: bias 2 doubled
-    // every LOD and cull distance (~4k extra draws).
-    public static object RenderQuality()
-    {
-        var asset = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>("Assets/Settings/PC_RPAsset.asset");
-        var so = new SerializedObject(asset);
-        so.FindProperty("m_ShadowDistance").floatValue = 150f;
-        so.FindProperty("m_ShadowCascadeCount").intValue = 4;
-        so.FindProperty("m_Cascade4Split").vector3Value = new Vector3(0.05f, 0.16f, 0.42f);   // 7.5 / 24 / 63 / 150 m
-        so.FindProperty("m_MainLightShadowmapResolution").intValue = 4096;
-        so.ApplyModifiedPropertiesWithoutUndo();
-        AssetDatabase.SaveAssetIfDirty(asset);
-
-        var renderer = AssetDatabase.LoadAssetAtPath<UniversalRendererData>("Assets/Settings/PC_Renderer.asset");
-        var rs = new SerializedObject(renderer);
-        rs.FindProperty("m_DepthPrimingMode").intValue = (int)DepthPrimingMode.Forced;
-        rs.ApplyModifiedPropertiesWithoutUndo();
-        var ssao = renderer.rendererFeatures.First(f => f is ScreenSpaceAmbientOcclusion);
-        ssao.SetActive(false);
-        var decal = renderer.rendererFeatures.First(f => f is DecalRendererFeature);
-        var ds = new SerializedObject(decal);
-        ds.FindProperty("m_Settings.technique").intValue = 2;   // ScreenSpace (Automatic picks DBuffer on desktop)
-        ds.ApplyModifiedPropertiesWithoutUndo();
-        EditorUtility.SetDirty(ssao); EditorUtility.SetDirty(decal); EditorUtility.SetDirty(renderer);
-        AssetDatabase.SaveAssetIfDirty(renderer);
-
-        QualitySettings.lodBias = 1f;
-        AssetDatabase.SaveAssetIfDirty(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/QualitySettings.asset")[0]);
-        return new { asset.shadowDistance, asset.shadowCascadeCount, asset.mainLightShadowmapResolution, ssao = ssao.isActive, renderer.depthPrimingMode, QualitySettings.lodBias };
-    }
-
     const string KNP = "Assets/_StoreAssets/Env/Raygeas/Komorebi Nature/Assets/Prefabs/Particle Systems/";
     const string GLP = "Assets/_StoreAssets/Env/Raygeas/Grasslands - Stylized Nature/Assets/Prefabs/Particle Effects/";
     const string HLP = "Assets/_StoreAssets/Env/Raygeas/HIGHLANDS - Stylized Environment/Assets/Prefabs/FX/";

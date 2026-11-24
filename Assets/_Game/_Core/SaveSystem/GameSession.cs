@@ -206,7 +206,7 @@ namespace MB13.Aipocalypse.Core.SaveSystem
         }
 
         // Deletes a slot's save. The game being played keeps going (and saves there again later).
-        public bool Delete(int slot) => _saves.Delete(slot);
+        public bool Delete(int slot, out string problem) => _saves.Delete(slot, out problem);
 
         public bool ReturnToMainMenu()
         {

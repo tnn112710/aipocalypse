@@ -26,6 +26,7 @@ namespace MB13.Aipocalypse.Core.QuickTimeSystem
         [Tooltip("The press that attempts it; that frame's press goes to the QTE only (no reload, jump… with it)")]
         public GameButton Button = GameButton.Reload;
 
-        public abstract IQteSession CreateSession(bool ownerControlled = false);
+        // `random`: 0–1 rolls for the session's gameplay randomness (a RandomService stream); null = UnityEngine.Random.
+        public abstract IQteSession CreateSession(bool ownerControlled = false, System.Func<float> random = null);
     }
 }

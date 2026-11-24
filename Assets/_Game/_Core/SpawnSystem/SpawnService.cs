@@ -28,6 +28,7 @@ namespace MB13.Aipocalypse.Core.SpawnSystem
         readonly Queue<QueuedMember> _queue = new();
         readonly List<Spawnable> _leaving = new();
         readonly Dictionary<SpawnCard, int> _aliveByCard = new();
+        readonly Dictionary<Spawnable, int> _shares = new();
         // Alive instances of cards with a MaxAlive, oldest first.
         readonly Dictionary<SpawnCard, List<Spawnable>> _capped = new();
         readonly int[] _aliveByCategory = new int[System.Enum.GetValues(typeof(SpawnCategory)).Length];
@@ -115,6 +116,16 @@ namespace MB13.Aipocalypse.Core.SpawnSystem
         // until it calls Release; without one, copies unused for IdleTrimDelay are destroyed again.
         public void Prewarm(SpawnCard card, int count, object owner = null)
         {
+            _shares.Clear();
+            AddShares(card, count, _shares);
+            foreach ((Spawnable prefab, int copies) in _shares)
+                _pool.Prewarm(prefab, copies, owner);
+        }
+
+        // Each of the card's variants' share of `count` copies (by weight, rounded up), added to `into`: an owner prewarming
+        // several cards sums them per prefab first, since a reservation replaces the owner's earlier one of that prefab.
+        public static void AddShares(SpawnCard card, int count, Dictionary<Spawnable, int> into)
+        {
             if (card == null || count <= 0)
                 return;
             float total = 0f;
@@ -125,7 +136,7 @@ namespace MB13.Aipocalypse.Core.SpawnSystem
                 return;
             foreach ((Spawnable prefab, float weight) in card.Variants)
                 if (prefab != null && weight > 0f)
-                    _pool.Prewarm(prefab, Mathf.CeilToInt(count * weight / total), owner);
+                    into[prefab] = (into.TryGetValue(prefab, out int sum) ? sum : 0) + Mathf.CeilToInt(count * weight / total);
         }
 
         public void Prewarm(Spawnable prefab, int count, object owner = null) => _pool.Prewarm(prefab, count, owner);

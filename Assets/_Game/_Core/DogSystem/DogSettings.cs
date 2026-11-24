@@ -139,6 +139,8 @@ namespace MB13.Aipocalypse.Core.DogSystem
         [Min(0f)] public float FightRange = 20f;
         [Min(0f), Tooltip("Seconds between warning growls at the same group")] public float WarnGap = 30f;
         [Min(0f), Tooltip("Hit-stop on a takedown (s)")] public float TakedownHitStop = 0.06f;
+        [Range(0.01f, 1f), Tooltip("Time scale during the takedown hit-stop; above 0 so the player's look and input keep running (as MMF_HitStop)")]
+        public float TakedownHitStopScale = 0.05f;
         [Min(0f), Tooltip("Push a bite gives (N·s, for the hit reaction side)")] public float BitePush = 2f;
         [Range(0f, 1f), Tooltip("Player health below this: it whines and keeps close")] public float PlayerHurtBelow = 0.3f;
 

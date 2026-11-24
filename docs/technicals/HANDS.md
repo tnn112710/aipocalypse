@@ -254,7 +254,7 @@ Items only reference `HandGrip`s and `HandPose`s, which don't depend on the mesh
 
 The floating hands (`_Core/HandSystem/Prefabs/FPHand_Left`, `FPHand_Right`, VR Low Poly Hand pack, NO UV variant) follow the steps above and stay as the fallback (`ArmSetup.Use ""`); recalibrate them with `HandRig`'s setup buttons and **Bake fit** (the editor script that first built them is not in the repo). Baked fits on the other items were made for those hands: bake them again for the arms when a grip looks off.
 
-`Tools/HandFistReview.cs` (written for the floating hands; its `Weapon` render no longer compiles against `ItemHands`, use `ArmReview` instead) supplies their Fist calibration and targeted repair-finger curve update (`Apply`), isolated hand renders (`Render`) and player-view weapon renders (`Weapon`) under Temp/HandFist. It preserves existing Open/Closed/Spread calibrations and does not rebuild reloads or repair movement/impact tracks. HandRigTests checks ordinary grip compatibility, bounded fist blending, safe fallback and fist/closure timing at every gun's punch contacts.
+`AgentScripts/Hands/HandFistReview.cs` (written for the floating hands; its old `Weapon` render was dropped, use `ArmReview` for player-view weapon renders) supplies their Fist calibration and targeted repair-finger curve update (`Apply`), isolated hand renders (`Render`) and player-view weapon renders (`Weapon`) under Temp/HandFist. It preserves existing Open/Closed/Spread calibrations and does not rebuild reloads or repair movement/impact tracks. HandRigTests checks ordinary grip compatibility, bounded fist blending, safe fallback and fist/closure timing at every gun's punch contacts.
 
 ## Tuning
 

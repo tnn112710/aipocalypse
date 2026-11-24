@@ -197,8 +197,10 @@ namespace MB13.Aipocalypse.Editor.Build
                 return outcome;
             }
 
-            if (Directory.Exists(outputFolder))
-                Directory.Delete(outputFolder, true);
+            // Built beside the last build, which is replaced only once this one succeeds: a failed build keeps it.
+            string buildingFolder = outputFolder + ".building";
+            if (Directory.Exists(buildingFolder))
+                Directory.Delete(buildingFolder, true);
 
             var namedTarget = NamedBuildTarget.FromBuildTargetGroup(BuildPipeline.GetBuildTargetGroup(config.Target));
             PlayerSettings.GetScriptingDefineSymbols(namedTarget, out string[] playerDefines);
@@ -227,7 +229,7 @@ namespace MB13.Aipocalypse.Editor.Build
                     target = config.Target,
                     targetGroup = BuildPipeline.GetBuildTargetGroup(config.Target),
                     subtarget = (int)StandaloneBuildSubtarget.Player,
-                    locationPathName = Path.Combine(outputFolder, ExecutableName(config.Target)),
+                    locationPathName = Path.Combine(buildingFolder, ExecutableName(config.Target)),
                     extraScriptingDefines = extraDefines,
                     options = (config.IsDevelopment ? BuildOptions.Development : BuildOptions.None)
                         | (config.Profiler ? BuildOptions.ConnectWithProfiler : BuildOptions.None),
@@ -248,10 +250,15 @@ namespace MB13.Aipocalypse.Editor.Build
             outcome.Errors = summary.totalErrors;
             if (summary.result != BuildResult.Succeeded)
             {
-                Debug.LogError($"{LogTag} {buildName}: {summary.result} with {summary.totalErrors} error(s)");
+                Debug.LogError($"{LogTag} {buildName}: {summary.result} with {summary.totalErrors} error(s); the last build is kept");
+                if (Directory.Exists(buildingFolder))
+                    Directory.Delete(buildingFolder, true);
                 return outcome;
             }
-            outcome.Executable = summary.outputPath;
+            if (Directory.Exists(outputFolder))
+                Directory.Delete(outputFolder, true);
+            Directory.Move(buildingFolder, outputFolder);
+            outcome.Executable = Path.Combine(outputFolder, ExecutableName(config.Target));
             if (config.DeleteDoNotShipFolders)
                 DeleteDoNotShipFolders(outputFolder);
 

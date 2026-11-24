@@ -35,6 +35,9 @@ namespace MB13.Aipocalypse.Core.SaveSystem
         // next write can keep it as the backup without reading it first.
         readonly Dictionary<int, (DateTime time, long size)> _readable = new();
         readonly object _lock = new();
+        // What Info last read per slot, kept while its file and backup are unchanged (time and size) and the language is the
+        // same: the menus list every slot on each refresh, and a full parse each time stalled them.
+        readonly Dictionary<int, (FileStamp file, FileStamp backup, Locale language, SaveSlotInfo info)> _infos = new();
         Task _writing = Task.CompletedTask;
 
         public SaveService(SaveSettings settings) => _settings = settings;
@@ -79,9 +82,33 @@ namespace MB13.Aipocalypse.Core.SaveSystem
         {
             if (!Exists(slot))
                 return new SaveSlotInfo(slot, null, null, false);
-            return TryRead(slot, out SaveData data, out string problem, out bool fromBackup)
+            string path = PathOf(slot);
+            var file = new FileStamp(path);
+            var backup = new FileStamp(path + BackupSuffix);
+            Locale language = Loc.Current;
+            if (_infos.TryGetValue(slot, out var known) && known.file.Equals(file) && known.backup.Equals(backup) && known.language == language)
+                return known.info;
+            SaveSlotInfo info = TryRead(slot, out SaveData data, out string problem, out bool fromBackup)
                 ? new SaveSlotInfo(slot, data.Header, null, fromBackup)
                 : new SaveSlotInfo(slot, null, problem, false);
+            _infos[slot] = (file, backup, language, info);
+            return info;
+        }
+
+        // A file's last write time and size (default when missing).
+        readonly struct FileStamp : IEquatable<FileStamp>
+        {
+            readonly DateTime _time;
+            readonly long _size;
+
+            public FileStamp(string path)
+            {
+                var info = new FileInfo(path);
+                _time = info.Exists ? info.LastWriteTimeUtc : default;
+                _size = info.Exists ? info.Length : -1;
+            }
+
+            public bool Equals(FileStamp other) => _time == other._time && _size == other._size;
         }
 
         // The slot saved most recently, or 0.
@@ -180,14 +207,25 @@ namespace MB13.Aipocalypse.Core.SaveSystem
         // Waits for the write in progress, if any.
         public void Flush() => _writing.Wait();
 
-        // Deletes the slot and its backup. False when there was nothing to delete.
-        public bool Delete(int slot)
+        // Deletes the slot and its backup (the backup first: a slot never "comes back" from its .bak). False when there was
+        // nothing to delete, or with `problem` when the disk refused (a file locked by sync or antivirus).
+        public bool Delete(int slot, out string problem)
         {
+            problem = null;
             if (!Exists(slot))
                 return false;
             string path = PathOf(slot);
-            File.Delete(path);
-            File.Delete(path + BackupSuffix);
+            try
+            {
+                File.Delete(path + BackupSuffix);
+                File.Delete(path);
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                Debug.LogWarning($"Deleting save slot {slot} failed: {exception.Message}");
+                problem = exception.Message;
+                return false;
+            }
             return true;
         }
 

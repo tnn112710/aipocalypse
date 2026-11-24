@@ -1861,7 +1861,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
             float bestDistance = _dog.Settings.ChaseRange;
             foreach (Animal animal in herd.Animals)
             {
-                if (animal.GoingHome || animal.Sleeping || !animal.Definition.name.Contains("Sheep"))
+                if (animal.GoingHome || animal.Sleeping || !animal.Definition.ChasedByDog)
                     continue;
                 float d = DogWalk.Flat(animal.transform.position - _dog.transform.position);
                 if (d < bestDistance)

@@ -48,16 +48,6 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
         public bool CanStackWith(ItemInstance other) =>
             other != null && other != this && other.Definition == Definition && Definition.Stacks && !other.IsEmpty;
 
-        // Whether all of `other` fits on this stack.
-        public bool CanMerge(ItemInstance other) => CanStackWith(other) && other.Count <= SpaceLeft;
-
-        // Moves all of `other` onto this stack (check CanMerge first); `other` is left empty.
-        public void Merge(ItemInstance other)
-        {
-            if (CanMerge(other))
-                MergeFrom(other);
-        }
-
         // Moves as much of `other` as fits (at most `max`) onto this stack. Returns how many moved.
         public int MergeFrom(ItemInstance other, int max = int.MaxValue)
         {

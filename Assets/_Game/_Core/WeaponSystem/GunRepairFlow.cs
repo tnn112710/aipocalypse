@@ -40,10 +40,10 @@ namespace MB13.Aipocalypse.Core.WeaponSystem
         public void Tick()
         {
             if (_requested || _qte == null || _profile == null || _profile.Qte == null || _gun.Action != GunAction.ClearingJam ||
-                _gun.ActionProgress < _profile.QteStartProgress)
+                _gun.ActionProgress < _profile.QteStartProgress || !_qte.CanAnswer)
                 return;
-            _requested = true;
-            _qte.TryStart(_owner, _profile.Qte, _completed, ownerControlled: true);
+            // Not while a menu is open (the QTE would sit frozen over it); refused while another QTE runs: asked again next frame.
+            _requested = _qte.TryStart(_owner, _profile.Qte, _completed, ownerControlled: true);
         }
 
         public void Cancel() => _qte?.Cancel(_owner);

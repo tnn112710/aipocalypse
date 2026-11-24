@@ -32,9 +32,6 @@ public static class ShotEffectsSetup
     public static object All()
     {
         var log = new List<string>();
-        foreach (string old in new[] { "MuzzleFlash_Core", "MuzzleFlash_Glow", "Tracer_Glow", "Tracer_Trail", "Tracer_Bullet" })
-            if (AssetDatabase.DeleteAsset($"{Dir}/{old}.mat"))
-                log.Add($"deleted {old}.mat");
 
         var flashCore = AssetDatabase.LoadAssetAtPath<Material>(VendorMaterials + "/Impact02_SGAddScroll.mat");
         var vendorGlow = AssetDatabase.LoadAssetAtPath<Material>(VendorMaterials + "/UniqueProjectiles_Add_8x8.mat");

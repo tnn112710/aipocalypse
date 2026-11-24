@@ -1,6 +1,7 @@
 using MB13.Aipocalypse.Core.Combat;
 using MB13.Aipocalypse.Core.Events;
 using MB13.Aipocalypse.Core.QuickTimeSystem;
+using MB13.Aipocalypse.Core.RandomSystem;
 using MB13.Aipocalypse.Core.TimeSystem;
 using MB13.Aipocalypse.Input;
 using MessagePipe;
@@ -27,6 +28,7 @@ namespace MB13.Aipocalypse.Tests
             builder.RegisterInstance(new ControlSettings());
             builder.Register<InputService>(Lifetime.Singleton);
             builder.Register<TimeService>(Lifetime.Singleton);
+            builder.RegisterInstance(new RandomService(1));
             builder.Register<QuickTimeService>(Lifetime.Singleton);
             _resolver = builder.Build();
             _qte = _resolver.Resolve<QuickTimeService>();

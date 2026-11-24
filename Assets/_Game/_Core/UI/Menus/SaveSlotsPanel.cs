@@ -150,10 +150,10 @@ namespace MB13.Aipocalypse.Core.UI
                 Load(slot);
         }
 
+        // No Refresh here: it would wait for the write just started. The rows refresh when GameSaved arrives (ShowSaved).
         void Save(int slot)
         {
             _session.Save(slot, out string message);
-            Refresh();
             SetStatus(message);
         }
 
@@ -166,9 +166,9 @@ namespace MB13.Aipocalypse.Core.UI
         void OnDelete(int slot) =>
             _confirm.Ask(ConfirmDelete.Format(SaveFormat.SlotName(slot)), DeleteAction.Text(), () =>
             {
-                _session.Delete(slot);
+                _session.Delete(slot, out string problem);
                 Refresh();
-                SetStatus(Deleted.Format(SaveFormat.SlotName(slot)));
+                SetStatus(problem ?? Deleted.Format(SaveFormat.SlotName(slot)));
             });
 
         void CopyPath()

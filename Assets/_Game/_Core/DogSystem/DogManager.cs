@@ -529,7 +529,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
             {
                 // The push points back at the dog: the body falls toward it, dragged down.
                 _damage.Deal(brain.Body, new DamageInfo(brain.Body.Health.Current, DamageType.Melee, point, -towardEnemy * _settings.BitePush, dog.gameObject));
-                _time?.RequestHitStop(_settings.TakedownHitStop, 0f);
+                _time?.RequestHitStop(_settings.TakedownHitStop, _settings.TakedownHitStopScale);
                 TryPlay(dog, DogSound.Growl);
             }
             else
@@ -638,7 +638,11 @@ namespace MB13.Aipocalypse.Core.DogSystem
             {
                 Robot robot = _robots.Robots[i];
                 if (Flat(robot.transform.position - dog.transform.position) <= _settings.GreetRange && robot.TryGreetVisitor(dog.transform.position, now))
+                {
+                    // One robot at a time: the dog sniffs the one that greeted it.
                     dog.GreetedBy = robot.transform;
+                    return;
+                }
             }
         }
 

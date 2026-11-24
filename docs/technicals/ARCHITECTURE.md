@@ -266,6 +266,6 @@ Assets/_Game/
 
 ## Assemblies
 
-- `MB13.Aipocalypse.Core`, `MB13.Aipocalypse.RobotLinks` (A* link handlers needing Unity.Entities; references Core), `MB13.Aipocalypse.Editor` (editor only), `MB13.Aipocalypse.Tests.EditMode` and `MB13.Aipocalypse.Tests.PlayMode` exist. `Aipocalypse.Features` / `Aipocalypse.Experimental` get created with their first code; the asmdef references enforce **Features → Core** at compile time.
+- `MB13.Aipocalypse.Core`, `MB13.Aipocalypse.RobotLinks` and `MB13.Aipocalypse.DogLinks` (A* link handlers needing Unity.Entities: the robots' door hop, the dog's fence jump; reference Core), `MB13.Aipocalypse.Editor` (editor only), `MB13.Aipocalypse.Tests.EditMode` and `MB13.Aipocalypse.Tests.PlayMode` exist. `Aipocalypse.Features` / `Aipocalypse.Experimental` get created with their first code; the asmdef references enforce **Features → Core** at compile time.
 - **Don't enable VContainer's source generator** for now: it has an open issue with injectors across multiple assemblies (hadashiA/VContainer#822), and reflection-based injection is fine on PC. Revisit only if profiling shows injection cost.
 - Rules are plain C# and get EditMode tests (player rules, combat, equipment, guns and their clips, melee, hands, the repair QTE and time requests, pose sequences, the world clock, time of day and phase data, enemy targeting, attack slots, melee hits and spawning data, the raid director, spawn-point scoring and death time; suites in [CODE_STRUCTURE.md](CODE_STRUCTURE.md)).

@@ -1,6 +1,8 @@
+using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Core.PlayerSystem;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Localization;
 using UnityEngine.UI;
 
 namespace MB13.Aipocalypse.Core.UI
@@ -9,6 +11,8 @@ namespace MB13.Aipocalypse.Core.UI
     // hit pauses healing. Labels are rebuilt only when the whole seconds change.
     public sealed class EffectsHud : PlayerHudView
     {
+        static readonly LocalizedString SecondsLeft = Loc.Hud("effect.seconds");
+
         [SerializeField, Tooltip("Inactive template: an Image (icon) with a TMP_Text child (seconds); cloned per entry")]
         Image _template;
         [SerializeField, Min(1)] int _maxEntries = 6;
@@ -59,7 +63,7 @@ namespace MB13.Aipocalypse.Core.UI
                 if (_labels[i] != null && seconds != _seconds[i])
                 {
                     _seconds[i] = seconds;
-                    _labels[i].SetText("{0}s", (float)seconds);
+                    _labels[i].SetText(SecondsLeft.Text(), (float)seconds);
                 }
             }
             Show(count);

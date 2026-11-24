@@ -43,14 +43,15 @@ namespace MB13.Aipocalypse.Core.SaveSystem
 
         [Command("Delete the save in `slot`")]
         CommandResult Delete(int slot) =>
-            _session.Delete(slot) ? CommandResult.Ok($"{SaveFormat.SlotName(slot)} deleted") : CommandResult.Fail($"{SaveFormat.SlotName(slot)} is empty");
+            _session.Delete(slot, out string problem) ? CommandResult.Ok($"{SaveFormat.SlotName(slot)} deleted")
+                : CommandResult.Fail(problem ?? $"{SaveFormat.SlotName(slot)} is empty");
 
         [Command("Delete every slot's save")]
         CommandResult DeleteAll()
         {
             int deleted = 0;
             foreach (int slot in _saves.Slots)
-                if (_session.Delete(slot))
+                if (_session.Delete(slot, out _))
                     deleted++;
             return CommandResult.Ok($"{deleted} save(s) deleted");
         }

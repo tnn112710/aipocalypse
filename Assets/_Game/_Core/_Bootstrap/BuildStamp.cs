@@ -34,7 +34,7 @@ namespace MB13.Aipocalypse.Core.Bootstrap
                 if (File.Exists(path))
                     return Parse(File.ReadAllText(path));
             }
-            catch (IOException)
+            catch (System.Exception exception) when (exception is IOException or System.UnauthorizedAccessException)
             {
             }
             return new BuildStamp($"{Application.productName} {Application.version} (no {FileName})", null, null, null);

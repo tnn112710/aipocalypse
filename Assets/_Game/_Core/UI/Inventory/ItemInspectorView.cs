@@ -21,6 +21,13 @@ namespace MB13.Aipocalypse.Core.UI
         static readonly LocalizedString TurnText = Loc.UI("inspector.turn");
         static readonly LocalizedString WeightName = Loc.UI("stat.weight");
         static readonly LocalizedString ZoomName = Loc.UI("stat.zoom");
+        static readonly LocalizedString Kilograms = Loc.UI("unit.weight");
+        static readonly LocalizedString Zoom = Loc.UI("unit.zoom");
+        static readonly LocalizedString PerMinute = Loc.UI("unit.fire_rate");
+        static readonly LocalizedString Seconds = Loc.UI("unit.seconds");
+        static readonly LocalizedString Metres = Loc.UI("unit.range");
+        static readonly LocalizedString MetresPerSecond = Loc.UI("unit.speed");
+        static readonly LocalizedString Pellets = Loc.UI("unit.pellets");
         // Indexed by GunSlot.
         static readonly LocalizedString[] SlotNames =
         {
@@ -173,11 +180,11 @@ namespace MB13.Aipocalypse.Core.UI
                         float value = now.Get(stat);
                         Row(StatNames[i].Text(), Format(stat, value, gun.Gun) + Delta(stat, value, then?.Get(stat)));
                     }
-                    Row(WeightName.Text(), $"{now.Weight:0.##} kg" + Delta(now.Weight, then?.Weight, higherIsBetter: false, "0.##"));
+                    Row(WeightName.Text(), Kilograms.Format(now.Weight) + Delta(now.Weight, then?.Weight, higherIsBetter: false, "0.##"));
                     float zoom = 1f / now.AimZoom;
                     float? zoomThen = then != null ? 1f / then.AimZoom : null;
                     if (zoom > 1.5f || zoomThen > 1.5f)
-                        Row(ZoomName.Text(), $"{zoom:0.#}x" + Delta(zoom, zoomThen, higherIsBetter: true, "0.#"));
+                        Row(ZoomName.Text(), Zoom.Format(zoom) + Delta(zoom, zoomThen, higherIsBetter: true, "0.#"));
                     break;
                 case { Definition: AttachmentDefinition part }:
                     foreach (GunStatModifier modifier in part.Modifiers)
@@ -186,11 +193,11 @@ namespace MB13.Aipocalypse.Core.UI
                         Row(StatNames[(int)modifier.Stat].Text(), Colored($"{modifier.Percent:+0;-0}%", better));
                     }
                     if (part.Optic.Magnification > 1f)
-                        Row(ZoomName.Text(), $"{part.Optic.Magnification:0.#}x");
-                    Row(WeightName.Text(), $"{_item.Weight:0.##} kg");
+                        Row(ZoomName.Text(), Zoom.Format(part.Optic.Magnification));
+                    Row(WeightName.Text(), Kilograms.Format(_item.Weight));
                     break;
                 default:
-                    Row(WeightName.Text(), $"{_item.Weight:0.##} kg");
+                    Row(WeightName.Text(), Kilograms.Format(_item.Weight));
                     break;
             }
             for (int i = _rows; i < _statNames.Length; i++)
@@ -213,12 +220,12 @@ namespace MB13.Aipocalypse.Core.UI
 
         static string Format(GunStat stat, float value, GunDefinition gun) => stat switch
         {
-            GunStat.Damage => gun.Fire.Pellets > 1 ? $"{value:0.#} x {gun.Fire.Pellets}" : $"{value:0.#}",
-            GunStat.FireRate => $"{value:0}/min",
+            GunStat.Damage => gun.Fire.Pellets > 1 ? Pellets.Format(value, gun.Fire.Pellets) : $"{value:0.#}",
+            GunStat.FireRate => PerMinute.Format(value),
             GunStat.MagazineSize => $"{value:0}",
-            GunStat.ReloadTime or GunStat.AimTime => $"{value:0.00} s",
-            GunStat.Range => $"{value:0} m",
-            GunStat.BulletSpeed => $"{value:0} m/s",
+            GunStat.ReloadTime or GunStat.AimTime => Seconds.Format(value),
+            GunStat.Range => Metres.Format(value),
+            GunStat.BulletSpeed => MetresPerSecond.Format(value),
             GunStat.MoveSpeed => $"{value:0}%",
             _ => $"{value:0.0}",
         };

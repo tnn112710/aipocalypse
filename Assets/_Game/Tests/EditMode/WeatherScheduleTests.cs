@@ -128,6 +128,18 @@ namespace MB13.Aipocalypse.Tests
         }
 
         [Test]
+        public void Planner_ForgetsForcedSpellsOnceTheyEnd()
+        {
+            WeatherPlanner planner = Planner();
+            planner.Restart(Hours(1, 7f), SkyWeather.Clear, WindLevel.Calm);
+            planner.Force(SkyWeather.HeavyRain, WindLevel.Gale, Hours(1, 9f), 1d);
+            planner.At(Hours(1, 9.5f));
+            Assert.That(planner.ForcedSpells.Count, Is.EqualTo(1));
+            planner.At(Hours(1, 10.5f));
+            Assert.That(planner.ForcedSpells, Is.Empty, "an ended force is never walked again");
+        }
+
+        [Test]
         public void Planner_HoldCutsToTheWeatherNow_UntilReleased()
         {
             WeatherPlanner planner = Planner();

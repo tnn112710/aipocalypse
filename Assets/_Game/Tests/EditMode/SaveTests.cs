@@ -199,6 +199,19 @@ namespace MB13.Aipocalypse.Tests
         }
 
         [Test]
+        public void Info_IsKeptUntilTheSlotsFileChanges()
+        {
+            Write(1, Saved(1, savedAt: 10));
+            SaveSlotInfo first = _saves.Info(1);
+            Assert.AreSame(first.Header, _saves.Info(1).Header, "an unchanged file isn't parsed again");
+
+            Write(1, Saved(2, savedAt: 20));
+            Assert.AreEqual(20, _saves.Info(1).Header.SavedAtUtcTicks, "a new write is read again");
+            _saves.Delete(1, out _);
+            Assert.IsTrue(_saves.Info(1).IsEmpty);
+        }
+
+        [Test]
         public void StartFresh_DropsTheLastGamesStatModifiers()
         {
             var registry = new SaveRegistry();
@@ -246,10 +259,10 @@ namespace MB13.Aipocalypse.Tests
             Write(2, Saved(1));
             Write(2, Saved(2));
 
-            Assert.IsTrue(_saves.Delete(2));
+            Assert.IsTrue(_saves.Delete(2, out _));
             Assert.IsFalse(_saves.Exists(2));
             Assert.IsFalse(File.Exists(_saves.PathOf(2) + ".bak"));
-            Assert.IsFalse(_saves.Delete(2));
+            Assert.IsFalse(_saves.Delete(2, out _));
         }
 
         [Test]
@@ -288,7 +301,7 @@ namespace MB13.Aipocalypse.Tests
             Write(1, Saved(1, savedAt: 100));
             Write(SaveService.EditorSlot, Saved(9, savedAt: 200));
             Assert.AreEqual(SaveService.EditorSlot, _saves.LatestSlot());
-            Assert.IsTrue(_saves.Delete(SaveService.EditorSlot));
+            Assert.IsTrue(_saves.Delete(SaveService.EditorSlot, out _));
             Assert.AreEqual(1, _saves.LatestSlot());
         }
 

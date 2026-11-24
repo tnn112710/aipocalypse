@@ -33,6 +33,7 @@ namespace MB13.Aipocalypse.Core.AnimalSystem
         [Tooltip("How far a short step goes (m, min, max)")] public Vector2 DriftDistance = new(0.8f, 2f);
         [Range(0f, 1f), Tooltip("Chance a short step is a dart at hurry pace (chickens)")] public float DartChance;
         [Min(0.1f), Tooltip("Scales how close the player and gunshots may come before it moves off (jumpy kinds above 1)")] public float ScareScale = 1f;
+        [Tooltip("The dog chases it in play (sheep)")] public bool ChasedByDog;
 
         [Header("Flock")]
         [Tooltip("Grazes round the first of its kind out on the pasture (the leader) instead of anywhere in it")]
