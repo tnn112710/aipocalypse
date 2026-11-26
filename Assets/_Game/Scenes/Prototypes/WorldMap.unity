@@ -119490,6 +119490,38 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3750363652925070678, guid: b18837a34ed4ee5489ccf821248011a2, type: 3}
   m_PrefabInstance: {fileID: 427276602}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &427353970
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 427353971}
+  m_Layer: 0
+  m_Name: Forecast Board
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &427353971
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 427353970}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1188643813}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &428235249
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -292414,7 +292446,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.ForecastSystem.ForecastInstaller
   _settings: {fileID: 11400000, guid: 6f245883477ad9f47bd118d67c9610ea, type: 2}
   _boards:
-  - {fileID: 1585058706}
+  - {fileID: 1188643814}
 --- !u!1001 &1051122766
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -320130,38 +320162,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6598544644045921893, guid: cd106d803c5a51d4d85b6a0b04937ff5, type: 3}
   m_PrefabInstance: {fileID: 1155259473}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1155279924
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1155279925}
-  m_Layer: 0
-  m_Name: Forecast Board
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1155279925
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1155279924}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1585058705}
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1155478010
 GameObject:
   m_ObjectHideFlags: 0
@@ -329191,6 +329191,79 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7267968555535618790, guid: a2d7192df0f44a51ba2a1d52179470a6, type: 3}
   m_PrefabInstance: {fileID: 1187964651}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1188643812
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 427353971}
+    m_Modifications:
+    - target: {fileID: 2913366211412167048, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
+      propertyPath: m_Name
+      value: ForecastBoard
+      objectReference: {fileID: 0}
+    - target: {fileID: 5429174792164027721, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 275.4795
+      objectReference: {fileID: 0}
+    - target: {fileID: 5429174792164027721, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 29.500092
+      objectReference: {fileID: 0}
+    - target: {fileID: 5429174792164027721, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 273.45026
+      objectReference: {fileID: 0}
+    - target: {fileID: 5429174792164027721, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.07521391
+      objectReference: {fileID: 0}
+    - target: {fileID: 5429174792164027721, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5429174792164027721, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.9971674
+      objectReference: {fileID: 0}
+    - target: {fileID: 5429174792164027721, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5429174792164027721, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5429174792164027721, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5429174792164027721, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
+--- !u!4 &1188643813 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5429174792164027721, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
+  m_PrefabInstance: {fileID: 1188643812}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1188643814 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 296352393374865068, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
+  m_PrefabInstance: {fileID: 1188643812}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 20182e98d90c1e54c8b8a1a9d36115d0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.ForecastSystem.ForecastBoard
 --- !u!1001 &1189031343
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -440976,95 +441049,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1456041864836313060, guid: 438d9294ab921fc459831c63054252d4, type: 3}
   m_PrefabInstance: {fileID: 1584576536}
   m_PrefabAsset: {fileID: 0}
---- !u!1001 &1585058704
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 1155279925}
-    m_Modifications:
-    - target: {fileID: 2913366211412167048, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
-      propertyPath: m_Name
-      value: ForecastBoard
-      objectReference: {fileID: 0}
-    - target: {fileID: 4049209480934203761, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 0.25
-      objectReference: {fileID: 0}
-    - target: {fileID: 4049209480934203761, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 0.3
-      objectReference: {fileID: 0}
-    - target: {fileID: 4049209480934203761, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0.158
-      objectReference: {fileID: 0}
-    - target: {fileID: 4049209480934203761, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -0.024
-      objectReference: {fileID: 0}
-    - target: {fileID: 5429174792164027721, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 275.4795
-      objectReference: {fileID: 0}
-    - target: {fileID: 5429174792164027721, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 29.500092
-      objectReference: {fileID: 0}
-    - target: {fileID: 5429174792164027721, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 273.45026
-      objectReference: {fileID: 0}
-    - target: {fileID: 5429174792164027721, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.07521391
-      objectReference: {fileID: 0}
-    - target: {fileID: 5429174792164027721, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5429174792164027721, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0.9971674
-      objectReference: {fileID: 0}
-    - target: {fileID: 5429174792164027721, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5429174792164027721, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5429174792164027721, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5429174792164027721, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
---- !u!4 &1585058705 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 5429174792164027721, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
-  m_PrefabInstance: {fileID: 1585058704}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1585058706 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 296352393374865068, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
-  m_PrefabInstance: {fileID: 1585058704}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 20182e98d90c1e54c8b8a1a9d36115d0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.ForecastSystem.ForecastBoard
 --- !u!1001 &1585526960
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -619853,4 +619837,4 @@ SceneRoots:
   - {fileID: 2123242553}
   - {fileID: 788390172}
   - {fileID: 2007418607}
-  - {fileID: 1155279925}
+  - {fileID: 427353971}

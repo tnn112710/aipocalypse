@@ -39,7 +39,7 @@ The rest is what those docs don't spell out.
 ## 3. Events (MessagePipe)
 
 - Brokers: `RegisterMessagePipe()` once in `ProjectLifetimeScope` (stack traces in the editor). Nowhere else, including installers. Tests build `new ContainerBuilder()` + `RegisterMessagePipe()` (`CombatTests`, `WorldClockTests`).
-- Event types: `readonly struct`, past tense, namespace `MB13.Aipocalypse.Core.Events` in `_Core/_Common/Events/`: mostly one file per area (`CombatEvents.cs`: `DamageDealt`, `PlayerDied`, `PlayerDeathSequenceEnded`; `PlayerEvents.cs`: active player and respawn flow; `QteEvents.cs`; `WorldTimeEvents.cs`; `WeatherEvents.cs`; `RaidEvents.cs`: raid start, waves and end with `RaidEndReason`; `DefenseEvents.cs`: a barrier broken / restored; `ForecastEvents.cs`: the forecast changed), plus one file per event for the gun jam pair (`GunJamBeat.cs`, `GunRepairCompleted.cs`). `_Common` events carry no weapon or feature types.
+- Event types: `readonly struct`, past tense, namespace `MB13.Aipocalypse.Core.Events` in `_Core/_Common/Events/`: mostly one file per area (`CombatEvents.cs`: `DamageDealt`, `PlayerDied`, `PlayerDeathSequenceEnded`; `PlayerEvents.cs`: active player and respawn flow; `QteEvents.cs`; `WorldTimeEvents.cs`; `WeatherEvents.cs`; `RaidEvents.cs`: raid start, waves and end with `RaidEndReason`; `DefenseEvents.cs`: a barrier broken / restored; `ForecastEvents.cs`: the forecast changed or was revealed), plus one file per event for the gun jam pair (`GunJamBeat.cs`, `GunRepairCompleted.cs`). `_Common` events carry no weapon or feature types.
 - "Something changed" events are empty or minimal; subscribers read the owner's current state (`ActivePlayerChanged` → `PlayerRegistry.Current`, `DayPhaseChanged` → `WorldClock.Phase`). No buffered brokers are used: late subscribers read the service on bind.
 - Per-owner events carry an `Owner` and subscribers filter with the predicate overload (`GunJamFeedback` on `GunJamBeat` / `GunRepairCompleted`). `HitFeedbackHud` filters `DamageDealt` by `Info.Source`, `HurtFeedbackHud` by `Target` (the active player).
 - Async events (`IAsyncPublisher`) are for steps the publisher must wait on: `PlayerRespawnFading`, `PlayerRespawning`. Handlers honour the token and check `this == null` after each await; a handler with nothing to await returns `UniTask.CompletedTask` (`DeathTimeRule`).
@@ -62,6 +62,7 @@ Who publishes → who subscribes today:
 | `RaidStarted`, `RaidWaveStarted`, `RaidEnded` | `RaidDirector` | `RaidBannerHud` (`RaidStarted`, `RaidEnded` Cleared / Dawn); music and morning report later |
 | `WeatherChanged` (empty: read `WeatherService`) | `WeatherService` | none yet (weather rules, HUD later) |
 | `ForecastChanged` (empty: read `ForecastService.Fight`) | `ForecastService` (console overrides) | `ForecastBoard` |
+| `ForecastRevealChanged` (Revealed, Live) | `ForecastReveal` (the rope, 19:00, a new day; not live after a jump or a load) | `ForecastBoard` (live: spins; else shows at once) |
 | `GameSaved` | `GameSession` (when a save's background write finishes, ok or not) | `SaveToastHud`, `PauseMenu` (→ `SaveSlotsPanel`) |
 | `LanguageChanged` (empty: read `LanguageService.Current`) | `LanguageService` | `LanguageButton`, `PauseMenu` (hint), `MainMenuScreen` (Continue info, version); polled views and cached prompt texts compare `Loc.Current` instead |
 

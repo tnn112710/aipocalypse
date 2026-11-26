@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Ami.BroAudio;
+using Ami.BroAudio.Data;
 using MB13.Aipocalypse.Core.Bootstrap;
 using MB13.Aipocalypse.Core.ForecastSystem;
 using UnityEditor;
@@ -12,11 +14,14 @@ using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
-// Builds the forecast board: painted mark and period textures (Layer Lab picto icons composited on the CPU, worn like old
-// paint), their alpha-clipped materials, Content/Structures/ForecastBoard/ForecastBoard.prefab (Highlands log frame, three
-// Lakefell-wood plaques on ropes), Data/Forecast/ForecastSettings, and in WorldMap the ForecastInstaller plus the board in
-// front of the house, right side ("Forecast Board" scene root: a Landmarks rebuild doesn't remove it). Safe to re-run.
-// Run: unity command script run --file AgentScripts/Forecast/ForecastBoardSetup.cs --entry ForecastBoardSetup.All
+// Builds the forecast board: the Forecast BroAudio library (rope pull, reel tick, landing, boss landing), painted mark,
+// '?' and period textures (Layer Lab picto icons composited on the CPU, worn like old paint) and their alpha-clipped
+// materials, Content/Structures/ForecastBoard/ForecastBoard.prefab (Highlands log frame; three Lakefell-wood plaques, each
+// a reel on a pin between two ropes; a pull rope with a handle by the right post), Data/Forecast/ForecastSettings, and in
+// WorldMap the ForecastInstaller plus the board in front of the house, right side ("Forecast Board" scene root: a
+// Landmarks rebuild doesn't remove it). Safe to re-run.
+// Run: unity command script run --file AgentScripts/Forecast/ForecastBoardSetup.cs --entry ForecastBoardSetup.All, then the
+// import presets on new clips: AgentScripts/Audio/AudioImportKit.cs Apply ["used:Assets/_Game/Data/Audio", false, "Assets/_Game/Settings/Audio"].
 public static class ForecastBoardSetup
 {
     const string Root = "Assets/_Game/Content/Structures/ForecastBoard";
@@ -28,12 +33,17 @@ public static class ForecastBoardSetup
     const string Icons = "Assets/_StoreAssets/UI/Layer Lab/2D Icons-SimplePictoPack/Icons/PNG/512/Pictoicon_";
     const string LogPath = "Assets/_StoreAssets/Env/Raygeas/HIGHLANDS - Stylized Environment/Assets/Prefabs/Forest/Log_1.prefab";
     const string PlaqueWoodPath = "Assets/_StoreAssets/Env/Raygeas/Lakefell Village/Assets/Materials/Modules/Wood_Trim.mat";
+    const string GM = "Assets/_StoreAssets/Audio/Gamemaster Audio - Pro Sound Collection/";
+    const string AudioDir = "Assets/_Game/Data/Audio";
+    const string ForecastAudioDir = AudioDir + "/Forecast";
     const int Res = 512;
 
-    // Frame: two log posts 3 m apart, the crossbar log on top.
-    const float BeamY = 2.05f, BeamThick = 0.2f, PostThick = 0.24f, PostX = 1.5f, BeamLength = 3.45f;
-    // Plaques: two planks each, hung under the crossbar 0.9 m apart.
-    const float PlaqueW = 0.66f, PlaqueH = 0.6f, PlaqueGap = 0.9f, RopeDrop = 0.18f;
+    // Frame: two log posts 3.5 m apart, the crossbar log on top (room for the pull rope inside the right post).
+    const float BeamY = 2.05f, BeamThick = 0.2f, PostThick = 0.24f, PostX = 1.75f, BeamLength = 3.95f;
+    // Plaques: two planks each, 0.9 m apart, each turning on a pin through its middle; the ropes hold the pin's ends.
+    const float PlaqueW = 0.66f, PlaqueH = 0.6f, PlaqueGap = 0.9f, RopeDrop = 0.18f, PinOut = 0.05f;
+    // The pull rope: hangs from the crossbar between the last plaque and the right post, its handle at hand height.
+    const float PullX = 1.47f, HandleY = 1.2f;
     // Where the board stands in the house's space (x right, z towards the gate; clear of the robots' Spot_Garden and the
     // dog's Visit_Garden) and the point its plaques face (the path from the door to the gate).
     static readonly Vector3 BoardLocal = new(10.5f, 0f, 5f);
@@ -44,10 +54,31 @@ public static class ForecastBoardSetup
     static readonly Color MoonColor = new(0.78f, 0.87f, 1f);
     static readonly Color StarColor = new(0.72f, 0.66f, 1f);
     static readonly Color RopeColor = new(0.62f, 0.5f, 0.32f);
+    static readonly Color Bone = new(0.93f, 0.86f, 0.7f);
+    static readonly Color PinColor = new(0.2f, 0.18f, 0.16f);
 
     static readonly NightPeriod[] Periods = { NightPeriod.Evening, NightPeriod.Midnight, NightPeriod.LateNight };
 
-    public static string All() => string.Join("\n", Textures(), Prefab(), Data(), World());
+    public static string All() => string.Join(" | ", Audio(), Textures(), Prefab(), Data(), World());
+
+    // ---- audio ----
+
+    // Gamemaster (Could): the Should packs have no wooden lever, clock tick or deep thud.
+    public static string Audio()
+    {
+        var log = new List<string>();
+        Folder(ForecastAudioDir);
+        AudioAsset library = Library(AudioDir + "/Forecast.asset", "Forecast", log);
+        SpatialSetting near = Spatial(ForecastAudioDir + "/Forecast_Spatial.asset", 2f, 35f);
+        string switches = GM + "Switches_Buttons_Gears_Levers/";
+        Finish(Entity(library, "Forecast_RopePull", 0.8f, 1f, 0.06f, switches + "lever_small_wooden_01.wav", switches + "lever_small_wooden_02.wav"), near, log);
+        Finish(Entity(library, "Forecast_ReelTick", 0.45f, 1.15f, 0.12f, Range(GM + "Miscellaneous/Clock/clock_tick_", 4)), near, log);
+        Finish(Entity(library, "Forecast_Land", 0.8f, 1f, 0.08f, Range(GM + "Miscellaneous/Wood/wood_block_sticks_hit_clap_", 8)), near, log);
+        Finish(Entity(library, "Forecast_LandBoss", 1f, 0.85f, 0.05f, Range(GM + "Miscellaneous/Object Deep Thud/impact_deep_thud_bounce_", 4)), near, log);
+        Save(library);
+        return "audio: " + string.Join(", ", log);
+    }
+
 
     // ---- textures and materials ----
 
@@ -64,6 +95,7 @@ public static class ForecastBoardSetup
         var log = new List<string>();
         // Fight marks over the whole plaque face, below its period icon. Small and medium are the same crossed swords.
         var below = new Vector2(0.03f, -0.07f);
+        log.Add(Bake("Mark_Unknown", new[] { new Mark("symbol_question", below, 0.3f, Bone, 4f) }, PlaqueW, PlaqueH, 1465, 0.27f));
         log.Add(Bake("Mark_Small", new[] { new Mark("battle", below, 0.18f, SwordRed, -3f) }, PlaqueW, PlaqueH, 1234, 0.27f));
         log.Add(Bake("Mark_Medium", new[] { new Mark("battle", below, 0.3f, SwordRed, -3f) }, PlaqueW, PlaqueH, 1311, 0.27f));
         log.Add(Bake("Mark_Boss", new[] { new Mark("boss", below, 0.34f, SwordRed) }, PlaqueW, PlaqueH, 1388, 0.27f));
@@ -76,6 +108,11 @@ public static class ForecastBoardSetup
         rope.SetColor("_BaseColor", RopeColor);
         rope.SetFloat("_Smoothness", 0.1f);
         Save(rope);
+        var pin = LoadOrCreate<Material>(Root + "/Materials/Pin.mat", () => new Material(Shader.Find("Universal Render Pipeline/Lit")));
+        pin.SetColor("_BaseColor", PinColor);
+        pin.SetFloat("_Metallic", 0.6f);
+        pin.SetFloat("_Smoothness", 0.35f);
+        Save(pin);
         return "textures and materials: " + string.Join(", ", log);
     }
 
@@ -191,39 +228,52 @@ public static class ForecastBoardSetup
             FitLog(frame, preview, "Crossbar", Vector3.right, BeamLength, BeamThick, new Vector3(0f, BeamY, 0f), false);
 
             float beamBottom = BeamY - BeamThick * 0.5f;
+            var pin = Load<Material>(Root + "/Materials/Pin.mat");
             var plaques = new ForecastBoard.Plaque[Periods.Length];
             for (int i = 0; i < Periods.Length; i++)
             {
                 float x = (i - 1) * PlaqueGap;
-                var p = new GameObject("Plaque_" + Periods[i]).transform;
-                p.SetParent(t, false);
-                p.localPosition = new Vector3(x, beamBottom - RopeDrop - PlaqueH * 0.5f, -0.02f);
-                // A little hand-hung skew.
-                p.localRotation = Quaternion.Euler(0f, (i - 1) * 2f, i == 1 ? -1.5f : 1f);
+                // Hanger: where the plaque hangs, with a little hand-hung skew. Reel: turns on the pin (local X).
+                var hanger = new GameObject("Plaque_" + Periods[i]).transform;
+                hanger.SetParent(t, false);
+                hanger.localPosition = new Vector3(x, beamBottom - RopeDrop - PlaqueH * 0.5f, -0.02f);
+                hanger.localRotation = Quaternion.Euler(0f, (i - 1) * 2f, i == 1 ? -1f : 0.8f);
+                var reel = new GameObject("Reel").transform;
+                reel.SetParent(hanger, false);
                 for (int k = 0; k < 2; k++)
                 {
-                    Transform plank = Primitive(PrimitiveType.Cube, "Plank_" + (k + 1), p, preview, wood).transform;
+                    Transform plank = Primitive(PrimitiveType.Cube, "Plank_" + (k + 1), reel, preview, wood).transform;
                     plank.localPosition = new Vector3(0f, k == 0 ? PlaqueH * 0.25f + 0.005f : -PlaqueH * 0.25f - 0.005f, 0f);
                     plank.localRotation = Quaternion.Euler(0f, 0f, k == 0 ? 0.6f : -0.8f);
                     plank.localScale = new Vector3(PlaqueW, PlaqueH * 0.5f, 0.045f);
                 }
-                var period = Primitive(PrimitiveType.Quad, "Period", p, preview, Load<Material>($"{Root}/Materials/Period_{Periods[i]}.mat"));
+                var period = Primitive(PrimitiveType.Quad, "Period", reel, preview, Load<Material>($"{Root}/Materials/Period_{Periods[i]}.mat"));
                 period.transform.localPosition = new Vector3(-0.215f, 0.175f, -0.0236f);
                 period.transform.localScale = new Vector3(0.2f, 0.2f, 1f);
-                var mark = Primitive(PrimitiveType.Quad, "Mark", p, preview, Load<Material>($"{Root}/Materials/Mark_Small.mat"));
+                var mark = Primitive(PrimitiveType.Quad, "Mark", reel, preview, Load<Material>($"{Root}/Materials/Mark_Unknown.mat"));
                 mark.transform.localPosition = new Vector3(0f, 0f, -0.0235f);
                 mark.transform.localScale = new Vector3(PlaqueW, PlaqueH, 1f);
                 foreach (GameObject paint in new[] { period, mark })
                     paint.GetComponent<Renderer>().shadowCastingMode = ShadowCastingMode.Off;
-                plaques[i] = new ForecastBoard.Plaque { Period = Periods[i], Mark = mark.GetComponent<Renderer>() };
+                plaques[i] = new ForecastBoard.Plaque { Period = Periods[i], Reel = reel, Mark = mark.GetComponent<Renderer>() };
 
-                float rx = PlaqueW * 0.5f - 0.08f;
-                Rope(t, p, preview, rope, new Vector3(x - rx, beamBottom + 0.02f, 0f), new Vector3(-rx, PlaqueH * 0.5f - 0.02f, 0f), "Rope_L" + i);
-                Rope(t, p, preview, rope, new Vector3(x + rx, beamBottom + 0.02f, 0f), new Vector3(rx, PlaqueH * 0.5f - 0.02f, 0f), "Rope_R" + i);
+                // The pin through the plaque's middle, sticking out to the ropes.
+                float pinEnd = PlaqueW * 0.5f + PinOut;
+                Transform axle = Primitive(PrimitiveType.Cylinder, "Pin", hanger, preview, pin).transform;
+                axle.localRotation = Quaternion.Euler(0f, 0f, 90f);
+                axle.localScale = new Vector3(0.03f, pinEnd + 0.02f, 0.03f);
+                Rope(t, hanger, preview, rope, new Vector3(x - pinEnd, beamBottom + 0.02f, 0f), new Vector3(-pinEnd, 0f, 0f), "Rope_L" + i);
+                Rope(t, hanger, preview, rope, new Vector3(x + pinEnd, beamBottom + 0.02f, 0f), new Vector3(pinEnd, 0f, 0f), "Rope_R" + i);
             }
+
+            PullRope(t, preview, rope, wood);
 
             var board = root.AddComponent<ForecastBoard>();
             SetField(board, "_plaques", plaques);
+            SetField(board, "_unknown", Load<Material>(Root + "/Materials/Mark_Unknown.mat"));
+            SetField(board, "_tickSound", Id("Forecast_ReelTick"));
+            SetField(board, "_landSound", Id("Forecast_Land"));
+            SetField(board, "_bossLandSound", Id("Forecast_LandBoss"));
             SetField(board, "_marks", new Dictionary<FightSize, Material>
             {
                 { FightSize.Small, Load<Material>(Root + "/Materials/Mark_Small.mat") },
@@ -237,6 +287,35 @@ public static class ForecastBoardSetup
         {
             EditorSceneManager.ClosePreviewScene(preview);
         }
+    }
+
+    // The pull rope: from the crossbar down to a wooden toggle handle, one trigger box to look at (ForecastRope).
+    static void PullRope(Transform board, Scene scene, Material rope, Material wood)
+    {
+        var pull = new GameObject("PullRope").transform;
+        pull.SetParent(board, false);
+        float top = BeamY - BeamThick * 0.5f + 0.02f;
+        var handle = new GameObject("Handle").transform;
+        handle.SetParent(pull, false);
+        handle.localPosition = new Vector3(PullX, HandleY, 0f);
+        Transform knot = Primitive(PrimitiveType.Sphere, "Knot", handle, scene, rope).transform;
+        knot.localScale = Vector3.one * 0.06f;
+        Transform toggle = Primitive(PrimitiveType.Cylinder, "Toggle", handle, scene, wood).transform;
+        toggle.localPosition = new Vector3(0f, -0.06f, 0f);
+        toggle.localRotation = Quaternion.Euler(0f, 0f, 90f);
+        toggle.localScale = new Vector3(0.05f, 0.09f, 0.05f);
+        Transform line = Primitive(PrimitiveType.Cylinder, "Rope", pull, scene, rope).transform;
+        line.localPosition = new Vector3(PullX, (top + HandleY) * 0.5f, 0f);
+        line.localScale = new Vector3(0.026f, (top - HandleY) * 0.5f, 0.026f);
+        var reach = pull.gameObject.AddComponent<BoxCollider>();
+        reach.isTrigger = true;
+        reach.center = new Vector3(PullX, (top + HandleY) * 0.5f - 0.05f, 0f);
+        reach.size = new Vector3(0.4f, top - HandleY + 0.3f, 0.4f);
+        var component = pull.gameObject.AddComponent<ForecastRope>();
+        SetField(component, "_handle", handle);
+        SetField(component, "_rope", line);
+        SetField(component, "_top", new Vector3(PullX, top, 0f));
+        SetField(component, "_pullSound", Id("Forecast_RopePull"));
     }
 
     // A log prefab turned so its long axis runs along `axis`, that axis scaled to `length` and its cross-section to
@@ -303,6 +382,94 @@ public static class ForecastBoardSetup
         Transform knot = Primitive(PrimitiveType.Sphere, name + "_Knot", board, scene, material).transform;
         knot.position = b + Vector3.up * 0.01f;
         knot.localScale = Vector3.one * 0.05f;
+    }
+
+    // ---- audio helpers (as AgentScripts/Animals/AnimalSetup) ----
+
+    static SoundID Id(string entity)
+    {
+        var asset = AssetDatabase.LoadAssetAtPath<AudioEntity>($"{ForecastAudioDir}/{entity}.asset") ?? throw new Exception("run Audio first: no " + entity);
+        return new SoundID(asset);
+    }
+
+    static string[] Range(string prefix, int count)
+    {
+        var paths = new string[count];
+        for (int i = 0; i < count; i++)
+            paths[i] = $"{prefix}{i + 1:00}.wav";
+        return paths;
+    }
+
+    static AudioAsset Library(string path, string name, List<string> log)
+    {
+        var library = AssetDatabase.LoadAssetAtPath<AudioAsset>(path);
+        if (library != null)
+            return library;
+        library = ScriptableObject.CreateInstance<AudioAsset>();
+        AssetDatabase.CreateAsset(library, path);
+        var so = new SerializedObject(library);
+        so.FindProperty("<AssetName>k__BackingField").stringValue = name;
+        so.FindProperty("_assetGUID").stringValue = AssetDatabase.AssetPathToGUID(path);
+        so.ApplyModifiedPropertiesWithoutUndo();
+        log.Add("library " + path);
+        return library;
+    }
+
+    // A one-shot SFX entity with shuffled clips, a base pitch and a random pitch range.
+    static AudioEntity Entity(AudioAsset library, string name, float volume, float pitch, float pitchRandom, params string[] clips)
+    {
+        string path = $"{ForecastAudioDir}/{name}.asset";
+        var entity = AssetDatabase.LoadAssetAtPath<AudioEntity>(path);
+        if (entity == null)
+        {
+            entity = AudioEntity.CreateNewInstance(library, name, BroAudioType.SFX);
+            AssetDatabase.CreateAsset(entity, path);
+        }
+        var so = new SerializedObject(entity);
+        so.FindProperty("<AudioAsset>k__BackingField").objectReferenceValue = library;
+        so.FindProperty("<AudioType>k__BackingField").intValue = (int)BroAudioType.SFX;
+        so.FindProperty("<Loop>k__BackingField").boolValue = false;
+        so.FindProperty("<MasterVolume>k__BackingField").floatValue = volume;
+        so.FindProperty("<Pitch>k__BackingField").floatValue = pitch;
+        so.FindProperty("MulticlipsPlayMode").intValue = (int)(clips.Length > 1 ? MulticlipsPlayMode.Shuffle : MulticlipsPlayMode.Single);
+        so.FindProperty("<PitchRandomRange>k__BackingField").floatValue = pitchRandom;
+        so.FindProperty("<RandomFlags>k__BackingField").intValue = pitchRandom > 0f ? 1 : 0;
+        SerializedProperty list = so.FindProperty("Clips");
+        list.arraySize = clips.Length;
+        for (int i = 0; i < clips.Length; i++)
+        {
+            var clip = AssetDatabase.LoadAssetAtPath<AudioClip>(clips[i]) ?? throw new Exception("missing clip " + clips[i]);
+            SerializedProperty element = list.GetArrayElementAtIndex(i);
+            element.FindPropertyRelative("AudioClip").objectReferenceValue = clip;
+            element.FindPropertyRelative("Volume").floatValue = 1f;
+        }
+        so.ApplyModifiedPropertiesWithoutUndo();
+        return entity;
+    }
+
+    static void Finish(AudioEntity entity, SpatialSetting spatial, List<string> log)
+    {
+        var so = new SerializedObject(entity);
+        so.FindProperty("<SpatialSetting>k__BackingField").objectReferenceValue = spatial;
+        so.ApplyModifiedPropertiesWithoutUndo();
+        Save(entity);
+        log.Add(entity.name);
+    }
+
+    static SpatialSetting Spatial(string path, float min, float max)
+    {
+        var spatial = AssetDatabase.LoadAssetAtPath<SpatialSetting>(path);
+        if (spatial == null)
+        {
+            spatial = ScriptableObject.CreateInstance<SpatialSetting>();
+            AssetDatabase.CreateAsset(spatial, path);
+        }
+        spatial.MinDistance = min;
+        spatial.MaxDistance = max;
+        spatial.RolloffMode = AudioRolloffMode.Logarithmic;
+        spatial.DopplerLevel = 0f;
+        Save(spatial);
+        return spatial;
     }
 
     // ---- data ----

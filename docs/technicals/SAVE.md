@@ -30,6 +30,7 @@ Look and feel (shared by every menu, mouse and gamepad, sounds): [UI.md → Menu
 | `clock` | `ClockSaveSection` (WorldTimeSystem) | The time (day + hour) | Speed requests, a skip in progress |
 | `weather` | `WeatherSaveSection` (EnvironmentSystem) | Sky, wind override | The schedule's plan (it plans on from the restored sky), console holds |
 | `raids` | `RaidSaveSection` (RaidSystem) | Nights already handled | A raid in progress (saving is refused during one) |
+| `forecast` | `ForecastSaveSection` (ForecastSystem) | The day whose forecast was revealed | A spin in progress |
 | `defense` | `DefenseSaveSection` (DefenseSystem) | Each segment / gate: health, broken, gate open | Upgrade tiers |
 | `dog` | `DogSaveSection` (DogSystem) | The dog's order, stay point, how long it had been herding, position, facing; stance, toughness, down, limp time left; the night its howl roll was used | What it was doing (its tree starts afresh), annoyance, a pending call |
 | `animals` | `AnimalSaveSection` (AnimalSystem) | The herd's orders (pen gate open, bell rung); each animal by its `SaveId`: position, facing, Tokens held, sent home | What an animal was doing (its tree starts afresh), a hurry |

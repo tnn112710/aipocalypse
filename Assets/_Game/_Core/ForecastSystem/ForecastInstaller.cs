@@ -8,8 +8,9 @@ using VContainer.Unity;
 
 namespace MB13.Aipocalypse.Core.ForecastSystem
 {
-    // Scene system: the night forecast and the scene's forecast boards (collected on save / Play, injected here). Remove the
-    // component (or turn ForecastSettings.Enabled off) and the boards stay blank.
+    // Scene system: the night forecast, its daily reveal (ForecastReveal, saved) and the scene's forecast boards (collected on
+    // save / Play, injected here with their pull ropes). WorldClock is optional: without it the forecast always shows. Remove
+    // the component (or turn ForecastSettings.Enabled off) and the boards stay blank.
     public sealed partial class ForecastInstaller : SceneInstaller
     {
         [SerializeField, InlineEditor] ForecastSettings _settings;
@@ -21,6 +22,8 @@ namespace MB13.Aipocalypse.Core.ForecastSystem
         {
             builder.RegisterInstance(_settings);
             builder.Register<ForecastService>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<ForecastReveal>().AsSelf();
+            builder.RegisterEntryPoint<ForecastSaveSection>();
             // Editor and cheat builds only.
             if (Cheats.Enabled)
                 builder.RegisterEntryPoint<ForecastCommands>();

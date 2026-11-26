@@ -10,8 +10,29 @@ namespace MB13.Aipocalypse.Core.ForecastSystem
         static readonly NightPeriod[] Periods = (NightPeriod[])System.Enum.GetValues(typeof(NightPeriod));
 
         readonly ForecastService _forecast;
+        readonly ForecastReveal _reveal;
 
-        public ForecastCommands(CommandRegistry registry, ForecastService forecast) : base(registry) => _forecast = forecast;
+        public ForecastCommands(CommandRegistry registry, ForecastService forecast, ForecastReveal reveal) : base(registry)
+        {
+            _forecast = forecast;
+            _reveal = reveal;
+        }
+
+        [Command("Reveal today's forecast now, as the rope does (the plaques spin)")]
+        CommandResult Reveal()
+        {
+            if (_reveal.IsRevealed)
+                return CommandResult.Fail("Already revealed");
+            _reveal.Reveal();
+            return CommandResult.Ok(Status());
+        }
+
+        [Command("Hang today's forecast as '?' again (it stays shown past SelfRevealHour)")]
+        CommandResult Hide()
+        {
+            _reveal.Hide();
+            return _reveal.IsRevealed ? CommandResult.Fail("Past the self-reveal hour: it stays shown") : CommandResult.Ok(Status());
+        }
 
         [Command("Set the fight a period brings until forecast.reset, e.g. forecast.set Evening Boss")]
         string Set(NightPeriod period, FightSize fight)
@@ -29,7 +50,7 @@ namespace MB13.Aipocalypse.Core.ForecastSystem
 
         [Command("Tonight's forecast per period")]
         string Status() => _forecast.Enabled
-            ? string.Join(", ", Periods.Select(p => $"{p}: {_forecast.Fight(p)}"))
+            ? string.Join(", ", Periods.Select(p => $"{p}: {_forecast.Fight(p)}")) + (_reveal.IsRevealed ? " (shown)" : " (hidden: '?')")
             : "Forecast off (ForecastSettings.Enabled)";
     }
 }

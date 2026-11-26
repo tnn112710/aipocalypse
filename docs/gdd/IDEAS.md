@@ -145,6 +145,8 @@ Still suggested:
       - Plaque content: one crossed-swords mark for a normal fight, painted small for a small fight and larger for a medium one; a **boss fight** is one big horned monster skull (Pictoicon `boss`) instead of swords; empty plaque = no fight. The old "big" size is replaced by the boss night (???: does a non-boss big night still exist?)
       - Boss skull painted **red**, same red as the swords (user pick B1, 2026-11-26)
       - **Built 2026-11-27** (user asked: the board first, then a fixed forecast): the board in front of the house, right side; the forecast is small in all three periods every day, display only (raids unchanged), no reveal yet. See [FORECAST.md](../technicals/FORECAST.md)
+      - **Next suggestions (2026-11-27, not decided):** raids follow the forecast (period schedule reading ForecastService); show the revealed icons on the HUD clock and the sleep screen; a first-day hint / map marker; plaques sway with the wind; dust puff on landing; boss extras (crows burst, Loki growls, robots flinch); "near miss" teeter on the last reel; a lantern on the post for night reading; a small creak at 06:00 when the plaques turn back to '?'; per-day weighted roll and boss cadence; odds on unrevealed later periods
+      - **Reveal built 2026-11-27 (option A, user picks):** each morning (06:00) the plaques hang as '?'; "[E] Spin Forecast" on the pull rope spins all three like slot reels (reel flip on a pin), landing left to right, a boss last and heaviest; unpulled, they spin by themselves at 19:00. Sounds from Gamemaster. The trigger is swappable (anything may call `ForecastReveal.Reveal()`), and `HideUntilRevealed` off brings back the always-shown board
       - Open (???): how likely / unlikely is shown on plaques not yet revealed
     - **Reveal options (suggested 2026-11-26, user to pick):**
       - A. Pull the rope: plaques spin like slot reels and land one by one (tick-tick-clack); unrevealed ones keep spinning and wobble to a stop showing "?"
@@ -153,6 +155,8 @@ Still suggested:
       - D. Pull the cloth: each morning the plaques hang under a tied sack cloth; pull it off. A boss night's cloth is tied with a red string, a hint before the reveal
       - E. Scratch-off: plaques come covered in ash or mud; hold E to wipe, like a lottery scratch card
       - F. The drone paints it: at dawn the drone sprays the icons on with a short line; automatic but a scene. Also the fallback for A–E if the player hasn't revealed by ~09:00
+      - G. Goblin calling card (2026-11-27): at dawn a goblin scout sneaks to the board, slams the plaques round, blows a short horn and runs off; the player may glimpse or shoot it (never changes the result). The raiders declare their own nights; a boss night's skull is pinned with a dagger
+      - H. A home robot hangs them (2026-11-27): one robot walks to the board each morning with the plaques on its back, hangs them and waves; ties into the robots' routine
       - Later periods: the next plaque flips by itself when the wave before ends, with a sting and a torch lit on the post beside it
       - Boss reveal (any option): the board shakes, crows burst out of the trees, a low horn, Loki growls, the red skull lands last with a heavy clack
       - Suggested: A (or B) as the morning action, F as the fallback, later periods self-flip, the boss reveal as the big moment
