@@ -36,6 +36,7 @@ public static class ForecastBoardSetup
     const string GM = "Assets/_StoreAssets/Audio/Gamemaster Audio - Pro Sound Collection/";
     const string AudioDir = "Assets/_Game/Data/Audio";
     const string ForecastAudioDir = AudioDir + "/Forecast";
+    const string WoodChipsPath = "Assets/_Game/Content/Structures/_Shared/Effects/WoodHit.prefab";
     const int Res = 512;
 
     // Frame: two log posts 3.5 m apart, the crossbar log on top (room for the pull rope inside the right post).
@@ -93,12 +94,12 @@ public static class ForecastBoardSetup
         Folder(Root + "/Textures");
         Folder(Root + "/Materials");
         var log = new List<string>();
-        // Fight marks over the whole plaque face, below its period icon. Small and medium are the same crossed swords.
-        var below = new Vector2(0.03f, -0.07f);
-        log.Add(Bake("Mark_Unknown", new[] { new Mark("symbol_question", below, 0.3f, Bone, 4f) }, PlaqueW, PlaqueH, 1465, 0.27f));
-        log.Add(Bake("Mark_Small", new[] { new Mark("battle", below, 0.18f, SwordRed, -3f) }, PlaqueW, PlaqueH, 1234, 0.27f));
-        log.Add(Bake("Mark_Medium", new[] { new Mark("battle", below, 0.3f, SwordRed, -3f) }, PlaqueW, PlaqueH, 1311, 0.27f));
-        log.Add(Bake("Mark_Boss", new[] { new Mark("boss", below, 0.34f, SwordRed) }, PlaqueW, PlaqueH, 1388, 0.27f));
+        // Marks centred on the plaque face; the period icon sits in its top-left corner.
+        var centre = Vector2.zero;
+        log.Add(Bake("Mark_Unknown", new[] { new Mark("symbol_question", centre, 0.3f, Bone, 4f) }, PlaqueW, PlaqueH, 1465, 0.27f));
+        log.Add(Bake("Mark_Small", new[] { new Mark("battle", centre, 0.216f, SwordRed, -3f) }, PlaqueW, PlaqueH, 1234, 0.27f));
+        log.Add(Bake("Mark_Medium", new[] { new Mark("battle", centre, 0.36f, SwordRed, -3f) }, PlaqueW, PlaqueH, 1311, 0.27f));
+        log.Add(Bake("Mark_Boss", new[] { new Mark("boss", centre, 0.34f, SwordRed) }, PlaqueW, PlaqueH, 1388, 0.27f));
         // Period icons, lightly worn so they stay readable.
         log.Add(Bake("Period_Evening", new[] { new Mark("sun", new Vector2(0f, -0.06f), 0.5f, SunColor) }, 0.6f, 0.6f, 905, 0.12f, Sunset));
         log.Add(Bake("Period_Midnight", new[] { new Mark("moon", Vector2.zero, 0.46f, MoonColor) }, 0.6f, 0.6f, 901, 0.12f));
@@ -246,6 +247,8 @@ public static class ForecastBoardSetup
                     plank.localPosition = new Vector3(0f, k == 0 ? PlaqueH * 0.25f + 0.005f : -PlaqueH * 0.25f - 0.005f, 0f);
                     plank.localRotation = Quaternion.Euler(0f, 0f, k == 0 ? 0.6f : -0.8f);
                     plank.localScale = new Vector3(PlaqueW, PlaqueH * 0.5f, 0.045f);
+                    // Shootable: "Plank" in the name reads as Wood (SurfaceSettings); holes ride along on the reel.
+                    plank.gameObject.AddComponent<BoxCollider>();
                 }
                 var period = Primitive(PrimitiveType.Quad, "Period", reel, preview, Load<Material>($"{Root}/Materials/Period_{Periods[i]}.mat"));
                 period.transform.localPosition = new Vector3(-0.215f, 0.175f, -0.0236f);
@@ -274,6 +277,7 @@ public static class ForecastBoardSetup
             SetField(board, "_tickSound", Id("Forecast_ReelTick"));
             SetField(board, "_landSound", Id("Forecast_Land"));
             SetField(board, "_bossLandSound", Id("Forecast_LandBoss"));
+            SetField(board, "_landChips", Load<GameObject>(WoodChipsPath).GetComponent<MB13.Aipocalypse.Core.Effects.PooledEffect>());
             SetField(board, "_marks", new Dictionary<FightSize, Material>
             {
                 { FightSize.Small, Load<Material>(Root + "/Materials/Mark_Small.mat") },

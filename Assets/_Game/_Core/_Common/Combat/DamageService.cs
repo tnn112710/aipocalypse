@@ -33,7 +33,8 @@ namespace MB13.Aipocalypse.Core.Combat
         }
 
         // A physics hit (bullet, swing): damages the IDamageable the collider belongs to (scaled by its Hitbox, if any: a head
-        // doubles and crits) and pushes a loose rigidbody by info.Force. Returns the damageable, or null on scenery.
+        // doubles and crits), or lets scenery with an IHitReaction move, and pushes a loose rigidbody by info.Force. Returns
+        // the damageable, or null on scenery.
         public IDamageable DealHit(in RaycastHit hit, in DamageInfo info)
         {
             IDamageable target = hit.collider.GetComponentInParent<IDamageable>();
@@ -41,6 +42,9 @@ namespace MB13.Aipocalypse.Core.Combat
                 Deal(target, info.OnHitbox(hitbox.DamageMultiplier, hitbox.Critical));
             else
                 Deal(target, info);
+
+            if (target == null)
+                hit.collider.GetComponentInParent<IHitReaction>()?.React(hit.collider, info);
 
             Rigidbody body = hit.rigidbody;
             if (body != null && !body.isKinematic && info.Force != Vector3.zero)
