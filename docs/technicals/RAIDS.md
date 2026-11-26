@@ -61,6 +61,7 @@ Settings and plans are read-only at runtime, like every definition asset.
 ## Extending
 
 - **Another enemy kind in a raid:** its card (prefab variants, group size, its own `ArrivalCue`), listed in `EnemySystemSettings.Cards`, and an entry in a wave. Mixed waves announce each kind once.
+- **The forecast board** ([FORECAST.md](FORECAST.md)) shows a night forecast in three periods (none / small / medium / boss) that doesn't drive the raids yet; a schedule built on periods will read `ForecastService`.
 - **Quiet nights, ladder, Blood Moons:** a new `IRaidSchedule` (registered in `RaidInstaller` instead of `EveryNightSchedule`) returns a plan per night, or null for a quiet night. Difficulty scaling goes on spawned enemies as `EnemyStats` modifiers.
 - **Other routes** (river crossings, inside the meadow): more `SpawnZone`s with their own ids; waves name the one they use.
 - **The closed fence:** the home gate starts shut. Raiders with no path to the player break the weakest of the 5 nearest standing segments and come through the gap, or through the gate if the player opens it ([DEFENSE.md](DEFENSE.md)). `Raid/Spawn Zone (Front)` has `OriginOffset` 3 m, so the point spawn points must reach lies outside the closed gate.

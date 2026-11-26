@@ -85,6 +85,81 @@ Still suggested:
   - Glitched fish worth 10×, treasure in the catch. Ref: Stardew Valley — fishing treasure chests; DREDGE — aberrant fish
   - Rare golden or glitched produce; a robot merchant on random days with random stock. Ref: Terraria — Traveling Merchant
 
+### Night fight periods and sizes (user, 2026-11-26)
+
+- User: three fight periods a night, **Evening 18–22**, **Midnight 22–02**, **Blue hour 02–06**. Evening is the most likely, a wave sometimes comes at Midnight, rarely in the Blue hour. Nights come in **small, medium and big**, and the player knows in advance. Unsure about the UI, flow and UX (???)
+- Changes current rules: ordinary raids end at midnight ([CORE.md](CORE.md#night--special-events)), 2–3 waves a raid ([RAIDS.md](RAIDS.md#how-hard-wave-power-and-threat)), sleep after midnight on raid nights; the build starts raids at 20:00 ([technicals/RAIDS.md](../technicals/RAIDS.md))
+- Real time: at 40–45 s per game hour a period is about 3 real minutes and the whole night 8–9, so a period holds one wave group, and waiting for a wave that never comes costs real minutes
+- Suggested:
+  - **Size sets the budget and the odds:** the morning forecast gives the size (Quiet / Small / Medium / Big; Blood Moon = all three periods). Size sets the wave power ([RAIDS.md](RAIDS.md#how-hard-wave-power-and-threat)) and the chance of later periods, e.g. Small: Midnight 15%, Blue hour 0 · Medium: 50% / 10% · Big: 80% / 35% (placeholders)
+  - **Rolled at dawn, revealed in steps:** the whole night is rolled in the morning (saved, so reloading can't reroll it), but the player sees only the odds. When a period ends, the next one is confirmed or cleared at once ("All clear until dawn" or "More after 02:00"), so the player never waits blind and always knows if sleeping is safe
+  - **Each period its own job, so it reads differently:** Evening = the main assault (fighters, breakers); Midnight = a second push; Blue hour = a small sneak raid of thieves after the animals while the player may be asleep
+  - **Sleep between periods:** the bed offers sleep until a margin before the next confirmed wave, as `SleepRules` does today ("Sleep until 01:30, raiders expected at 02:00"). Big nights cost sleep and so sanity, a natural price of the size
+  - **Evening keeps a dusk:** the window opens at 18:00 but the wave arrives at a random hour inside it (19:00 earliest), with a warning first, so ringing the bell and getting the animals home still fit
+- UI suggested:
+  - Morning: the drone's report / patch notes show the size and three period icons, certain ● likely ◐ unlikely ○
+  - HUD: a three-segment night strip under the clock (18–22 · 22–02 · 02–06), each segment expected / possible / clear / active / done; it sits beside the 10-day progress bar ([Forecast and progress bar](#forecast-and-progress-bar-tbd))
+  - Warnings before each wave, in game first: Loki growls toward the spawn side, Bolt's night light turns red, the far horn, then the existing RAID INCOMING banner
+  - End of a period: the existing banner plus the verdict on the next one
+  - Ref: Don't Starve — growls that grow louder before hound attacks, so the warning is a sound, not a menu
+  - Ref: 7 Days to Die — the day counter turns red on horde nights, so everyone plans around it
+- **Shorter periods (user, 2026-11-26):** shorten them so the player can still sleep, e.g. 20–22 / 22–00 / 00–02, or 18–21 / 21–00 / 00–03 (???)
+  - Suggested: 20–22 / 22–00 / 00–02, used as **start windows**, not fight lengths: a wave starts inside its window (after a warning) and is fought until cleared; the next one starts only after the previous one is cleared plus a breather. Keeps 18–20 for dusk prep and leaves 02:00 → 07:00 for sleep on the worst night. Rename Blue hour (that's pre-dawn) to Late night
+  - A wave fought at the normal clock pace eats the night: at 45 s per game hour, a 3-minute fight takes 4 game hours. Suggested: the night clock runs slower while raiders are alive (e.g. ×0.25, so 3 minutes ≈ 1 game hour) and at normal speed between waves. Measure how long a raid takes today first (`RaidSoak`)
+  - The forecast can show start times instead of windows ("~20:00 · maybe ~22:30 · rarely ~01:00"): the randomness is *whether* a wave comes, not *when*
+- **The forecast in the fiction (user question, 2026-11-26):** who tells the player, and why they know
+  - Suggested: four layers, from words to world to HUD
+    1. **The drone's morning briefing** gives the numbers, with the weather (already rolled per day by `WeatherPlanner`): "Today: sunny. Tonight: medium goblin activity. Return after midnight: 50% confidence." Its motive is logical before any reveal: the player is the collateral on the debt, and a dead debtor doesn't pay ("Protecting your repayment capacity is my top priority")
+    2. **Signs in the world** make it physical: smoke columns over the goblin camp across the river during the day, one / two / three for Small / Medium / Big; drums at dusk. After a wave, survivors regroup with torches on the far bank when another wave is coming, and the torches go out on an all clear. The step-by-step reveal is then something the player sees, not a UI rule
+    3. **A board at home** (a calendar in the house, or Bolt's face screen) to check again any time; it can hold the 10-day bar and moon phase too
+    4. **The HUD night strip** as an early, cheap upgrade from [HUD earned back](#hud-taken-by-the-ai-lord-earned-back-user-2026-11-09): before it, the briefing, the signs and the board; after it, the strip under the clock. A good first upgrade that teaches upgrades
+  - **The forecast as a story clue:** it is always right, which is suspicious: how does a drone know when goblins attack? Over the run the drone slips ("Tonight's raid is scheduled— predicted. Predicted."), and later it reads as what it is, a test plan: the AI scheduling stress tests on the player's behaviour (M.A.Y.B.E). Feeds STORY.md's "strange details gradually create suspicion" without revealing the sandbox early
+  - Rules suggested: the numbers are never wrong (trust); the jokes live in the wording only. Plain labels on screen (Small / Medium / Big), flavour in the drone's lines
+  - Ref: Stardew Valley — the TV weather forecast, a daily ritual that plans the day
+  - Open (???): can the evening's result change the later odds (a crushed first wave is less likely to come back)? Rewarding and logical, but the morning odds would then move
+- **The forecast as a slot machine (user, 2026-11-26):** shown on the drone's face or monitor, or a sign board: three reels, one per period, like a 777 slot; every day the player spins it to see the forecast
+  - Suggested: the night is still rolled at dawn and saved; the spin only reveals it, so reloading or spinning again changes nothing
+  - **Reel 1 stops in the morning** (the Evening's size). **Reels 2 and 3 keep spinning slowly** and each stops when the wave before it ends: the slot *is* the step-by-step reveal. A spinning reel's strip shows its odds, mostly blanks when unlikely, mostly goblin heads when likely, so players read the chance from the symbols, no numbers needed
+  - Symbols: blank / zzz (no wave), one / two / three goblin heads (Small / Medium / Big). **Jackpot = three red moons = Blood Moon**: the jackpot is the worst night. The eclipse gets its own symbol
+  - Where: a machine or board in the yard as the daily ritual (next to the daily box); the drone's face mirrors it when the player is away; the HUD strip upgrade is the same three mini reels, so one look everywhere
+  - Never blocks information: if nobody spins by noon, the drone spins it ("I took the liberty")
+  - Free to spin, no Tokens, no re-spins: the tribute bowls already change the night. A nudge upgrade (hold one reel) is a possible later extra (???)
+  - Readable without the joke: a text line under the reels ("Tonight: Medium · after midnight likely"). Good trailer moment
+  - **Forecast board concept (user, 2026-11-26):** a wooden slot-machine board in the yard: "TONIGHT" header, a lamp on top, a satellite dish, a side lever, three reels labelled Evening / Midnight / Late night. Suggested changes: reels 2–3 still spinning by day; the number of crossed swords shows the size; the lamp's colour shows the state from across the yard (amber waiting, red wave coming, green all clear); reels backlit at night; all words as TMP text from the string tables, not painted into the art; the dish as the quiet AI clue. Base props: Animpic POLY-SurvivalWorkshop (Should)
+  - **Hanging plaques instead (user, 2026-11-26):** a slot machine needs a custom 3D model we don't have; instead **three wooden plaques hanging from a crossbar**, one per period. Replaces the reels; the rules above stay
+    - Suggested: each plaque has a "?" back and an icon front. To reveal, the plaque spins on its rope several turns and slows to a stop (the gacha moment, cheap); the icon is swapped while it's edge-on, so one flat plaque shows any symbol
+    - An unrevealed plaque shows its odds with a ribbon tied on (red = likely, white = unlikely) plus a short text line under it
+    - Icons: Layer Lab Pictoicons (Should, the HUD's set): battle swords ×1–3 for size, check for all clear, moon (red) for Blood Moon, sleep for a quiet night. Blood Moon: all three flip red at once
+    - Parts we own: Animpic `SM_Wooden_Plank_A–C` / `SM_Plywood_Board_A–C` as plaques, `SM_Rope`, `SM_Kerosene_Lamp` hanging in the middle as the state light (Should); the yard's Lakefell fence posts and `Beam_1` for the frame (Maybe, already used for the fence: ask before a new use)
+    - Extras (???): the plaques sway with the wind level; shooting a plaque makes it spin (never changes the result)
+    - **Mock-up rounds (2026-11-26):** gallery of in-engine captures (over the gate, low board, painted, no text). User direction so far: a low board beside the gate, brown wood, Saira if text is used, ideally **no text**. Suggested: the beam carries sun / moon / star for the three periods; plaques show only state (1–3 skulls or swords for size, a red "?" for likely and a faded "?" for unlikely, a leaf or check for calm); icons and labels painted into the plaque (one worn texture per plaque, lit like the wood), never floating sprites
+    - **How the forecast is revealed (user question, 2026-11-26), suggested:**
+      - Overnight the plaques reset: they hang turned away, so a fresh day is visible from across the yard
+      - Morning: the player reveals it by pulling a rope or ringing a little bell on the board (E), and the evening plaque spins round and lands. If not done by about 09:00, the drone does it ("I took the liberty"), so information is never locked behind a chore. A HUD nudge ("Tonight's forecast is ready") until then
+      - Midnight and Late night: they reveal by themselves when the wave before ends (or at the period start if nothing came), with the regroup torches and Loki's growl as the in-world signal; the plaque spins wherever the player is, and the HUD strip / drone line reports it when away
+      - Rejected options: fully automatic at dawn (no gacha moment, easy to miss); fully manual every time (a chore, and it locks needed information)
+      - Open (???): pull rope vs bell vs shooting the plaque as the reveal action; whether the morning reveal plays a short slot-like spin of all three plaques with only the first landing
+    - **User picks so far (2026-11-26, rounds 6–9):**
+      - Frame: F1, Highland logs (Raygeas HIGHLANDS `Log_1` as two posts and the crossbar, Should); nothing on the crossbar
+      - Each plaque carries its own period icon, small, in its top-left corner: a setting sun (half sun under a horizon line) for evening, moon for midnight, star for late night
+      - Plaque content: one crossed-swords mark for a normal fight, painted small for a small fight and larger for a medium one; a **boss fight** is one big horned monster skull (Pictoicon `boss`) instead of swords; empty plaque = no fight. The old "big" size is replaced by the boss night (???: does a non-boss big night still exist?)
+      - Boss skull painted **red**, same red as the swords (user pick B1, 2026-11-26)
+      - **Built 2026-11-27** (user asked: the board first, then a fixed forecast): the board in front of the house, right side; the forecast is small in all three periods every day, display only (raids unchanged), no reveal yet. See [FORECAST.md](../technicals/FORECAST.md)
+      - Open (???): how likely / unlikely is shown on plaques not yet revealed
+    - **Reveal options (suggested 2026-11-26, user to pick):**
+      - A. Pull the rope: plaques spin like slot reels and land one by one (tick-tick-clack); unrevealed ones keep spinning and wobble to a stop showing "?"
+      - B. Shoot the bell: a small bell or tin target on the crossbar; hit it and the plaques flip. Uses the gun, a little skill toy, works from across the yard
+      - C. Loki does it: whistle, the dog runs to the board and tugs the rope; the plaques spin. Pays off the dog bond
+      - D. Pull the cloth: each morning the plaques hang under a tied sack cloth; pull it off. A boss night's cloth is tied with a red string, a hint before the reveal
+      - E. Scratch-off: plaques come covered in ash or mud; hold E to wipe, like a lottery scratch card
+      - F. The drone paints it: at dawn the drone sprays the icons on with a short line; automatic but a scene. Also the fallback for A–E if the player hasn't revealed by ~09:00
+      - Later periods: the next plaque flips by itself when the wave before ends, with a sting and a torch lit on the post beside it
+      - Boss reveal (any option): the board shakes, crows burst out of the trees, a low horn, Loki growls, the red skull lands last with a heavy clack
+      - Suggested: A (or B) as the morning action, F as the fallback, later periods self-flip, the boss reveal as the big moment
+  - Ref: Luck be a Landlord — a slot machine as the main interface, symbols readable at a glance; Call of Duty Zombies — the Mystery Box spin as a ritual players gather round
+- Option not suggested: no confirmation between periods, and a Blue hour wave wakes the sleeping player with an alarm. More tension, but unclear when sleep is safe; maybe only on Big nights (???)
+- Open (???): can a raid night skip Evening (only a Blue hour sneak)? Does Quiet stay its own night type or become "no periods"? Does the midnight retreat rule go away? Which units belong to each period?
+
 ### Valheim / Enshrouded + Escape from Duckov mix (user, 2026-11-07)
 
 **Status (2026-11-07):** the confirmed decisions below, plus tribute levels, boss drops, weaker bosses only on Blood Moons and eclipses, the night-2 first raid and later gun rarity/attachments, now live in [CORE.md](CORE.md), [RAIDS.md](RAIDS.md) and [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md). This section is the discussion history; unconfirmed suggestions are listed in RAIDS.md → Proposals.

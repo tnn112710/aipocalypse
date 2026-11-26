@@ -97227,6 +97227,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1749876018}
     m_Modifications:
+    - target: {fileID: 281488056101514698, guid: c16196dc9071d8b47ad65121fc324737, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1794956672957778975, guid: c16196dc9071d8b47ad65121fc324737, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4340572722292560521, guid: c16196dc9071d8b47ad65121fc324737, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.007407
@@ -130844,7 +130852,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 5926845588955552277, guid: 29c82c05442ef884eb9141d81426abf9, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 272.5398
+      value: 262.04
       objectReference: {fileID: 0}
     - target: {fileID: 5926845588955552277, guid: 29c82c05442ef884eb9141d81426abf9, type: 3}
       propertyPath: m_LocalPosition.y
@@ -130852,7 +130860,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5926845588955552277, guid: 29c82c05442ef884eb9141d81426abf9, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 295.04245
+      value: 295.73
       objectReference: {fileID: 0}
     - target: {fileID: 5926845588955552277, guid: 29c82c05442ef884eb9141d81426abf9, type: 3}
       propertyPath: m_LocalRotation.w
@@ -266075,15 +266083,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5289142706279991397, guid: 93e26781d15bfbb4c84829c7b025bdd5, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 272.2014
+      value: 273.59
       objectReference: {fileID: 0}
     - target: {fileID: 5289142706279991397, guid: 93e26781d15bfbb4c84829c7b025bdd5, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 29.500092
+      value: 29.49
       objectReference: {fileID: 0}
     - target: {fileID: 5289142706279991397, guid: 93e26781d15bfbb4c84829c7b025bdd5, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 294.93665
+      value: 295.23
       objectReference: {fileID: 0}
     - target: {fileID: 5289142706279991397, guid: 93e26781d15bfbb4c84829c7b025bdd5, type: 3}
       propertyPath: m_LocalRotation.w
@@ -292026,6 +292034,7 @@ GameObject:
   - component: {fileID: 1051056004}
   - component: {fileID: 1051056005}
   - component: {fileID: 1051056006}
+  - component: {fileID: 1051056007}
   m_Layer: 0
   m_Name: GameLifetimeScope
   m_TagString: Untagged
@@ -292391,6 +292400,21 @@ MonoBehaviour:
   - {fileID: 109623259}
   _dogs:
   - {fileID: 2059856389}
+--- !u!114 &1051056007
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1051055992}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a902002fe9e167c4ebb55e65556945a7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.ForecastSystem.ForecastInstaller
+  _settings: {fileID: 11400000, guid: 6f245883477ad9f47bd118d67c9610ea, type: 2}
+  _boards:
+  - {fileID: 1585058706}
 --- !u!1001 &1051122766
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -320106,6 +320130,38 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6598544644045921893, guid: cd106d803c5a51d4d85b6a0b04937ff5, type: 3}
   m_PrefabInstance: {fileID: 1155259473}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1155279924
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1155279925}
+  m_Layer: 0
+  m_Name: Forecast Board
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1155279925
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1155279924}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1585058705}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1155478010
 GameObject:
   m_ObjectHideFlags: 0
@@ -440920,6 +440976,95 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1456041864836313060, guid: 438d9294ab921fc459831c63054252d4, type: 3}
   m_PrefabInstance: {fileID: 1584576536}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1585058704
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1155279925}
+    m_Modifications:
+    - target: {fileID: 2913366211412167048, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
+      propertyPath: m_Name
+      value: ForecastBoard
+      objectReference: {fileID: 0}
+    - target: {fileID: 4049209480934203761, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 4049209480934203761, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4049209480934203761, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.158
+      objectReference: {fileID: 0}
+    - target: {fileID: 4049209480934203761, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.024
+      objectReference: {fileID: 0}
+    - target: {fileID: 5429174792164027721, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 275.4795
+      objectReference: {fileID: 0}
+    - target: {fileID: 5429174792164027721, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 29.500092
+      objectReference: {fileID: 0}
+    - target: {fileID: 5429174792164027721, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 273.45026
+      objectReference: {fileID: 0}
+    - target: {fileID: 5429174792164027721, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.07521391
+      objectReference: {fileID: 0}
+    - target: {fileID: 5429174792164027721, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5429174792164027721, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.9971674
+      objectReference: {fileID: 0}
+    - target: {fileID: 5429174792164027721, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5429174792164027721, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5429174792164027721, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5429174792164027721, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
+--- !u!4 &1585058705 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5429174792164027721, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
+  m_PrefabInstance: {fileID: 1585058704}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1585058706 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 296352393374865068, guid: 74f1f46eaec22ae4ca6991eb83b4c7dd, type: 3}
+  m_PrefabInstance: {fileID: 1585058704}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 20182e98d90c1e54c8b8a1a9d36115d0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.ForecastSystem.ForecastBoard
 --- !u!1001 &1585526960
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -602682,12 +602827,12 @@ MonoBehaviour:
           meridiem: 1
     cloudsCirrusMainTexture:
       constantValue:
-        value: {fileID: 0}
+        value: {fileID: 2800000, guid: c3b458ab8eb972f48819c41a1aca6c9c, type: 3}
       overrideValue: 1
       interpolateValue: 0
       interpolatedValue:
       - value:
-          value: {fileID: 0}
+          value: {fileID: 2800000, guid: c3b458ab8eb972f48819c41a1aca6c9c, type: 3}
         time:
           hours: 12
           minutes: 0
@@ -619708,3 +619853,4 @@ SceneRoots:
   - {fileID: 2123242553}
   - {fileID: 788390172}
   - {fileID: 2007418607}
+  - {fileID: 1155279925}
