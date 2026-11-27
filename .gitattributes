@@ -31,7 +31,7 @@
 *.uss                   text diff=css linguist-language=css
 *.uxml                  text linguist-language=xml linguist-detectable
 # Unity YAML files
-*.anim                  unity-yaml
+*.anim                  filter=lfs diff=lfs merge=lfs -text
 *.asset                 unity-yaml
 *.brush                 unity-yaml
 *.controller            unity-yaml
