@@ -94,6 +94,20 @@
         "com.gurbu.gpui-pro": "0.12.21"
       }
     },
+    "com.jbooth.microsplat.core": {
+      "version": "file:com.jbooth.microsplat.core",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.jbooth.microsplat.urp6p3": {
+      "version": "file:com.jbooth.microsplat.urp6p3",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.jbooth.microsplat.core": "3.9.0"
+      }
+    },
     "com.jbooth.microverse": {
       "version": "file:com.jbooth.microverse",
       "depth": 0,
