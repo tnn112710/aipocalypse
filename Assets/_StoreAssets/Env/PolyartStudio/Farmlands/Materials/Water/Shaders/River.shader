@@ -297,6 +297,7 @@ Shader "Polyart/Dreamscape/Water/River"
 			#pragma multi_compile _ _LIGHT_LAYERS
 			#pragma multi_compile_fragment _ _LIGHT_COOKIES
 			#pragma multi_compile _ _FORWARD_PLUS
+			#pragma multi_compile _ _CLUSTER_LIGHT_LOOP
 
 			
 
@@ -516,14 +517,15 @@ Shader "Polyart/Dreamscape/Water/River"
 				int _PassValue;
 			#endif
 
-			sampler2D _CausticsTexture;
-			sampler2D _CloudNoise;
-			sampler2D _WaterNormals;
-			sampler2D _ColorVariationTexture;
-			sampler2D _NoiseLines;
-			sampler2D _FoamTexture;
-			sampler2D _SteepVoronoiTexture;
-			sampler2D _WaterfallSteepnessLineTexture;
+			TEXTURE2D(_CausticsTexture);
+			TEXTURE2D(_CloudNoise);
+			TEXTURE2D(_WaterNormals);
+			TEXTURE2D(_ColorVariationTexture);
+			TEXTURE2D(_NoiseLines);
+			TEXTURE2D(_FoamTexture);
+			TEXTURE2D(_SteepVoronoiTexture);
+			TEXTURE2D(_WaterfallSteepnessLineTexture);
+			SAMPLER(sampler_trilinear_repeat);
 
 
 			inline float4 ASE_ComputeGrabScreenPos( float4 pos )
@@ -759,15 +761,15 @@ Shader "Polyart/Dreamscape/Water/River"
 				float2 uv_CloudNoise = input.ase_texcoord8.xy * _CloudNoise_ST.xy + _CloudNoise_ST.zw;
 				float mulTime793 = _TimeParameters.x * ( _CloudNoiseSpeed * Global_Speed903 );
 				float2 appendResult796 = (float2(0.0 , mulTime793));
-				float4 Cloud_Noise473 = tex2D( _CloudNoise, ( uv_CloudNoise + appendResult796 ) );
-				float3 Caustics811 = tex2D( _CausticsTexture, ( uv_CausticsTexture + appendResult715 + ( (Cloud_Noise473).rg * _CausticsViewOffset ) ) ).rgb;
+				float4 Cloud_Noise473 = SAMPLE_TEXTURE2D( _CloudNoise, sampler_trilinear_repeat, ( uv_CloudNoise + appendResult796 ) );
+				float3 Caustics811 = SAMPLE_TEXTURE2D( _CausticsTexture, sampler_trilinear_repeat, ( uv_CausticsTexture + appendResult715 + ( (Cloud_Noise473).rg * _CausticsViewOffset ) ) ).rgb;
 				float4 ase_grabScreenPos = ASE_ComputeGrabScreenPos( ScreenPos );
 				float4 ase_grabScreenPosNorm = ase_grabScreenPos / ase_grabScreenPos.w;
 				float4 fetchOpaqueVal194 = float4( SHADERGRAPH_SAMPLE_SCENE_COLOR( ase_grabScreenPosNorm.xy.xy ), 1.0 );
 				float2 uv_WaterNormals = input.ase_texcoord8.xy * _WaterNormals_ST.xy + _WaterNormals_ST.zw;
 				float mulTime823 = _TimeParameters.x * ( Global_Speed903 * _NormalsSpeed );
 				float2 appendResult824 = (float2(0.0 , mulTime823));
-				float4 Normals205 = tex2D( _WaterNormals, ( uv_WaterNormals + appendResult824 + ( (Cloud_Noise473).rb * _NormalsDistortionIntensity ) ) );
+				float4 Normals205 = SAMPLE_TEXTURE2D( _WaterNormals, sampler_trilinear_repeat, ( uv_WaterNormals + appendResult824 + ( (Cloud_Noise473).rb * _NormalsDistortionIntensity ) ) );
 				float3 unpack289 = UnpackNormalScale( Normals205, _Refraction );
 				unpack289.z = lerp( 1, unpack289.z, saturate(_Refraction) );
 				float4 temp_output_203_0 = ( ase_grabScreenPosNorm + float4( unpack289 , 0.0 ) );
@@ -780,18 +782,18 @@ Shader "Polyart/Dreamscape/Water/River"
 				float mulTime775 = _TimeParameters.x * ( _ColorVariationSpeed * Global_Speed903 );
 				float2 appendResult777 = (float2(0.0 , mulTime775));
 				float2 temp_output_778_0 = ( uv_ColorVariationTexture + appendResult777 );
-				float4 tex2DNode780 = tex2D( _ColorVariationTexture, temp_output_778_0 );
+				float4 tex2DNode780 = SAMPLE_TEXTURE2D( _ColorVariationTexture, sampler_trilinear_repeat, temp_output_778_0 );
 				float3 tanToWorld0 = float3( WorldTangent.x, WorldBiTangent.x, WorldNormal.x );
 				float3 tanToWorld1 = float3( WorldTangent.y, WorldBiTangent.y, WorldNormal.y );
 				float3 tanToWorld2 = float3( WorldTangent.z, WorldBiTangent.z, WorldNormal.z );
 				float3 ase_viewVectorTS =  tanToWorld0 * ( _WorldSpaceCameraPos.xyz - WorldPosition ).x + tanToWorld1 * ( _WorldSpaceCameraPos.xyz - WorldPosition ).y  + tanToWorld2 * ( _WorldSpaceCameraPos.xyz - WorldPosition ).z;
 				float3 normalizeResult782 = normalize( ase_viewVectorTS );
 				float2 paralaxOffset783 = ParallaxOffset( tex2DNode780.g , _ColorVariationDepth , normalizeResult782 );
-				float3 lerpResult767 = lerp( _Color4.rgb , _Color3.rgb , pow( tex2D( _ColorVariationTexture, ( paralaxOffset783 + temp_output_778_0 ) ).g , _ColorVariationContrast ));
+				float3 lerpResult767 = lerp( _Color4.rgb , _Color3.rgb , pow( SAMPLE_TEXTURE2D( _ColorVariationTexture, sampler_trilinear_repeat, ( paralaxOffset783 + temp_output_778_0 ) ).g , _ColorVariationContrast ));
 				float2 uv_NoiseLines = input.ase_texcoord8.xy * _NoiseLines_ST.xy + _NoiseLines_ST.zw;
 				float mulTime751 = _TimeParameters.x * ( _NoiseLinesSpeed * Global_Speed903 );
 				float2 appendResult755 = (float2(0.0 , mulTime751));
-				float3 lerpResult770 = lerp( lerpResult767 , _Color5.rgb , pow( saturate( ( tex2D( _NoiseLines, ( uv_NoiseLines + appendResult755 + ( (Cloud_Noise473).rg * _NoiseLinesDistortion ) ) ).g * _NoiseLinesOpacity * pow( tex2DNode780.g , _NoiseLinesReveal ) ) ) , _NoiseLinesPow ));
+				float3 lerpResult770 = lerp( lerpResult767 , _Color5.rgb , pow( saturate( ( SAMPLE_TEXTURE2D( _NoiseLines, sampler_trilinear_repeat, ( uv_NoiseLines + appendResult755 + ( (Cloud_Noise473).rg * _NoiseLinesDistortion ) ) ).g * _NoiseLinesOpacity * pow( tex2DNode780.g , _NoiseLinesReveal ) ) ) , _NoiseLinesPow ));
 				float3 Water_Color788 = lerpResult770;
 				float4 ase_positionSSNorm = ScreenPos / ScreenPos.w;
 				ase_positionSSNorm.z = ( UNITY_NEAR_CLIP_VALUE >= 0 ) ? ase_positionSSNorm.z : ase_positionSSNorm.z * 0.5 + 0.5;
@@ -809,7 +811,7 @@ Shader "Polyart/Dreamscape/Water/River"
 				float3 unpack309 = UnpackNormalScale( Normals205, _FoamNormalDistortion );
 				unpack309.z = lerp( 1, unpack309.z, saturate(_FoamNormalDistortion) );
 				float2 appendResult321 = (float2(-unpack309.x , 0.0));
-				float Painted_Foam323 = step( _FoamHardness , ( ( tex2D( _FoamTexture, ( uv_FoamTexture + ( float2( 0,0 ) + appendResult302 ) + appendResult321 ) ).r - 1.0 ) + input.ase_color.r ) );
+				float Painted_Foam323 = step( _FoamHardness , ( ( SAMPLE_TEXTURE2D( _FoamTexture, sampler_trilinear_repeat, ( uv_FoamTexture + ( float2( 0,0 ) + appendResult302 ) + appendResult321 ) ).r - 1.0 ) + input.ase_color.r ) );
 				float3 objToWorldDir589 = normalize( mul( GetObjectToWorldMatrix(), float4( input.ase_tangent.xyz, 0.0 ) ).xyz );
 				float SlopeInDeg29 = ( saturate( -objToWorldDir589.y ) * 90.0 );
 				float smoothstepResult444 = smoothstep( 60.0 , 75.0 , SlopeInDeg29);
@@ -842,13 +844,13 @@ Shader "Polyart/Dreamscape/Water/River"
 				float2 uv_SteepVoronoiTexture = input.ase_texcoord8.xy * _SteepVoronoiTexture_ST.xy + _SteepVoronoiTexture_ST.zw;
 				float mulTime69 = _TimeParameters.x * -( _SteepVoronoiSpeed * Global_Speed903 );
 				float2 appendResult70 = (float2(0.0 , mulTime69));
-				float Voronoi597 = tex2D( _SteepVoronoiTexture, ( uv_SteepVoronoiTexture + appendResult70 + ( _SteepVoronoiDistortion * (Cloud_Noise473).gb ) ) ).r;
+				float Voronoi597 = SAMPLE_TEXTURE2D( _SteepVoronoiTexture, sampler_trilinear_repeat, ( uv_SteepVoronoiTexture + appendResult70 + ( _SteepVoronoiDistortion * (Cloud_Noise473).gb ) ) ).r;
 				float lerpResult888 = lerp( _SteepWaterSmallDotsOpacity , _FlatWaterSmallDotsOpacity , smoothstepResult615);
 				float Steep_Water_Small_Dots620 = ( step( lerpResult617 , Voronoi597 ) * lerpResult888 );
 				float2 uv_WaterfallSteepnessLineTexture = input.ase_texcoord8.xy * _WaterfallSteepnessLineTexture_ST.xy + _WaterfallSteepnessLineTexture_ST.zw;
 				float mulTime44 = _TimeParameters.x * ( -_WaterfallSteepnessLineSpeed * Global_Speed903 );
 				float2 appendResult45 = (float2(0.0 , mulTime44));
-				float WaterfallSteepLinesTex816 = tex2D( _WaterfallSteepnessLineTexture, ( uv_WaterfallSteepnessLineTexture + appendResult45 ) ).r;
+				float WaterfallSteepLinesTex816 = SAMPLE_TEXTURE2D( _WaterfallSteepnessLineTexture, sampler_trilinear_repeat, ( uv_WaterfallSteepnessLineTexture + appendResult45 ) ).r;
 				float Slope_Lines583 = ( step( _SlopeLinesStep , ( WaterfallSteepLinesTex816 * ( 1.0 - ( abs( ( SlopeInDeg29 - _SteepWaterStartDeg ) ) * 0.2 ) ) ) ) * _SlopeLinesOpacity );
 				float smoothstepResult76 = smoothstep( ( _SteepWaterStartDeg - 5.0 ) , _SteepWaterStartDeg , SlopeInDeg29);
 				float Steep_Voronoi850 = saturate( ( step( _SteepVoronoiStep , ( Voronoi597 * smoothstepResult76 ) ) * _SteepVoronoiOpacity ) );
@@ -1352,7 +1354,8 @@ Shader "Polyart/Dreamscape/Water/River"
 				int _PassValue;
 			#endif
 
-			sampler2D _CloudNoise;
+			TEXTURE2D(_CloudNoise);
+			SAMPLER(sampler_trilinear_repeat);
 
 
 			
@@ -1522,7 +1525,7 @@ Shader "Polyart/Dreamscape/Water/River"
 				float Global_Speed903 = _GlobalSpeed;
 				float mulTime793 = _TimeParameters.x * ( _CloudNoiseSpeed * Global_Speed903 );
 				float2 appendResult796 = (float2(0.0 , mulTime793));
-				float4 Cloud_Noise473 = tex2D( _CloudNoise, ( uv_CloudNoise + appendResult796 ) );
+				float4 Cloud_Noise473 = SAMPLE_TEXTURE2D( _CloudNoise, sampler_trilinear_repeat, ( uv_CloudNoise + appendResult796 ) );
 				float2 texCoord231 = input.ase_texcoord3.xy * float2( 1,1 ) + float2( 0,0 );
 				float EdgeMask236 = ( abs( ( texCoord231.x - 0.5 ) ) * 2.0 );
 				float smoothstepResult261 = smoothstep( 0.0 , _EdgeFoamThickness , abs( ( EdgeMask236 - _EdgeFoamDepth ) ));
@@ -1777,7 +1780,8 @@ Shader "Polyart/Dreamscape/Water/River"
 				int _PassValue;
 			#endif
 
-			sampler2D _CloudNoise;
+			TEXTURE2D(_CloudNoise);
+			SAMPLER(sampler_trilinear_repeat);
 
 
 			
@@ -1927,7 +1931,7 @@ Shader "Polyart/Dreamscape/Water/River"
 				float Global_Speed903 = _GlobalSpeed;
 				float mulTime793 = _TimeParameters.x * ( _CloudNoiseSpeed * Global_Speed903 );
 				float2 appendResult796 = (float2(0.0 , mulTime793));
-				float4 Cloud_Noise473 = tex2D( _CloudNoise, ( uv_CloudNoise + appendResult796 ) );
+				float4 Cloud_Noise473 = SAMPLE_TEXTURE2D( _CloudNoise, sampler_trilinear_repeat, ( uv_CloudNoise + appendResult796 ) );
 				float2 texCoord231 = input.ase_texcoord3.xy * float2( 1,1 ) + float2( 0,0 );
 				float EdgeMask236 = ( abs( ( texCoord231.x - 0.5 ) ) * 2.0 );
 				float smoothstepResult261 = smoothstep( 0.0 , _EdgeFoamThickness , abs( ( EdgeMask236 - _EdgeFoamDepth ) ));
@@ -2169,14 +2173,15 @@ Shader "Polyart/Dreamscape/Water/River"
 				int _PassValue;
 			#endif
 
-			sampler2D _CausticsTexture;
-			sampler2D _CloudNoise;
-			sampler2D _WaterNormals;
-			sampler2D _ColorVariationTexture;
-			sampler2D _NoiseLines;
-			sampler2D _FoamTexture;
-			sampler2D _SteepVoronoiTexture;
-			sampler2D _WaterfallSteepnessLineTexture;
+			TEXTURE2D(_CausticsTexture);
+			TEXTURE2D(_CloudNoise);
+			TEXTURE2D(_WaterNormals);
+			TEXTURE2D(_ColorVariationTexture);
+			TEXTURE2D(_NoiseLines);
+			TEXTURE2D(_FoamTexture);
+			TEXTURE2D(_SteepVoronoiTexture);
+			TEXTURE2D(_WaterfallSteepnessLineTexture);
+			SAMPLER(sampler_trilinear_repeat);
 
 
 			inline float4 ASE_ComputeGrabScreenPos( float4 pos )
@@ -2389,8 +2394,8 @@ Shader "Polyart/Dreamscape/Water/River"
 				float2 uv_CloudNoise = input.ase_texcoord4.xy * _CloudNoise_ST.xy + _CloudNoise_ST.zw;
 				float mulTime793 = _TimeParameters.x * ( _CloudNoiseSpeed * Global_Speed903 );
 				float2 appendResult796 = (float2(0.0 , mulTime793));
-				float4 Cloud_Noise473 = tex2D( _CloudNoise, ( uv_CloudNoise + appendResult796 ) );
-				float3 Caustics811 = tex2D( _CausticsTexture, ( uv_CausticsTexture + appendResult715 + ( (Cloud_Noise473).rg * _CausticsViewOffset ) ) ).rgb;
+				float4 Cloud_Noise473 = SAMPLE_TEXTURE2D( _CloudNoise, sampler_trilinear_repeat, ( uv_CloudNoise + appendResult796 ) );
+				float3 Caustics811 = SAMPLE_TEXTURE2D( _CausticsTexture, sampler_trilinear_repeat, ( uv_CausticsTexture + appendResult715 + ( (Cloud_Noise473).rg * _CausticsViewOffset ) ) ).rgb;
 				float4 screenPos = input.ase_texcoord5;
 				float4 ase_grabScreenPos = ASE_ComputeGrabScreenPos( screenPos );
 				float4 ase_grabScreenPosNorm = ase_grabScreenPos / ase_grabScreenPos.w;
@@ -2398,7 +2403,7 @@ Shader "Polyart/Dreamscape/Water/River"
 				float2 uv_WaterNormals = input.ase_texcoord4.xy * _WaterNormals_ST.xy + _WaterNormals_ST.zw;
 				float mulTime823 = _TimeParameters.x * ( Global_Speed903 * _NormalsSpeed );
 				float2 appendResult824 = (float2(0.0 , mulTime823));
-				float4 Normals205 = tex2D( _WaterNormals, ( uv_WaterNormals + appendResult824 + ( (Cloud_Noise473).rb * _NormalsDistortionIntensity ) ) );
+				float4 Normals205 = SAMPLE_TEXTURE2D( _WaterNormals, sampler_trilinear_repeat, ( uv_WaterNormals + appendResult824 + ( (Cloud_Noise473).rb * _NormalsDistortionIntensity ) ) );
 				float3 unpack289 = UnpackNormalScale( Normals205, _Refraction );
 				unpack289.z = lerp( 1, unpack289.z, saturate(_Refraction) );
 				float4 temp_output_203_0 = ( ase_grabScreenPosNorm + float4( unpack289 , 0.0 ) );
@@ -2411,7 +2416,7 @@ Shader "Polyart/Dreamscape/Water/River"
 				float mulTime775 = _TimeParameters.x * ( _ColorVariationSpeed * Global_Speed903 );
 				float2 appendResult777 = (float2(0.0 , mulTime775));
 				float2 temp_output_778_0 = ( uv_ColorVariationTexture + appendResult777 );
-				float4 tex2DNode780 = tex2D( _ColorVariationTexture, temp_output_778_0 );
+				float4 tex2DNode780 = SAMPLE_TEXTURE2D( _ColorVariationTexture, sampler_trilinear_repeat, temp_output_778_0 );
 				float3 ase_tangentWS = input.ase_texcoord6.xyz;
 				float3 ase_normalWS = input.ase_texcoord7.xyz;
 				float3 ase_bitangentWS = input.ase_texcoord8.xyz;
@@ -2421,11 +2426,11 @@ Shader "Polyart/Dreamscape/Water/River"
 				float3 ase_viewVectorTS =  tanToWorld0 * ( _WorldSpaceCameraPos.xyz - WorldPosition ).x + tanToWorld1 * ( _WorldSpaceCameraPos.xyz - WorldPosition ).y  + tanToWorld2 * ( _WorldSpaceCameraPos.xyz - WorldPosition ).z;
 				float3 normalizeResult782 = normalize( ase_viewVectorTS );
 				float2 paralaxOffset783 = ParallaxOffset( tex2DNode780.g , _ColorVariationDepth , normalizeResult782 );
-				float3 lerpResult767 = lerp( _Color4.rgb , _Color3.rgb , pow( tex2D( _ColorVariationTexture, ( paralaxOffset783 + temp_output_778_0 ) ).g , _ColorVariationContrast ));
+				float3 lerpResult767 = lerp( _Color4.rgb , _Color3.rgb , pow( SAMPLE_TEXTURE2D( _ColorVariationTexture, sampler_trilinear_repeat, ( paralaxOffset783 + temp_output_778_0 ) ).g , _ColorVariationContrast ));
 				float2 uv_NoiseLines = input.ase_texcoord4.xy * _NoiseLines_ST.xy + _NoiseLines_ST.zw;
 				float mulTime751 = _TimeParameters.x * ( _NoiseLinesSpeed * Global_Speed903 );
 				float2 appendResult755 = (float2(0.0 , mulTime751));
-				float3 lerpResult770 = lerp( lerpResult767 , _Color5.rgb , pow( saturate( ( tex2D( _NoiseLines, ( uv_NoiseLines + appendResult755 + ( (Cloud_Noise473).rg * _NoiseLinesDistortion ) ) ).g * _NoiseLinesOpacity * pow( tex2DNode780.g , _NoiseLinesReveal ) ) ) , _NoiseLinesPow ));
+				float3 lerpResult770 = lerp( lerpResult767 , _Color5.rgb , pow( saturate( ( SAMPLE_TEXTURE2D( _NoiseLines, sampler_trilinear_repeat, ( uv_NoiseLines + appendResult755 + ( (Cloud_Noise473).rg * _NoiseLinesDistortion ) ) ).g * _NoiseLinesOpacity * pow( tex2DNode780.g , _NoiseLinesReveal ) ) ) , _NoiseLinesPow ));
 				float3 Water_Color788 = lerpResult770;
 				float4 ase_positionSSNorm = screenPos / screenPos.w;
 				ase_positionSSNorm.z = ( UNITY_NEAR_CLIP_VALUE >= 0 ) ? ase_positionSSNorm.z : ase_positionSSNorm.z * 0.5 + 0.5;
@@ -2443,7 +2448,7 @@ Shader "Polyart/Dreamscape/Water/River"
 				float3 unpack309 = UnpackNormalScale( Normals205, _FoamNormalDistortion );
 				unpack309.z = lerp( 1, unpack309.z, saturate(_FoamNormalDistortion) );
 				float2 appendResult321 = (float2(-unpack309.x , 0.0));
-				float Painted_Foam323 = step( _FoamHardness , ( ( tex2D( _FoamTexture, ( uv_FoamTexture + ( float2( 0,0 ) + appendResult302 ) + appendResult321 ) ).r - 1.0 ) + input.ase_color.r ) );
+				float Painted_Foam323 = step( _FoamHardness , ( ( SAMPLE_TEXTURE2D( _FoamTexture, sampler_trilinear_repeat, ( uv_FoamTexture + ( float2( 0,0 ) + appendResult302 ) + appendResult321 ) ).r - 1.0 ) + input.ase_color.r ) );
 				float3 objToWorldDir589 = normalize( mul( GetObjectToWorldMatrix(), float4( input.ase_tangent.xyz, 0.0 ) ).xyz );
 				float SlopeInDeg29 = ( saturate( -objToWorldDir589.y ) * 90.0 );
 				float smoothstepResult444 = smoothstep( 60.0 , 75.0 , SlopeInDeg29);
@@ -2476,13 +2481,13 @@ Shader "Polyart/Dreamscape/Water/River"
 				float2 uv_SteepVoronoiTexture = input.ase_texcoord4.xy * _SteepVoronoiTexture_ST.xy + _SteepVoronoiTexture_ST.zw;
 				float mulTime69 = _TimeParameters.x * -( _SteepVoronoiSpeed * Global_Speed903 );
 				float2 appendResult70 = (float2(0.0 , mulTime69));
-				float Voronoi597 = tex2D( _SteepVoronoiTexture, ( uv_SteepVoronoiTexture + appendResult70 + ( _SteepVoronoiDistortion * (Cloud_Noise473).gb ) ) ).r;
+				float Voronoi597 = SAMPLE_TEXTURE2D( _SteepVoronoiTexture, sampler_trilinear_repeat, ( uv_SteepVoronoiTexture + appendResult70 + ( _SteepVoronoiDistortion * (Cloud_Noise473).gb ) ) ).r;
 				float lerpResult888 = lerp( _SteepWaterSmallDotsOpacity , _FlatWaterSmallDotsOpacity , smoothstepResult615);
 				float Steep_Water_Small_Dots620 = ( step( lerpResult617 , Voronoi597 ) * lerpResult888 );
 				float2 uv_WaterfallSteepnessLineTexture = input.ase_texcoord4.xy * _WaterfallSteepnessLineTexture_ST.xy + _WaterfallSteepnessLineTexture_ST.zw;
 				float mulTime44 = _TimeParameters.x * ( -_WaterfallSteepnessLineSpeed * Global_Speed903 );
 				float2 appendResult45 = (float2(0.0 , mulTime44));
-				float WaterfallSteepLinesTex816 = tex2D( _WaterfallSteepnessLineTexture, ( uv_WaterfallSteepnessLineTexture + appendResult45 ) ).r;
+				float WaterfallSteepLinesTex816 = SAMPLE_TEXTURE2D( _WaterfallSteepnessLineTexture, sampler_trilinear_repeat, ( uv_WaterfallSteepnessLineTexture + appendResult45 ) ).r;
 				float Slope_Lines583 = ( step( _SlopeLinesStep , ( WaterfallSteepLinesTex816 * ( 1.0 - ( abs( ( SlopeInDeg29 - _SteepWaterStartDeg ) ) * 0.2 ) ) ) ) * _SlopeLinesOpacity );
 				float smoothstepResult76 = smoothstep( ( _SteepWaterStartDeg - 5.0 ) , _SteepWaterStartDeg , SlopeInDeg29);
 				float Steep_Voronoi850 = saturate( ( step( _SteepVoronoiStep , ( Voronoi597 * smoothstepResult76 ) ) * _SteepVoronoiOpacity ) );
@@ -2734,14 +2739,15 @@ Shader "Polyart/Dreamscape/Water/River"
 				int _PassValue;
 			#endif
 
-			sampler2D _CausticsTexture;
-			sampler2D _CloudNoise;
-			sampler2D _WaterNormals;
-			sampler2D _ColorVariationTexture;
-			sampler2D _NoiseLines;
-			sampler2D _FoamTexture;
-			sampler2D _SteepVoronoiTexture;
-			sampler2D _WaterfallSteepnessLineTexture;
+			TEXTURE2D(_CausticsTexture);
+			TEXTURE2D(_CloudNoise);
+			TEXTURE2D(_WaterNormals);
+			TEXTURE2D(_ColorVariationTexture);
+			TEXTURE2D(_NoiseLines);
+			TEXTURE2D(_FoamTexture);
+			TEXTURE2D(_SteepVoronoiTexture);
+			TEXTURE2D(_WaterfallSteepnessLineTexture);
+			SAMPLER(sampler_trilinear_repeat);
 
 
 			inline float4 ASE_ComputeGrabScreenPos( float4 pos )
@@ -2936,8 +2942,8 @@ Shader "Polyart/Dreamscape/Water/River"
 				float2 uv_CloudNoise = input.ase_texcoord2.xy * _CloudNoise_ST.xy + _CloudNoise_ST.zw;
 				float mulTime793 = _TimeParameters.x * ( _CloudNoiseSpeed * Global_Speed903 );
 				float2 appendResult796 = (float2(0.0 , mulTime793));
-				float4 Cloud_Noise473 = tex2D( _CloudNoise, ( uv_CloudNoise + appendResult796 ) );
-				float3 Caustics811 = tex2D( _CausticsTexture, ( uv_CausticsTexture + appendResult715 + ( (Cloud_Noise473).rg * _CausticsViewOffset ) ) ).rgb;
+				float4 Cloud_Noise473 = SAMPLE_TEXTURE2D( _CloudNoise, sampler_trilinear_repeat, ( uv_CloudNoise + appendResult796 ) );
+				float3 Caustics811 = SAMPLE_TEXTURE2D( _CausticsTexture, sampler_trilinear_repeat, ( uv_CausticsTexture + appendResult715 + ( (Cloud_Noise473).rg * _CausticsViewOffset ) ) ).rgb;
 				float4 screenPos = input.ase_texcoord3;
 				float4 ase_grabScreenPos = ASE_ComputeGrabScreenPos( screenPos );
 				float4 ase_grabScreenPosNorm = ase_grabScreenPos / ase_grabScreenPos.w;
@@ -2945,7 +2951,7 @@ Shader "Polyart/Dreamscape/Water/River"
 				float2 uv_WaterNormals = input.ase_texcoord2.xy * _WaterNormals_ST.xy + _WaterNormals_ST.zw;
 				float mulTime823 = _TimeParameters.x * ( Global_Speed903 * _NormalsSpeed );
 				float2 appendResult824 = (float2(0.0 , mulTime823));
-				float4 Normals205 = tex2D( _WaterNormals, ( uv_WaterNormals + appendResult824 + ( (Cloud_Noise473).rb * _NormalsDistortionIntensity ) ) );
+				float4 Normals205 = SAMPLE_TEXTURE2D( _WaterNormals, sampler_trilinear_repeat, ( uv_WaterNormals + appendResult824 + ( (Cloud_Noise473).rb * _NormalsDistortionIntensity ) ) );
 				float3 unpack289 = UnpackNormalScale( Normals205, _Refraction );
 				unpack289.z = lerp( 1, unpack289.z, saturate(_Refraction) );
 				float4 temp_output_203_0 = ( ase_grabScreenPosNorm + float4( unpack289 , 0.0 ) );
@@ -2958,7 +2964,7 @@ Shader "Polyart/Dreamscape/Water/River"
 				float mulTime775 = _TimeParameters.x * ( _ColorVariationSpeed * Global_Speed903 );
 				float2 appendResult777 = (float2(0.0 , mulTime775));
 				float2 temp_output_778_0 = ( uv_ColorVariationTexture + appendResult777 );
-				float4 tex2DNode780 = tex2D( _ColorVariationTexture, temp_output_778_0 );
+				float4 tex2DNode780 = SAMPLE_TEXTURE2D( _ColorVariationTexture, sampler_trilinear_repeat, temp_output_778_0 );
 				float3 ase_tangentWS = input.ase_texcoord4.xyz;
 				float3 ase_normalWS = input.ase_texcoord5.xyz;
 				float3 ase_bitangentWS = input.ase_texcoord6.xyz;
@@ -2968,11 +2974,11 @@ Shader "Polyart/Dreamscape/Water/River"
 				float3 ase_viewVectorTS =  tanToWorld0 * ( _WorldSpaceCameraPos.xyz - WorldPosition ).x + tanToWorld1 * ( _WorldSpaceCameraPos.xyz - WorldPosition ).y  + tanToWorld2 * ( _WorldSpaceCameraPos.xyz - WorldPosition ).z;
 				float3 normalizeResult782 = normalize( ase_viewVectorTS );
 				float2 paralaxOffset783 = ParallaxOffset( tex2DNode780.g , _ColorVariationDepth , normalizeResult782 );
-				float3 lerpResult767 = lerp( _Color4.rgb , _Color3.rgb , pow( tex2D( _ColorVariationTexture, ( paralaxOffset783 + temp_output_778_0 ) ).g , _ColorVariationContrast ));
+				float3 lerpResult767 = lerp( _Color4.rgb , _Color3.rgb , pow( SAMPLE_TEXTURE2D( _ColorVariationTexture, sampler_trilinear_repeat, ( paralaxOffset783 + temp_output_778_0 ) ).g , _ColorVariationContrast ));
 				float2 uv_NoiseLines = input.ase_texcoord2.xy * _NoiseLines_ST.xy + _NoiseLines_ST.zw;
 				float mulTime751 = _TimeParameters.x * ( _NoiseLinesSpeed * Global_Speed903 );
 				float2 appendResult755 = (float2(0.0 , mulTime751));
-				float3 lerpResult770 = lerp( lerpResult767 , _Color5.rgb , pow( saturate( ( tex2D( _NoiseLines, ( uv_NoiseLines + appendResult755 + ( (Cloud_Noise473).rg * _NoiseLinesDistortion ) ) ).g * _NoiseLinesOpacity * pow( tex2DNode780.g , _NoiseLinesReveal ) ) ) , _NoiseLinesPow ));
+				float3 lerpResult770 = lerp( lerpResult767 , _Color5.rgb , pow( saturate( ( SAMPLE_TEXTURE2D( _NoiseLines, sampler_trilinear_repeat, ( uv_NoiseLines + appendResult755 + ( (Cloud_Noise473).rg * _NoiseLinesDistortion ) ) ).g * _NoiseLinesOpacity * pow( tex2DNode780.g , _NoiseLinesReveal ) ) ) , _NoiseLinesPow ));
 				float3 Water_Color788 = lerpResult770;
 				float4 ase_positionSSNorm = screenPos / screenPos.w;
 				ase_positionSSNorm.z = ( UNITY_NEAR_CLIP_VALUE >= 0 ) ? ase_positionSSNorm.z : ase_positionSSNorm.z * 0.5 + 0.5;
@@ -2990,7 +2996,7 @@ Shader "Polyart/Dreamscape/Water/River"
 				float3 unpack309 = UnpackNormalScale( Normals205, _FoamNormalDistortion );
 				unpack309.z = lerp( 1, unpack309.z, saturate(_FoamNormalDistortion) );
 				float2 appendResult321 = (float2(-unpack309.x , 0.0));
-				float Painted_Foam323 = step( _FoamHardness , ( ( tex2D( _FoamTexture, ( uv_FoamTexture + ( float2( 0,0 ) + appendResult302 ) + appendResult321 ) ).r - 1.0 ) + input.ase_color.r ) );
+				float Painted_Foam323 = step( _FoamHardness , ( ( SAMPLE_TEXTURE2D( _FoamTexture, sampler_trilinear_repeat, ( uv_FoamTexture + ( float2( 0,0 ) + appendResult302 ) + appendResult321 ) ).r - 1.0 ) + input.ase_color.r ) );
 				float3 objToWorldDir589 = normalize( mul( GetObjectToWorldMatrix(), float4( input.ase_tangent.xyz, 0.0 ) ).xyz );
 				float SlopeInDeg29 = ( saturate( -objToWorldDir589.y ) * 90.0 );
 				float smoothstepResult444 = smoothstep( 60.0 , 75.0 , SlopeInDeg29);
@@ -3023,13 +3029,13 @@ Shader "Polyart/Dreamscape/Water/River"
 				float2 uv_SteepVoronoiTexture = input.ase_texcoord2.xy * _SteepVoronoiTexture_ST.xy + _SteepVoronoiTexture_ST.zw;
 				float mulTime69 = _TimeParameters.x * -( _SteepVoronoiSpeed * Global_Speed903 );
 				float2 appendResult70 = (float2(0.0 , mulTime69));
-				float Voronoi597 = tex2D( _SteepVoronoiTexture, ( uv_SteepVoronoiTexture + appendResult70 + ( _SteepVoronoiDistortion * (Cloud_Noise473).gb ) ) ).r;
+				float Voronoi597 = SAMPLE_TEXTURE2D( _SteepVoronoiTexture, sampler_trilinear_repeat, ( uv_SteepVoronoiTexture + appendResult70 + ( _SteepVoronoiDistortion * (Cloud_Noise473).gb ) ) ).r;
 				float lerpResult888 = lerp( _SteepWaterSmallDotsOpacity , _FlatWaterSmallDotsOpacity , smoothstepResult615);
 				float Steep_Water_Small_Dots620 = ( step( lerpResult617 , Voronoi597 ) * lerpResult888 );
 				float2 uv_WaterfallSteepnessLineTexture = input.ase_texcoord2.xy * _WaterfallSteepnessLineTexture_ST.xy + _WaterfallSteepnessLineTexture_ST.zw;
 				float mulTime44 = _TimeParameters.x * ( -_WaterfallSteepnessLineSpeed * Global_Speed903 );
 				float2 appendResult45 = (float2(0.0 , mulTime44));
-				float WaterfallSteepLinesTex816 = tex2D( _WaterfallSteepnessLineTexture, ( uv_WaterfallSteepnessLineTexture + appendResult45 ) ).r;
+				float WaterfallSteepLinesTex816 = SAMPLE_TEXTURE2D( _WaterfallSteepnessLineTexture, sampler_trilinear_repeat, ( uv_WaterfallSteepnessLineTexture + appendResult45 ) ).r;
 				float Slope_Lines583 = ( step( _SlopeLinesStep , ( WaterfallSteepLinesTex816 * ( 1.0 - ( abs( ( SlopeInDeg29 - _SteepWaterStartDeg ) ) * 0.2 ) ) ) ) * _SlopeLinesOpacity );
 				float smoothstepResult76 = smoothstep( ( _SteepWaterStartDeg - 5.0 ) , _SteepWaterStartDeg , SlopeInDeg29);
 				float Steep_Voronoi850 = saturate( ( step( _SteepVoronoiStep , ( Voronoi597 * smoothstepResult76 ) ) * _SteepVoronoiOpacity ) );
@@ -3293,8 +3299,9 @@ Shader "Polyart/Dreamscape/Water/River"
 				int _PassValue;
 			#endif
 
-			sampler2D _WaterNormals;
-			sampler2D _CloudNoise;
+			TEXTURE2D(_WaterNormals);
+			TEXTURE2D(_CloudNoise);
+			SAMPLER(sampler_trilinear_repeat);
 
 
 			
@@ -3461,8 +3468,8 @@ Shader "Polyart/Dreamscape/Water/River"
 				float2 uv_CloudNoise = input.ase_texcoord5.xy * _CloudNoise_ST.xy + _CloudNoise_ST.zw;
 				float mulTime793 = _TimeParameters.x * ( _CloudNoiseSpeed * Global_Speed903 );
 				float2 appendResult796 = (float2(0.0 , mulTime793));
-				float4 Cloud_Noise473 = tex2D( _CloudNoise, ( uv_CloudNoise + appendResult796 ) );
-				float4 Normals205 = tex2D( _WaterNormals, ( uv_WaterNormals + appendResult824 + ( (Cloud_Noise473).rb * _NormalsDistortionIntensity ) ) );
+				float4 Cloud_Noise473 = SAMPLE_TEXTURE2D( _CloudNoise, sampler_trilinear_repeat, ( uv_CloudNoise + appendResult796 ) );
+				float4 Normals205 = SAMPLE_TEXTURE2D( _WaterNormals, sampler_trilinear_repeat, ( uv_WaterNormals + appendResult824 + ( (Cloud_Noise473).rb * _NormalsDistortionIntensity ) ) );
 				float3 unpack177 = UnpackNormalScale( Normals205, _NormalsStrength );
 				unpack177.z = lerp( 1, unpack177.z, saturate(_NormalsStrength) );
 				float3 Final_Normals808 = unpack177;
@@ -3808,14 +3815,15 @@ Shader "Polyart/Dreamscape/Water/River"
 				int _PassValue;
 			#endif
 
-			sampler2D _CausticsTexture;
-			sampler2D _CloudNoise;
-			sampler2D _WaterNormals;
-			sampler2D _ColorVariationTexture;
-			sampler2D _NoiseLines;
-			sampler2D _FoamTexture;
-			sampler2D _SteepVoronoiTexture;
-			sampler2D _WaterfallSteepnessLineTexture;
+			TEXTURE2D(_CausticsTexture);
+			TEXTURE2D(_CloudNoise);
+			TEXTURE2D(_WaterNormals);
+			TEXTURE2D(_ColorVariationTexture);
+			TEXTURE2D(_NoiseLines);
+			TEXTURE2D(_FoamTexture);
+			TEXTURE2D(_SteepVoronoiTexture);
+			TEXTURE2D(_WaterfallSteepnessLineTexture);
+			SAMPLER(sampler_trilinear_repeat);
 
 
 			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
@@ -4055,15 +4063,15 @@ Shader "Polyart/Dreamscape/Water/River"
 				float2 uv_CloudNoise = input.ase_texcoord8.xy * _CloudNoise_ST.xy + _CloudNoise_ST.zw;
 				float mulTime793 = _TimeParameters.x * ( _CloudNoiseSpeed * Global_Speed903 );
 				float2 appendResult796 = (float2(0.0 , mulTime793));
-				float4 Cloud_Noise473 = tex2D( _CloudNoise, ( uv_CloudNoise + appendResult796 ) );
-				float3 Caustics811 = tex2D( _CausticsTexture, ( uv_CausticsTexture + appendResult715 + ( (Cloud_Noise473).rg * _CausticsViewOffset ) ) ).rgb;
+				float4 Cloud_Noise473 = SAMPLE_TEXTURE2D( _CloudNoise, sampler_trilinear_repeat, ( uv_CloudNoise + appendResult796 ) );
+				float3 Caustics811 = SAMPLE_TEXTURE2D( _CausticsTexture, sampler_trilinear_repeat, ( uv_CausticsTexture + appendResult715 + ( (Cloud_Noise473).rg * _CausticsViewOffset ) ) ).rgb;
 				float4 ase_grabScreenPos = ASE_ComputeGrabScreenPos( ScreenPos );
 				float4 ase_grabScreenPosNorm = ase_grabScreenPos / ase_grabScreenPos.w;
 				float4 fetchOpaqueVal194 = float4( SHADERGRAPH_SAMPLE_SCENE_COLOR( ase_grabScreenPosNorm.xy.xy ), 1.0 );
 				float2 uv_WaterNormals = input.ase_texcoord8.xy * _WaterNormals_ST.xy + _WaterNormals_ST.zw;
 				float mulTime823 = _TimeParameters.x * ( Global_Speed903 * _NormalsSpeed );
 				float2 appendResult824 = (float2(0.0 , mulTime823));
-				float4 Normals205 = tex2D( _WaterNormals, ( uv_WaterNormals + appendResult824 + ( (Cloud_Noise473).rb * _NormalsDistortionIntensity ) ) );
+				float4 Normals205 = SAMPLE_TEXTURE2D( _WaterNormals, sampler_trilinear_repeat, ( uv_WaterNormals + appendResult824 + ( (Cloud_Noise473).rb * _NormalsDistortionIntensity ) ) );
 				float3 unpack289 = UnpackNormalScale( Normals205, _Refraction );
 				unpack289.z = lerp( 1, unpack289.z, saturate(_Refraction) );
 				float4 temp_output_203_0 = ( ase_grabScreenPosNorm + float4( unpack289 , 0.0 ) );
@@ -4076,18 +4084,18 @@ Shader "Polyart/Dreamscape/Water/River"
 				float mulTime775 = _TimeParameters.x * ( _ColorVariationSpeed * Global_Speed903 );
 				float2 appendResult777 = (float2(0.0 , mulTime775));
 				float2 temp_output_778_0 = ( uv_ColorVariationTexture + appendResult777 );
-				float4 tex2DNode780 = tex2D( _ColorVariationTexture, temp_output_778_0 );
+				float4 tex2DNode780 = SAMPLE_TEXTURE2D( _ColorVariationTexture, sampler_trilinear_repeat, temp_output_778_0 );
 				float3 tanToWorld0 = float3( WorldTangent.x, WorldBiTangent.x, WorldNormal.x );
 				float3 tanToWorld1 = float3( WorldTangent.y, WorldBiTangent.y, WorldNormal.y );
 				float3 tanToWorld2 = float3( WorldTangent.z, WorldBiTangent.z, WorldNormal.z );
 				float3 ase_viewVectorTS =  tanToWorld0 * ( _WorldSpaceCameraPos.xyz - WorldPosition ).x + tanToWorld1 * ( _WorldSpaceCameraPos.xyz - WorldPosition ).y  + tanToWorld2 * ( _WorldSpaceCameraPos.xyz - WorldPosition ).z;
 				float3 normalizeResult782 = normalize( ase_viewVectorTS );
 				float2 paralaxOffset783 = ParallaxOffset( tex2DNode780.g , _ColorVariationDepth , normalizeResult782 );
-				float3 lerpResult767 = lerp( _Color4.rgb , _Color3.rgb , pow( tex2D( _ColorVariationTexture, ( paralaxOffset783 + temp_output_778_0 ) ).g , _ColorVariationContrast ));
+				float3 lerpResult767 = lerp( _Color4.rgb , _Color3.rgb , pow( SAMPLE_TEXTURE2D( _ColorVariationTexture, sampler_trilinear_repeat, ( paralaxOffset783 + temp_output_778_0 ) ).g , _ColorVariationContrast ));
 				float2 uv_NoiseLines = input.ase_texcoord8.xy * _NoiseLines_ST.xy + _NoiseLines_ST.zw;
 				float mulTime751 = _TimeParameters.x * ( _NoiseLinesSpeed * Global_Speed903 );
 				float2 appendResult755 = (float2(0.0 , mulTime751));
-				float3 lerpResult770 = lerp( lerpResult767 , _Color5.rgb , pow( saturate( ( tex2D( _NoiseLines, ( uv_NoiseLines + appendResult755 + ( (Cloud_Noise473).rg * _NoiseLinesDistortion ) ) ).g * _NoiseLinesOpacity * pow( tex2DNode780.g , _NoiseLinesReveal ) ) ) , _NoiseLinesPow ));
+				float3 lerpResult770 = lerp( lerpResult767 , _Color5.rgb , pow( saturate( ( SAMPLE_TEXTURE2D( _NoiseLines, sampler_trilinear_repeat, ( uv_NoiseLines + appendResult755 + ( (Cloud_Noise473).rg * _NoiseLinesDistortion ) ) ).g * _NoiseLinesOpacity * pow( tex2DNode780.g , _NoiseLinesReveal ) ) ) , _NoiseLinesPow ));
 				float3 Water_Color788 = lerpResult770;
 				float4 ase_positionSSNorm = ScreenPos / ScreenPos.w;
 				ase_positionSSNorm.z = ( UNITY_NEAR_CLIP_VALUE >= 0 ) ? ase_positionSSNorm.z : ase_positionSSNorm.z * 0.5 + 0.5;
@@ -4105,7 +4113,7 @@ Shader "Polyart/Dreamscape/Water/River"
 				float3 unpack309 = UnpackNormalScale( Normals205, _FoamNormalDistortion );
 				unpack309.z = lerp( 1, unpack309.z, saturate(_FoamNormalDistortion) );
 				float2 appendResult321 = (float2(-unpack309.x , 0.0));
-				float Painted_Foam323 = step( _FoamHardness , ( ( tex2D( _FoamTexture, ( uv_FoamTexture + ( float2( 0,0 ) + appendResult302 ) + appendResult321 ) ).r - 1.0 ) + input.ase_color.r ) );
+				float Painted_Foam323 = step( _FoamHardness , ( ( SAMPLE_TEXTURE2D( _FoamTexture, sampler_trilinear_repeat, ( uv_FoamTexture + ( float2( 0,0 ) + appendResult302 ) + appendResult321 ) ).r - 1.0 ) + input.ase_color.r ) );
 				float3 objToWorldDir589 = normalize( mul( GetObjectToWorldMatrix(), float4( input.ase_tangent.xyz, 0.0 ) ).xyz );
 				float SlopeInDeg29 = ( saturate( -objToWorldDir589.y ) * 90.0 );
 				float smoothstepResult444 = smoothstep( 60.0 , 75.0 , SlopeInDeg29);
@@ -4138,13 +4146,13 @@ Shader "Polyart/Dreamscape/Water/River"
 				float2 uv_SteepVoronoiTexture = input.ase_texcoord8.xy * _SteepVoronoiTexture_ST.xy + _SteepVoronoiTexture_ST.zw;
 				float mulTime69 = _TimeParameters.x * -( _SteepVoronoiSpeed * Global_Speed903 );
 				float2 appendResult70 = (float2(0.0 , mulTime69));
-				float Voronoi597 = tex2D( _SteepVoronoiTexture, ( uv_SteepVoronoiTexture + appendResult70 + ( _SteepVoronoiDistortion * (Cloud_Noise473).gb ) ) ).r;
+				float Voronoi597 = SAMPLE_TEXTURE2D( _SteepVoronoiTexture, sampler_trilinear_repeat, ( uv_SteepVoronoiTexture + appendResult70 + ( _SteepVoronoiDistortion * (Cloud_Noise473).gb ) ) ).r;
 				float lerpResult888 = lerp( _SteepWaterSmallDotsOpacity , _FlatWaterSmallDotsOpacity , smoothstepResult615);
 				float Steep_Water_Small_Dots620 = ( step( lerpResult617 , Voronoi597 ) * lerpResult888 );
 				float2 uv_WaterfallSteepnessLineTexture = input.ase_texcoord8.xy * _WaterfallSteepnessLineTexture_ST.xy + _WaterfallSteepnessLineTexture_ST.zw;
 				float mulTime44 = _TimeParameters.x * ( -_WaterfallSteepnessLineSpeed * Global_Speed903 );
 				float2 appendResult45 = (float2(0.0 , mulTime44));
-				float WaterfallSteepLinesTex816 = tex2D( _WaterfallSteepnessLineTexture, ( uv_WaterfallSteepnessLineTexture + appendResult45 ) ).r;
+				float WaterfallSteepLinesTex816 = SAMPLE_TEXTURE2D( _WaterfallSteepnessLineTexture, sampler_trilinear_repeat, ( uv_WaterfallSteepnessLineTexture + appendResult45 ) ).r;
 				float Slope_Lines583 = ( step( _SlopeLinesStep , ( WaterfallSteepLinesTex816 * ( 1.0 - ( abs( ( SlopeInDeg29 - _SteepWaterStartDeg ) ) * 0.2 ) ) ) ) * _SlopeLinesOpacity );
 				float smoothstepResult76 = smoothstep( ( _SteepWaterStartDeg - 5.0 ) , _SteepWaterStartDeg , SlopeInDeg29);
 				float Steep_Voronoi850 = saturate( ( step( _SteepVoronoiStep , ( Voronoi597 * smoothstepResult76 ) ) * _SteepVoronoiOpacity ) );
@@ -4500,7 +4508,8 @@ Shader "Polyart/Dreamscape/Water/River"
 				int _PassValue;
 			#endif
 
-			sampler2D _CloudNoise;
+			TEXTURE2D(_CloudNoise);
+			SAMPLER(sampler_trilinear_repeat);
 
 
 			
@@ -4639,7 +4648,7 @@ Shader "Polyart/Dreamscape/Water/River"
 				float Global_Speed903 = _GlobalSpeed;
 				float mulTime793 = _TimeParameters.x * ( _CloudNoiseSpeed * Global_Speed903 );
 				float2 appendResult796 = (float2(0.0 , mulTime793));
-				float4 Cloud_Noise473 = tex2D( _CloudNoise, ( uv_CloudNoise + appendResult796 ) );
+				float4 Cloud_Noise473 = SAMPLE_TEXTURE2D( _CloudNoise, sampler_trilinear_repeat, ( uv_CloudNoise + appendResult796 ) );
 				float2 texCoord231 = input.ase_texcoord.xy * float2( 1,1 ) + float2( 0,0 );
 				float EdgeMask236 = ( abs( ( texCoord231.x - 0.5 ) ) * 2.0 );
 				float smoothstepResult261 = smoothstep( 0.0 , _EdgeFoamThickness , abs( ( EdgeMask236 - _EdgeFoamDepth ) ));
@@ -4875,7 +4884,8 @@ Shader "Polyart/Dreamscape/Water/River"
 				int _PassValue;
 			#endif
 
-			sampler2D _CloudNoise;
+			TEXTURE2D(_CloudNoise);
+			SAMPLER(sampler_trilinear_repeat);
 
 
 			
@@ -5013,7 +5023,7 @@ Shader "Polyart/Dreamscape/Water/River"
 				float Global_Speed903 = _GlobalSpeed;
 				float mulTime793 = _TimeParameters.x * ( _CloudNoiseSpeed * Global_Speed903 );
 				float2 appendResult796 = (float2(0.0 , mulTime793));
-				float4 Cloud_Noise473 = tex2D( _CloudNoise, ( uv_CloudNoise + appendResult796 ) );
+				float4 Cloud_Noise473 = SAMPLE_TEXTURE2D( _CloudNoise, sampler_trilinear_repeat, ( uv_CloudNoise + appendResult796 ) );
 				float2 texCoord231 = input.ase_texcoord.xy * float2( 1,1 ) + float2( 0,0 );
 				float EdgeMask236 = ( abs( ( texCoord231.x - 0.5 ) ) * 2.0 );
 				float smoothstepResult261 = smoothstep( 0.0 , _EdgeFoamThickness , abs( ( EdgeMask236 - _EdgeFoamDepth ) ));

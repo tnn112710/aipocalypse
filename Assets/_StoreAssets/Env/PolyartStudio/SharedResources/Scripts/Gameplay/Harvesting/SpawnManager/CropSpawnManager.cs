@@ -72,13 +72,6 @@ namespace Polyart
 
             if (Application.isPlaying) return;
 
-            // Skip when this component lives on a persistent prefab asset (e.g. during project-open
-            // import/validation). Instantiate(prefab, transform) rejects persistent parents and would
-            // otherwise log: "Cannot instantiate objects with a parent which is persistent."
-            // Scene instances and Prefab Edit mode both report IsValid() == true, so editor preview
-            // continues to work in both.
-            if (!gameObject.scene.IsValid()) return;
-
             DestroyChildren();
 
             crops = new GameObject[numCols * numRows];

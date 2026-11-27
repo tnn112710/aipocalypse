@@ -11,8 +11,7 @@ namespace Polyart
 
         public NPCOneShotState(NPCStateContext context, NPCState key, bool isStateImplemented, AnimationClip animation) : base(context, key, isStateImplemented)
         {
-            // Project patch: prefabs without an eat clip threw in OnValidate during builds.
-            animationLength = animation != null ? animation.length : 0f;
+            animationLength = animation.length;
             float blendTime = animationLength > 0.5f ? 0.2f : animationLength / 10f;
 
             oneShotSettings = new NPCAnimationController.OneShotSettings(animation, blendTime);

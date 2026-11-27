@@ -39,21 +39,8 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - unity_Lightmaps:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - unity_LightmapsInd:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - unity_ShadowMasks:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _AlphaCutoff: 0.5
     - _DeviationOffset: 0.001
     - _DeviationOffset1: 0.0683
     - _DeviationOffset2: 0.0169
@@ -66,9 +53,6 @@ Material:
     - _LightMin: 0.54
     - _NormalStrength: 5.34
     - _NormalStrength1: 0
-    - _QueueControl: 0
-    - _QueueOffset: 0
-    - _ReceiveShadows: 1
     - _VerticalMask: 0.24
     - _VerticalMaskMax: 0.74
     - _VerticalMaskMin: 0.7
@@ -89,9 +73,7 @@ Material:
     m_Colors:
     - _Color0: {r: 1, g: 1, b: 1, a: 0}
     - _Color1: {r: 0.6944642, g: 0.92024565, b: 0.9622641, a: 1}
-    - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _WPO2PositionMultiplier: {r: 1, g: -0.7, b: 1, a: 0}
     - _WPO2PositionMultiplier1: {r: 1, g: 1, b: 1, a: 0}
     - _WPO2PositionMultiplier2: {r: 1, g: 1, b: 1, a: 0}
   m_BuildTextureStacks: []
-  m_AllowLocking: 1
