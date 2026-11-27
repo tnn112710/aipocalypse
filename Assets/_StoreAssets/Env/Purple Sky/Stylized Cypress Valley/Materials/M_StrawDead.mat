@@ -1,0 +1,82 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: M_StrawDead
+  m_Shader: {fileID: -6465566751694194690, guid: 52f9b50a2d743c44b88620d186f8347d, type: 3}
+  m_Parent: {fileID: 2100000, guid: c1d46344f0375a047b4a7db1451c5c7a, type: 2}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords:
+  - _ALPHATEST_ON
+  - _CHANGE_COLOR_IN_THE_DISTANCE
+  - _COLOR_INFUENCE_GRADIENT_UV_Y_COORDINATE
+  - _TYPE_OF_FADE_ALPHA_CLIP
+  - _USE_SINGLE_COLORS
+  - _USE_TRANSLUCENSY
+  - _WIND_COMPLEXITY_SIMPLE__DISPLACE_
+  m_InvalidKeywords:
+  - _ENUM_A
+  - _LOW_MID_FRQ_WIND_INFLUENCE_GRADIENT_UV1_Y
+  - _WIND_QUALITY_SIMPLE__DISPLACE_
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap:
+    RenderType: TransparentCutout
+  disabledShaderPasses:
+  - MOTIONVECTORS
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs: []
+    m_Ints: []
+    m_Floats:
+    - _Angle: 0
+    - _Bottom_Color_Strength: 0.43
+    - _Breakup_Detail_Wind_With_VC: 1
+    - _CastShadows: 1
+    - _Change_Color_In_The_Distance: 0
+    - _Color_Strength: 1
+    - _Directional_Wind_Strength: 0
+    - _Distant_Fade: 1
+    - _Flip_the_backside_normals: 0
+    - _Fresnel_Power: 0
+    - _Fresnel_Strength: 0
+    - _Gradient_AO_Strength: 0.653
+    - _Point_Normals_Up_Strength: 1
+    - _Recalculated_Normals: 0
+    - _Set_Rotation: 0
+    - _Small_Wave_Speed: 2
+    - _Small_Wind_Strength: 0.07
+    - _Tip_Color_Strength: 0.182
+    - _WIND: 0
+    - _WIND_COMPLEXITY: 1
+    - _WIND_QUALITY: 1
+    - _WindSmallNoiseScale: 0.2
+    - _Wind_Distant_Cutoff: 1
+    - _Wind_Enable: 0
+    m_Colors:
+    - _Color: {r: 0.8792453, g: 0.74541986, b: 0.50266284, a: 1}
+    - _Color_Bottom: {r: 0.735849, g: 0.4382834, b: 0.25407612, a: 1}
+    - _Tip_Color_Gradient_Remap: {r: 2.2, g: 5.06, b: 0, a: 0}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
+--- !u!114 &4338415362460735171
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Editor::UnityEditor.Rendering.Universal.AssetVersion
+  version: 10

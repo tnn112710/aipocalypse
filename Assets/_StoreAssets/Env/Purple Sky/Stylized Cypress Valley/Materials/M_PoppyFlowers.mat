@@ -1,0 +1,83 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-7742925393994250391
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Editor::UnityEditor.Rendering.Universal.AssetVersion
+  version: 10
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: M_PoppyFlowers
+  m_Shader: {fileID: -6465566751694194690, guid: 52f9b50a2d743c44b88620d186f8347d, type: 3}
+  m_Parent: {fileID: 2100000, guid: ed30fd558e799f1428df797fd84b75dc, type: 2}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords:
+  - _ALPHATEST_ON
+  - _COLOR_INFUENCE_GRADIENT_UV_Y_COORDINATE
+  - _TYPE_OF_FADE_ALPHA_CLIP
+  - _USE_FRESNEL
+  - _USE_TRANSLUCENSY
+  - _WIND_COMPLEXITY_HIGH__DIRECTIONAL_
+  m_InvalidKeywords:
+  - _ENUM_A
+  - _WIND_QUALITY_HIGH__DIRECTIONAL_
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap:
+    RenderType: TransparentCutout
+  disabledShaderPasses:
+  - MOTIONVECTORS
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs: []
+    m_Ints: []
+    m_Floats:
+    - _Bottom_Color_Strength: 1
+    - _CHANGE_COLOR_IN_THE_DISTANCE: 0
+    - _Color_Strength: 0
+    - _Constant_Bend: 0
+    - _Direction_Change_Strength: 25
+    - _Directional_Wind_Strength: 66
+    - _Flip_the_backside_normals: 0
+    - _Fresnel_Power: 0.6
+    - _Fresnel_Strength: 0.1
+    - _Gradient_AO_Strength: 0.748
+    - _HUE_Breakup: 8
+    - _Modify_Smoothness: 0
+    - _Normal_Strength: 0.6
+    - _Omnidirectional_Wind_Axis_Spin: 1
+    - _Omnidirectional_Wind_Strength: 22
+    - _Overall_HUE: 0
+    - _Point_Normals_Up_Strength: 1
+    - _Small_Wind_Strength: 0
+    - _Smoothness_Bottom: 0
+    - _Thickness_Bottom_Strength: 0.813
+    - _Tip_Color_Strength: 0
+    - _Translucensy: 1
+    - _USE_FRESNEL: 1
+    - _USE_SINGLE_COLORS: 0
+    - _USE_TRANSLUCENSY: 1
+    - _Use_Diffuse_As_Translucensy: 1
+    m_Colors:
+    - _Color_Bottom: {r: 0.49301815, g: 0.6528301, b: 0.18106796, a: 1}
+    - _FresnelColor: {r: 1, g: 1, b: 1, a: 0}
+    - _Smoothness_Map_Remap: {r: 0.4, g: 0.4, b: 0, a: 0}
+    - _Translucensy_Color: {r: 1, g: 0.25025934, b: 0, a: 0}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
