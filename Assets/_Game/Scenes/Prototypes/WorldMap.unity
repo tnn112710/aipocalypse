@@ -183378,6 +183378,7 @@ MonoBehaviour:
       filterPreviewColor: {r: 0, g: 0, b: 1, a: 0.8}
     gizmoVisibility: 1
   explicitTerrains: []
+  msConfig: {fileID: 0}
 --- !u!4 &657761883
 Transform:
   m_ObjectHideFlags: 0
@@ -583604,6 +583605,7 @@ GameObject:
   - component: {fileID: 2061627889}
   - component: {fileID: 2061627888}
   - component: {fileID: 2061627890}
+  - component: {fileID: 2061627891}
   m_Layer: 0
   m_Name: Terrain_0_0
   m_TagString: Untagged
@@ -583663,7 +583665,7 @@ Terrain:
   m_DetailObjectDistance: 100
   m_DetailObjectDensity: 1
   m_HeightmapPixelError: 3
-  m_SplatMapDistance: 1000
+  m_SplatMapDistance: 99999
   m_HeightmapMinimumLODSimplification: 0
   m_HeightmapMaximumLOD: 0
   m_ShadowCastingMode: 0
@@ -583673,7 +583675,7 @@ Terrain:
   m_StaticShadowCaster: 0
   m_IgnoreQualitySettings: 0
   m_ReflectionProbeUsage: 1
-  m_MaterialTemplate: {fileID: 2100000, guid: 594ea882c5a793440b60ff72d896021e, type: 2}
+  m_MaterialTemplate: {fileID: 0}
   m_BakeLightProbesForTrees: 1
   m_PreserveTreePrototypeLayers: 0
   m_DeringLightProbesForTrees: 1
@@ -583711,6 +583713,38 @@ MonoBehaviour:
   _isBakedDetailTextures: 0
   _isCustomBakedDetailTextures: 0
   _terrain: {fileID: 2061627889}
+--- !u!114 &2061627891
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2061627886}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6525fd4a9fb974b7f878dee70144de99, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: JBooth.MicroSplat.Core::JBooth.MicroSplat.MicroSplatTerrain
+  templateMaterial: {fileID: 2100000, guid: 8e2aa187313ba4b47b3982f4eec94c44, type: 2}
+  blendMat: {fileID: 0}
+  blendMatInstance: {fileID: 0}
+  keywordSO: {fileID: 11400000, guid: 1d0c2549548b6a4459db8e30756b5a48, type: 2}
+  perPixelNormal: {fileID: 0}
+  streamTexture: {fileID: 0}
+  propData: {fileID: 11400000, guid: d5ddb4668a8a07e4384e2b927ea2948b, type: 2}
+  terrain: {fileID: 2061627889}
+  baseMapShader: {fileID: 4800000, guid: ff246ba5ec033d444b24155a5ebb1d28, type: 3}
+  customControl0: {fileID: 0}
+  customControl1: {fileID: 0}
+  customControl2: {fileID: 0}
+  customControl3: {fileID: 0}
+  customControl4: {fileID: 0}
+  customControl5: {fileID: 0}
+  customControl6: {fileID: 0}
+  customControl7: {fileID: 0}
+  patchBoundsMultiplier: {x: 1, y: 1, z: 1}
+  reenabled: 0
+  importSplatMaps: []
 --- !u!1001 &2061992582
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -602811,12 +602845,12 @@ MonoBehaviour:
           meridiem: 1
     cloudsCirrusMainTexture:
       constantValue:
-        value: {fileID: 2800000, guid: c3b458ab8eb972f48819c41a1aca6c9c, type: 3}
+        value: {fileID: 0}
       overrideValue: 1
       interpolateValue: 0
       interpolatedValue:
       - value:
-          value: {fileID: 2800000, guid: c3b458ab8eb972f48819c41a1aca6c9c, type: 3}
+          value: {fileID: 0}
         time:
           hours: 12
           minutes: 0
