@@ -23,7 +23,7 @@ unity command --project-path "$P" test run --mode editor
 bash .claude/hooks/check-undeclared-packs.sh                # vendor folders missing from ASSETS/PLUGINS.md
 ```
 
-- Drive the live editor with `unity command` (scenes, GameObjects, components, prefabs, assets, captures, console) instead of hand-editing `.unity`/`.prefab`/`.asset` YAML: `script run` for bulk/plugin work, `script eval` for one-liners, `capture screenshot --view scene|game` to check results (saves a PNG under `Temp/` and returns its path; the game view needs an open Game window). `unity command` lists the groups, `unity command <group>` a group's commands. Older docs may use pre-rename flat names (`run_script`, `run_tests`, `set_autotick`); the CLI error names the replacement.
+- Drive the live editor with `unity command` (scenes, GameObjects, components, prefabs, assets, captures, console) instead of hand-editing `.unity`/`.prefab`/`.asset` YAML: `script run` for bulk/plugin work, `script eval` for one-liners, `capture scene_view|game_view --output-path <scratchpad>/x.png` to check results (the game view needs an open Game window). `unity command` lists the groups, `unity command <group>` a group's commands. Older docs may use pre-rename flat names (`run_script`, `run_tests`, `set_autotick`); the CLI error names the replacement.
 - Only one agent drives the editor at a time. When two agents work in parallel, use separate branches/worktrees.
 
 **Editor gotchas** (learned the hard way):
@@ -32,7 +32,8 @@ bash .claude/hooks/check-undeclared-packs.sh                # vendor folders mis
 - Keyboard/mouse reach the game only while the Game view has focus. For scripted play tests drive input with a virtual gamepad (`InputSystem.AddDevice<Gamepad>` + `QueueStateEvent`).
 - Right after `script recompile`, poll `script recompile_status` before anything else; a command during the domain reload fails with "Connection reset by server".
 - The first frame after a `script run` includes its in-memory compile (~0.5 s): skip it when measuring. For clean editor perf numbers hide the Hierarchy window (it rebuilds per change and spikes with ~16k objects).
-- Don't use `capture scene_view` / `capture game_view` with `--save_path`: it resolves under `Assets/` and imports the image. Use `capture screenshot` instead.
+- Captures: `capture screenshot` is gone. Use `capture scene_view` / `capture game_view` with `--output-path` set outside `Assets/` (absolute or project-relative; under `Assets/` it imports the image), or without it to get the PNG inline.
+- The Scene view camera only follows `LookAtDirect` / `AlignViewToObject` when the window repaints, which doesn't happen while Unity is unfocused, so a capture right after shows the old pose. When posing it from a script, also set `view.camera.transform` (and its FOV and clip planes) yourself.
 - In Git Bash, heredocs containing an apostrophe break; write edit scripts to a file and run that.
 - **Save only what you wrote.** Never `AssetDatabase.SaveAssets()` in editor scripts: it writes every dirty asset in the editor, e.g. vendor materials upgraded in memory, or WorldMap's 59 MB LFS TerrainData through MicroVerse's save hook. Save each asset with `AssetDatabase.SaveAssetIfDirty(asset)` (importers: `WriteImportSettingsIfDirty` + `ImportAsset`), then check `git status` for unrelated files.
 - `test run` blocks the editor on a modal "Scene(s) Have Been Modified" dialog when an open scene is dirty (the CLI just times out). Check `SceneManager.GetActiveScene().isDirty` first and ask the user before discarding anything.
@@ -170,7 +171,7 @@ Approach and direction (layers, scenario presets, save fixtures, soak runs): `do
 
 1. `script recompile` → `script recompile_status` is clean, and `console status` shows no new errors.
 2. `test run --mode editor` passes, with tests added or updated for changed rules.
-3. Changed editor content is checked (`capture screenshot`, `component get_fields`), not assumed.
+3. Changed editor content is checked (`capture scene_view`, `component get_fields`), not assumed.
 4. Docs updated in the same change: CODE_STRUCTURE.md for any script added, moved or removed; PLUGINS.md / ASSETS.md for plugin or pack use; the system's doc for behaviour changes.
 5. Report what was verified and what wasn't. Don't commit unless asked.
 
