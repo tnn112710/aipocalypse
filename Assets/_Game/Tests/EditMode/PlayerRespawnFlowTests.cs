@@ -4,6 +4,8 @@ using MB13.Aipocalypse.Core.Entities;
 using MB13.Aipocalypse.Core.EquipmentSystem;
 using MB13.Aipocalypse.Core.Events;
 using MB13.Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.PlayerSystem.Needs;
+using MB13.Aipocalypse.Core.Stats;
 using MB13.Aipocalypse.Core.WeaponSystem;
 using MB13.Aipocalypse.Input;
 using Cysharp.Threading.Tasks;
@@ -31,6 +33,11 @@ namespace MB13.Aipocalypse.Tests
             public PlayerWhistle Whistle => null;
             public PlayerLooting Looting => null;
             public PlayerEffects Effects => null;
+            public PlayerNeeds Needs => null;
+            public CarryLoad Load => default;
+            public float Darkness => 0f;
+            public float ExtraLoad { get; set; }
+            public IMeter Meter(PlayerMeterId id) => null;
             public bool IsSprinting => false;
             public Vector2 CrosshairPosition => default;
             public float CrosshairSpread => 0f;

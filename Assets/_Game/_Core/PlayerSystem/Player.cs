@@ -9,6 +9,7 @@ using MB13.Aipocalypse.Core.Ghosts;
 using MB13.Aipocalypse.Core.HandSystem;
 using MB13.Aipocalypse.Core.Interaction;
 using MB13.Aipocalypse.Core.LocalizationSystem;
+using MB13.Aipocalypse.Core.PlayerSystem.Needs;
 using MB13.Aipocalypse.Core.SpawnSystem;
 using MB13.Aipocalypse.Core.Stats;
 using MB13.Aipocalypse.Core.SurfaceSystem;
@@ -74,9 +75,11 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         PlayerLooting _looting;
         ItemMagnet _magnet;
         PlayerEffects _effects;
+        PlayerNeeds _needs;
         MovementReadout _readout;
         PlayerFooting _footing;
         float _lastHurtTime = float.NegativeInfinity;
+        float _extraLoad;
 
         [ShowInInspector, ReadOnly, HideInEditorMode] public Health Health => _life?.Health;
         [ShowInInspector, ReadOnly, HideInEditorMode] public Stamina Stamina { get; private set; }
@@ -89,6 +92,18 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         public PlayerWhistle Whistle => _whistle;
         public PlayerLooting Looting => _looting;
         public PlayerEffects Effects => _effects;
+        public PlayerNeeds Needs => _needs;
+        public CarryLoad Load { get; private set; }
+        public float Darkness => _darkness != null ? Mathf.Max(0f, _darkness.Weight) : 0f;
+        public float ExtraLoad
+        {
+            get => _extraLoad;
+            set
+            {
+                _extraLoad = Mathf.Max(0f, value);
+                UpdateLoad();
+            }
+        }
         public HeldItem HeldItem => _equipmentRig != null ? _equipmentRig.Current : null;
         public bool IsDead => _life != null && _life.IsDead;
         // A pose sequence (dying, sitting…) has the camera and the body until it's stopped.
@@ -127,7 +142,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         AimWhileFiring IGunUser.AimWhileFiring => _tuning.HeldItem.AimWhileFiringAt(
             Mathf.RoundToInt(_stats.Get(StatId.AimWhileFiringLevel, _tuning.HeldItem.AimWhileFiringLevel)));
         Quaternion IGunUser.AimOffset => _heldSway.AimRotation;
-        float IWeaponUser.MeleePower => Fatigue.MeleePower;
+        float IWeaponUser.MeleePower => Fatigue.MeleePower * _stats.GetScale(StatId.MeleePowerScale);
 
         bool IRepairer.HasTool => _repair != null && _repair.HasTool;
         bool IRepairer.IsRepairing => _repair != null && _repair.IsBusy;
@@ -165,6 +180,16 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             _stats = stats;
             _life = new PlayerLife(this, transform, stats.Get(StatId.MaxHealth, vitals.MaxHealth), vitals, damage, died, deathEnded, revived);
             Stamina = new Stamina(stats.Get(StatId.MaxStamina, vitals.MaxStamina), vitals.StaminaRegenDelay, vitals.ExhaustionRecoverFraction, vitals.WindedTime);
+            // Needs' tiers sit over the buffs: everything built after this reads the stats with hunger and thirst applied.
+            if (_tuning.Needs != null)
+            {
+                _needs = new PlayerNeeds(_tuning.Needs, _effects, _life.Health, Stamina);
+                stats = _needs.Stats;
+                _stats = stats;
+                // Built before this layer existed: a tier row on a max applies from the start.
+                _life.Health.SetMax(stats.Get(StatId.MaxHealth, vitals.MaxHealth));
+                Stamina.SetMax(stats.Get(StatId.MaxStamina, vitals.MaxStamina));
+            }
             Fatigue = new Fatigue(vitals.Fatigue);
             _breathing = new PlayerBreathing(vitals.Breathing);
             _breathSound = new PlayerBreathSound(audio, _tuning.Sounds);
@@ -208,6 +233,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
                 _equipmentRig.Bind(Equipment, this, resolver);
                 _held = new HeldItemDriver(transform, Equipment, _equipmentRig, _equipmentConfig, _tuning, _motor, _look, _headBob, _zoom, _heldSway,
                     _aim, _heldClearance, _interactor, Stamina, Fatigue, _breathing, _hands);
+                Equipment.Inventory.Changed += UpdateLoad;
+                UpdateLoad();
             }
             else
             {
@@ -266,6 +293,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
                 _tuning.Vitals.WalkRegenShare);
             Stamina.Tick(deltaTime, regen, _motor.IsIdle || _motor.IsWalking);
             Fatigue.Tick(Stamina.Normalized, _stats.GetScale(StatId.FatiguePenaltyScale), deltaTime, Stamina.IsWinded);
+            _needs?.Tick(deltaTime);
             _breathing.Tick(Stamina.Normalized, Stamina.IsExhausted && !IsDead, deltaTime);
             _breathSound.Tick(_breathing, IsDead);
             if (!inSequence)
@@ -321,6 +349,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
                 _stats.Changed -= OnStatsChanged;
                 _feedback.Dispose();
                 _effects.Dispose();
+                _needs?.Dispose();
             }
             _breathSound?.Stop();
             if (_sequence != null)
@@ -328,6 +357,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
                 _sequence.Ended -= OnSequenceEnded;
                 _sequence.Stop();
             }
+            if (Equipment != null)
+                Equipment.Inventory.Changed -= UpdateLoad;
             Equipment?.Dispose();
         }
 
@@ -336,6 +367,13 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
 
         [Button, HideInEditorMode]
         public void Revive() => _life?.Revive();
+
+        public IMeter Meter(PlayerMeterId id) => id switch
+        {
+            PlayerMeterId.Health => Health,
+            PlayerMeterId.Stamina => Stamina,
+            _ => _needs?.Need(id),
+        };
 
         // Camera pitch in degrees, positive = down.
         public float Pitch => _look != null ? _look.Pitch : 0f;
@@ -399,6 +437,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         {
             _lastHurtTime = Time.time;
             _effects.OnHurt();
+            _needs?.OnHurt();
         }
 
         float IConsumer.LastHurtTime => _lastHurtTime;
@@ -414,6 +453,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             Stamina.Restore();
             Fatigue.Reset();
             _breathing.Reset();
+            _needs?.ApplyDeathFloor();
             StopSequence();
         }
 
@@ -424,6 +464,21 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         {
             Health.SetMax(_stats.Get(StatId.MaxHealth, _tuning.Vitals.MaxHealth));
             Stamina.SetMax(_stats.Get(StatId.MaxStamina, _tuning.Vitals.MaxStamina));
+            UpdateLoad();
+        }
+
+        // The inventory or a weight stat changed: the motor gets the load's speed and stamina scales.
+        void UpdateLoad()
+        {
+            if (Equipment == null || _motor == null)
+                return;
+            Inventory inventory = Equipment.Inventory;
+            CarryLoadSettings settings = _tuning.Movement.Load;
+            CarryLoad.Limits(_stats, inventory.MaxWeight, settings, out float comfortable, out float max);
+            Load = CarryLoad.Evaluate(inventory.Weight + _extraLoad, comfortable, max, settings);
+            _motor.LoadSpeedMultiplier = Load.SpeedMultiplier;
+            _motor.LoadCostMultiplier = Load.CostMultiplier;
+            _motor.Overloaded = Load.State == LoadState.Overloaded;
         }
 
         [Button, HideInEditorMode]
@@ -481,7 +536,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         {
             if (Vision == null)
                 return;
-            float darkness = _darkness != null ? Mathf.Max(0f, _darkness.Weight) : 0f;
+            float darkness = Darkness;
             var lantern = Equipment?.Belt?.Definition as LanternDefinition;
             Vision.Tick(darkness, _stats.Get(StatId.VisionRadius, _tuning.Vision.Radius), lantern, Time.time, deltaTime);
         }

@@ -45,6 +45,12 @@ With nothing typed, the line under the input lists this scene's command groups (
 | `cheat.kill`, `cheat.revive` | Kill the player with a real hit (through `DamageService`, like K, even in god mode) / revive (like L) |
 | `cheat.hp [amount]` | Heal to full, or by an amount |
 | `cheat.stamina` | Refill stamina |
+| `cheat.meter <meter> [percent=100]` | Set any meter to a percent of its max: `health`, `stamina`, `hunger`, `thirst`, `sanity` (any unique start: `hun`) or `all` (`IPlayer.Meter`, [NEEDS.md](NEEDS.md)); health 0, and health while dead, are refused (`all` skips it then; use `cheat.revive`) |
+| `cheat.needs` | Every meter with its max, the needs' tiers, hours awake, whether the drains are frozen |
+| `cheat.needsfreeze [on/off]` | Freeze every need drain (`PlayerNeeds.Frozen`); refills and cheats still work |
+| `cheat.awake [hours]` | Read or set the hours awake (lack of sleep drains sanity) |
+| `cheat.carry [kg]` | Read the carried load (kg, Comfortable / Max, state, speed and stamina scales), or add kg to it for testing (`IPlayer.ExtraLoad`; 0 = none) |
+| `cheat.drain <need> <amount>` | Drain hunger, thirst or sanity through the hook special enemies use (`PlayerNeeds.Drain`, scaled by its drain stat) |
 | `cheat.ammo [amount=100]` | Add rounds of each ammo type the guns in the hotbar use |
 | `cheat.infammo [on/off]` | Reloads never use up the reserve (`AmmoReserve.Infinite`) |
 | `cheat.tp <x,y,z> [yaw]` | Move the player to a point facing `yaw` degrees (0 = north): repeatable benchmark views |

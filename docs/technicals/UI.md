@@ -39,7 +39,8 @@ HUD                          Canvas · CanvasScaler · CanvasGroup + HudVisibili
    ├─ TopRight
    │  └─ Minimap             220×220, 10 px in from the corner · nested Canvas · MinimapView (MinimapStyle) · MinimapHud (see Minimap below)
    ├─ BottomLeft
-   │  ├─ Effects             nested Canvas · HorizontalLayoutGroup · EffectsHud: Effect template (icon + seconds), 130 px up
+   │  ├─ Needs               nested Canvas · PlayerNeedsHud: Hunger, Thirst, Sanity (NeedRing, 56 px, 10 px apart), 96 px up, above Vitals; built by AgentScripts/Hud/NeedsHudSetup (see Need rings below)
+   │  ├─ Effects             nested Canvas · HorizontalLayoutGroup · EffectsHud: Effect template (icon + seconds), 162 px up
    │  └─ Vitals              nested Canvas · VerticalLayoutGroup · ContentSizeFitter · PlayerVitalsHud
    │     ├─ HealthBar        StatBar (HealthBarStyle)
    │     └─ StaminaBar       StatBar (StaminaBarStyle)
@@ -47,13 +48,14 @@ HUD                          Canvas · CanvasScaler · CanvasGroup + HudVisibili
    │  └─ Hotbar              nested Canvas · HorizontalLayoutGroup · ContentSizeFitter · HotbarHud
    │     └─ Slot1…SlotN      HotbarSlot.prefab, spawned at Start, one per hotbar slot
    ├─ BottomRight
-   │  └─ PickupFeed          nested Canvas · PickupFeedHud: Line0…Line4 ("+30 Rifle Ammo", newest at the bottom) + Warning ("Backpack full"), 150 px up
+   │  ├─ PickupFeed          nested Canvas · PickupFeedHud: Line0…Line4 ("+30 Rifle Ammo", newest at the bottom) + Warning ("Backpack full"), 150 px up
+   │  └─ Bag                 nested Canvas · PlayerLoadHud > Gauge (CanvasGroup · BagGauge): the carried weight, 40 px up, under the feed; built by AgentScripts/Hud/LoadHudSetup (see Bag gauge below)
    └─ Center
       ├─ Crosshair           nested Canvas · CrosshairHud; moved to where the barrel points
       │  ├─ (reticle)        spawned at runtime from CrosshairHud's reticle prefab (Prefabs/Widgets/Reticles, see Crosshair below)
       │  └─ HitMarker        HitFeedbackHud (HitFeedbackStyle)
       ├─ RepairQte           nested Canvas · QteHud (QteStyle): the running QTE beside the crosshair, see QTE below
-   ├─ (BottomLeft) DogBar    nested Canvas · CanvasGroup · DogHud: StatBar (DogToughness style, paw icon) 190 px up; the dog's toughness (DOGS.md), built by DogSetup.DogBar
+   ├─ (BottomLeft) DogBar    nested Canvas · CanvasGroup · DogHud: StatBar (DogToughness style, paw icon) 222 px up; the dog's toughness (DOGS.md), built by DogSetup.DogBar
       ├─ CommandWheel        nested Canvas · CanvasGroup (alpha 0 until open) · CommandWheel (CommandWheelStyle): Backdrop + Slot0…7 (Label); the dog's orders, driven by CommandWheelPresenter (DOGS.md), built by DogSetup.Hud
       ├─ Interact            nested Canvas · InteractPromptHud, 120 px below the centre (hidden while a menu holds the UI)
       │  ├─ InteractPrompt   InteractPrompt.prefab (hidden while nothing is focused)
@@ -94,6 +96,46 @@ Player (Construct / OnDestroy)                    ├─ CrosshairHud      polls
 ```
 
 `PlayerHudView.Player` is an `IPlayer`: the read-only state and respawn steps the HUD may use, never the `Player` MonoBehaviour itself.
+
+## Need rings
+
+Hunger, thirst and sanity ([NEEDS.md](NEEDS.md)) show as icons inside rings above the health and stamina bars (user, 2026-11-28: bars for the fast meters, rings for the slow ones). Built by `AgentScripts/Hud/NeedsHudSetup.Build` (row, styles, the thirst cough).
+
+```text
+Needs                        Canvas · PlayerNeedsHud (_hunger, _thirst, _sanity)
+└─ Hunger / Thirst / Sanity  56×56 · CanvasGroup · NeedRing (NeedRingStyle)
+   └─ Body                   scaled by the pulse
+      ├─ Track               the ring sprite, dim (the empty part)
+      ├─ Fill                Filled, Radial 360 from the top, clockwise: the share of the current max
+      └─ Icon                52% of the ring
+```
+
+- **Look** (`Data/UI/HungerRingStyle`, `ThirstRingStyle`, `SanityRingStyle`): Synty Apocalypse HUD `SPR_HUD_Apocalypse_Ring_Medium_01_Clean` for the ring and the track (white at 22%), its `ICON_Apocalpyse_Status_Hunger_01` / `Thirst_01` (the bars' icon set) and Layer Lab `Pictoicon_brain` for sanity (the Synty pack has none).
+- **Colour per tier** (`NeedRingStyle.Colors`, every `NeedSeverity`): green well fed, white normal, orange low, red very low and empty.
+- **Dim while fine:** at `DimAlpha` (0.45) while Good or Normal; full while Low or worse. A tier change or a refill brightens it for `BrightTime` (2.5 s). Entering a tier punches its scale once (`PulseScale` 1.18); at empty it pulses slowly (`EmptyPulseRate` 1.2 Hz).
+- **Body sound:** `TierSound` plays on entering Low or worse and every `RepeatSoundEvery` (40 s) while VeryLow or Empty. Only thirst has one (`Thirst_Cough`, 15 random Gamemaster coughs, Player library); no pack has a stomach growl; sanity's sounds come with its own pass.
+- `NeedRing.SetFlicker(alpha)` multiplies its alpha: sanity's flicker (`SanityGlitch.Flicker`, also on the `Vitals` CanvasGroup through `PlayerVitalsHud._group`); it never changes the value shown.
+- **Low sanity lies** ([NEEDS.md → What low sanity shows](NEEDS.md#what-low-sanity-shows)): `ClockHud` shows a wrong time for at most 0.6 s now and then, `MinimapHud` adds fake enemy dots and swaps the compass letters. Bars, rings, ammo and the bag never show a wrong value.
+- Hidden parts: real time (`unscaledDeltaTime`), so a paused game doesn't freeze a fade.
+
+## Bag gauge
+
+The carried weight ([NEEDS.md → Carried weight](NEEDS.md#carried-weight)), bottom right under the pickup feed (user, 2026-11-28), so a pickup and the weight it adds show in one place. Built by `AgentScripts/Hud/LoadHudSetup.Build`.
+
+```text
+Bag                          130×82 · Canvas · PlayerLoadHud (_gauge)
+└─ Gauge                     CanvasGroup · BagGauge (BagGaugeStyle)
+   ├─ Icon                   56×56, top centre
+   │  ├─ Empty               the bag, dim (EmptyColor)
+   │  ├─ Fill                the bag again, Filled vertically from the bottom: carried / Max
+   │  └─ Notch               2 px line at Comfortable / Max
+   └─ Label                  "22.9 / 35 kg" (HUD table hud.weight; carried, one decimal / Max, whole)
+```
+
+- **Colours** (`Data/UI/BagGaugeStyle.Colors`, fill and label, every `LoadState`): white light, yellow from 80% of Comfortable, orange past it (slower), red at Max (a crawl). Dim (`DimAlpha` 0.5) while light.
+- **Icon:** Synty Apocalypse HUD `ICON_Apocalpyse_Inventory_Backpack_01`.
+- The label is rebuilt only when the carried tenth of a kilo or the whole Max changes (`SetText` with the cached format).
+- The inventory screen's weight bar uses the same states (`InventoryStyle` `WeightBarColor`, `NearWeightColor`, `HeavyWeightColor`, `OverweightColor`) and shows carried / Max.
 
 ## StatBar widget
 

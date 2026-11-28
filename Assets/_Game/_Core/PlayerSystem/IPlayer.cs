@@ -1,6 +1,8 @@
 using MB13.Aipocalypse.Core.Entities;
 using MB13.Aipocalypse.Core.EquipmentSystem;
 using MB13.Aipocalypse.Core.Combat;
+using MB13.Aipocalypse.Core.PlayerSystem.Needs;
+using MB13.Aipocalypse.Core.Stats;
 using MB13.Aipocalypse.Core.WeaponSystem;
 using UnityEngine;
 
@@ -24,6 +26,14 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         PlayerLooting Looting { get; }
         // Consumables at work: buffs and healing over time.
         PlayerEffects Effects { get; }
+        // Hunger, thirst and sanity; null when the player's tuning has no needs settings.
+        PlayerNeeds Needs { get; }
+        // What the carried weight does now (limits, speed and stamina scales, state for the bag gauge).
+        CarryLoad Load { get; }
+        // How dark it is around the player now: 0 by day to 1 at night (always 0 without a time-of-day director).
+        float Darkness { get; }
+        // Dev tools: kg added to what the inventory weighs (cheat.carry).
+        float ExtraLoad { get; set; }
         bool IsSprinting { get; }
         // Where the crosshair sits this frame, off the screen centre, in units of half the screen height (x = right, y = up).
         Vector2 CrosshairPosition { get; }
@@ -54,6 +64,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         // Teleports the body to the spawn point (a running sequence keeps the camera, now relative to the new spot).
         void MoveToSpawn();
         void Revive();
+        // Any meter by id (null for a need when the needs are off): cheats, HUD and scenarios use this one door.
+        IMeter Meter(PlayerMeterId id);
         // Throws an item that's already out of the inventory to the ground in front.
         void ThrowAway(ItemInstance item);
     }

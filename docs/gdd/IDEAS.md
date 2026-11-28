@@ -164,6 +164,14 @@ Still suggested:
 - Option not suggested: no confirmation between periods, and a Blue hour wave wakes the sleeping player with an alarm. More tension, but unclear when sleep is safe; maybe only on Big nights (???)
 - Open (???): can a raid night skip Evening (only a Blue hour sneak)? Does Quiet stay its own night type or become "no periods"? Does the midnight retreat rule go away? Which units belong to each period?
 
+### Survival stats: Hunger, Thirst, Sanity, weight (user, 2026-11-28)
+
+- User: add Hunger, Thirst and Sanity beside Health and Stamina, plus a carried-weight gauge; all stats ready for upgrades and buffs. Full write-up, waiting for approval: [2026-11-28-survival-stats-design.md](../superpowers/specs/2026-11-28-survival-stats-design.md)
+- Picked (user): meters weaken and never kill; Hunger = weak melee and shaky aim, Thirst = slower stamina regen and faster drain; two meals and three drinks a day; a well-fed bonus; Sanity drains with darkness (faster the farther from light), not sleeping and special enemy effects; the home campfire is the light and slowly restores it; low Sanity = screen and sound effects (SC Screen Effects) and a lying clock and minimap; nightmare enemies at zero; weight with Comfortable and Max limits, a crawl at Max
+- Changes current rules: Thirst is new ([CORE.md](CORE.md#player-combat--progression) lists HP, Hunger, Stamina, Sanity)
+- Later (user): fire pits lit across the river, Loki carrying a lantern, a torch then a belt lantern (torch + pistol), calming consumables, comfort food, resting on a bench
+- Open (???): the nightmare enemies' design; flares and moon phases as extra night tools
+
 ### Valheim / Enshrouded + Escape from Duckov mix (user, 2026-11-07)
 
 **Status (2026-11-07):** the confirmed decisions below, plus tribute levels, boss drops, weaker bosses only on Blood Moons and eclipses, the night-2 first raid and later gun rarity/attachments, now live in [CORE.md](CORE.md), [RAIDS.md](RAIDS.md) and [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md). This section is the discussion history; unconfirmed suggestions are listed in RAIDS.md → Proposals.

@@ -46,4 +46,17 @@ namespace MB13.Aipocalypse.Core.Events
 
         public PlayerRevived(Vector3 position) => Position = position;
     }
+
+    // Something calmed the player (petting the dog; comfort food later): sanity points to add, and what did it (for logs).
+    public readonly struct PlayerComforted
+    {
+        public readonly float Sanity;
+        public readonly string Source;
+
+        public PlayerComforted(float sanity, string source)
+        {
+            Sanity = sanity;
+            Source = source;
+        }
+    }
 }

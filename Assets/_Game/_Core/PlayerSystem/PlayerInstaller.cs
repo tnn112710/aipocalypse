@@ -1,4 +1,5 @@
 using MB13.Aipocalypse.Core.Debugging;
+using MB13.Aipocalypse.Core.PlayerSystem.Needs;
 using VContainer;
 using VContainer.Unity;
 
@@ -18,6 +19,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
                 builder.RegisterEntryPoint<PlayerCheats>();
                 builder.RegisterEntryPoint<PlayerCommands>();
                 builder.RegisterEntryPoint<PlayerCheatCommands>();
+                builder.RegisterEntryPoint<NeedsCommands>();
             }
         }
     }

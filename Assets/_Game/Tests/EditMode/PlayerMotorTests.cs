@@ -212,6 +212,34 @@ namespace MB13.Aipocalypse.Tests
         }
 
         [Test]
+        public void Overloaded_CrawlsAndNeitherSprintsNorJumps()
+        {
+            StandOnGround();
+            _motor.Overloaded = true;
+            _motor.LoadSpeedMultiplier = 0.15f;
+            int jumps = 0;
+            _motor.Jumped += () => jumps++;
+
+            Run(new PlayerIntent { Jump = true }, 5);
+            Run(Forward(sprint: true), 120);
+
+            Assert.AreEqual(0, jumps);
+            Assert.IsFalse(_motor.IsSprinting);
+            Assert.AreEqual(_motor.WalkSpeed * 0.15f, _motor.HorizontalVelocity.magnitude, 0.05f, "below the slowdown floor: the crawl wins");
+        }
+
+        [Test]
+        public void HeavyLoad_SlowsTheWalk()
+        {
+            StandOnGround();
+            _motor.LoadSpeedMultiplier = 0.8f;
+
+            Run(Forward(), 120);
+
+            Assert.AreEqual(_motor.WalkSpeed * 0.8f, _motor.HorizontalVelocity.magnitude, 0.05f);
+        }
+
+        [Test]
         public void Crouch_InTheAir_IsIgnored()
         {
             CreatePlayer(new Vector3(0f, 20f, 0f));

@@ -70,6 +70,11 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         public float SprintCostMultiplier { get; set; } = 1f;
         // Ground acceleration and braking scale set by the player each frame (a heavy item in hand gets going and stops slower).
         public float AccelerationMultiplier { get; set; } = 1f;
+        // Carried weight (CarryLoad), set by the player when the load changes: a speed scale applied after the slowdown floor (a
+        // heavy pack always slows), a scale on every stamina cost, and Overloaded (no sprint, no jump).
+        public float LoadSpeedMultiplier { get; set; } = 1f;
+        public float LoadCostMultiplier { get; set; } = 1f;
+        public bool Overloaded { get; set; }
         // Last tick's speed share from the move's angle to the look (1 ahead), and the speed it steered towards (m/s).
         public float DirectionShare { get; private set; }
         public float TargetSpeed { get; private set; }
@@ -96,7 +101,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
 
             bool stableGround = IsGrounded && !IsOnSteepSlope;
             Vector2 move = Vector2.ClampMagnitude(intent.Move, 1f);
-            bool sprintInput = intent.Sprint && move.y >= _tuning.SprintMinForwardInput && _stamina.CanExert;
+            bool sprintInput = intent.Sprint && move.y >= _tuning.SprintMinForwardInput && _stamina.CanExert && !Overloaded;
             UpdateCrouch(intent.Crouch, intent.Sprint, sprintInput, stableGround, deltaTime);
             bool wantsSprint = sprintInput && !_sprintLatched && !IsCrouching;
             IsSprinting = wantsSprint && stableGround;
@@ -112,9 +117,9 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             IsWalking = !IsIdle && stableGround && !IsSprinting && !_isJumping;
 
             if (IsSprinting)
-                _stamina.Spend(_stats.Get(StatId.SprintStaminaCost, _tuning.SprintStaminaPerSecond) * SprintCostMultiplier * deltaTime);
+                _stamina.Spend(_stats.Get(StatId.SprintStaminaCost, _tuning.SprintStaminaPerSecond) * SprintCostMultiplier * LoadCostMultiplier * deltaTime);
             else if (hasMove && stableGround)
-                _stamina.Spend(_stats.Get(StatId.WalkStaminaCost, _tuning.WalkStaminaPerSecond) * deltaTime);
+                _stamina.Spend(_stats.Get(StatId.WalkStaminaCost, _tuning.WalkStaminaPerSecond) * LoadCostMultiplier * deltaTime);
 
             Move(deltaTime);
         }
@@ -262,7 +267,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             if (stableGround)
             {
                 float gaitSpeed = wantsSprint ? SprintSpeed : IsCrouching ? CrouchSpeed : WalkSpeed;
-                TargetSpeed = SlowedSpeed(gaitSpeed, slowdown, floorSpeed) * move.magnitude;
+                TargetSpeed = SlowedSpeed(gaitSpeed, slowdown, floorSpeed) * LoadSpeedMultiplier * move.magnitude;
                 Vector3 target = wishDirection * TargetSpeed;
                 float rate = target.sqrMagnitude >= _horizontalVelocity.sqrMagnitude ? _tuning.GroundAcceleration : _tuning.GroundDeceleration;
                 _horizontalVelocity = Vector3.Lerp(_horizontalVelocity, target, Damping.ByRate(rate * AccelerationMultiplier, deltaTime));
@@ -271,7 +276,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             {
                 // Airborne: steer, keep momentum, never gain sprint speed mid-air; slowed like on foot, so hops don't outrun aiming.
                 float gaitSpeed = IsCrouching ? CrouchSpeed : WalkSpeed;
-                TargetSpeed = SlowedSpeed(gaitSpeed, slowdown, floorSpeed) * move.magnitude;
+                TargetSpeed = SlowedSpeed(gaitSpeed, slowdown, floorSpeed) * LoadSpeedMultiplier * move.magnitude;
                 float speed = Mathf.Max(_horizontalVelocity.magnitude, TargetSpeed);
                 _horizontalVelocity = Vector3.Lerp(_horizontalVelocity, wishDirection * speed, Damping.ByRate(_tuning.AirAcceleration, deltaTime));
             }
@@ -286,7 +291,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
 
         bool TryJump()
         {
-            if (_jumpBufferLeft <= 0f || _isJumping || _timeSinceStableGround > _tuning.CoyoteTime || !_stamina.CanExert)
+            if (_jumpBufferLeft <= 0f || _isJumping || _timeSinceStableGround > _tuning.CoyoteTime || !_stamina.CanExert || Overloaded)
                 return false;
 
             float height = _stats.Get(StatId.JumpHeight, _tuning.JumpHeight);
@@ -294,7 +299,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             _jumpBufferLeft = 0f;
             _isJumping = true;
             _timeSinceStableGround = float.PositiveInfinity;
-            _stamina.Spend(_stats.Get(StatId.JumpStaminaCost, _tuning.JumpStaminaCost));
+            _stamina.Spend(_stats.Get(StatId.JumpStaminaCost, _tuning.JumpStaminaCost) * LoadCostMultiplier);
             Jumped?.Invoke();
             return true;
         }

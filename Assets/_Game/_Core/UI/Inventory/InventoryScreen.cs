@@ -508,15 +508,23 @@ namespace MB13.Aipocalypse.Core.UI
                 _lootTitle.SetText($"{_loot.Label} ({_loot.Items.UsedSlots}/{_loot.Items.Count})");
             if (_tokens != null)
                 _tokens.SetText(CarriedTokens().ToString("N0"));
-            float weight = _inventory.Weight;
-            float max = _inventory.MaxWeight;
+            // Carried / Max (the crawl), coloured like the HUD's bag gauge by the load state.
+            CarryLoad load = Player != null ? Player.Load : default;
+            float weight = load.Max > 0f ? load.Weight : _inventory.Weight;
+            float max = load.Max > 0f ? load.Max : _inventory.MaxWeight;
             if (_weight != null)
                 _weight.SetText(WeightFormat.Text(), weight, max);
             if (_weightFill != null)
             {
                 _weightFill.fillAmount = max > 0f ? Mathf.Clamp01(weight / max) : 0f;
                 if (_style != null)
-                    _weightFill.color = weight > max ? _style.OverweightColor : _style.WeightBarColor;
+                    _weightFill.color = load.State switch
+                    {
+                        LoadState.NearComfortable => _style.NearWeightColor,
+                        LoadState.Heavy => _style.HeavyWeightColor,
+                        LoadState.Overloaded => _style.OverweightColor,
+                        _ => _style.WeightBarColor,
+                    };
             }
             RefreshTooltip();
         }

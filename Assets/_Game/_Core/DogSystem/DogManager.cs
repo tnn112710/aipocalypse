@@ -13,6 +13,7 @@ using MB13.Aipocalypse.Core.Events;
 using MB13.Aipocalypse.Core.Interaction;
 using MB13.Aipocalypse.Core.LocalizationSystem;
 using MB13.Aipocalypse.Core.PlayerSystem;
+using MB13.Aipocalypse.Core.PlayerSystem.Needs;
 using MB13.Aipocalypse.Core.RandomSystem;
 using MB13.Aipocalypse.Core.SpawnSystem;
 using MB13.Aipocalypse.Core.UI;
@@ -35,6 +36,10 @@ namespace MB13.Aipocalypse.Core.DogSystem
         const float StillSpeed = 0.2f;
 
         readonly DogRoster _roster;
+        readonly IPublisher<PlayerComforted> _comforted;
+        readonly ComfortSources _comforts;
+        readonly DogComfort _comfort;
+        float _nextPetComfort;
         readonly DogSettings _settings;
         readonly WorldClock _clock;
         readonly PlayerRegistry _players;
@@ -58,8 +63,9 @@ namespace MB13.Aipocalypse.Core.DogSystem
 
         public DogManager(DogRoster roster, DogSettings settings, WorldClock clock, PlayerRegistry players, AudioService audio,
             CommandWheelPresenter wheel, IObjectResolver resolver, ISubscriber<PlayerRevived> revived, ISubscriber<TimeSkipEnded> skipEnded,
-            ISubscriber<RaidStarted> raidStarted, ISubscriber<RaidEnded> raidEnded)
+            ISubscriber<RaidStarted> raidStarted, ISubscriber<RaidEnded> raidEnded, IPublisher<PlayerComforted> comforted)
         {
+            _comforted = comforted;
             _roster = roster;
             _settings = settings;
             _clock = clock;
@@ -80,6 +86,9 @@ namespace MB13.Aipocalypse.Core.DogSystem
             resolver.TryResolve(out SleepService sleep);
             _fight = new DogFight(this, roster, settings, enemies, damage, time);
             _senses = new DogSenses(roster, settings, water, weather, sleep);
+            // Optional: scenes without the needs have no comfort sources.
+            if (resolver.TryResolve(out _comforts))
+                _comforts.Add(_comfort = new DogComfort(roster));
             _subscriptions = DisposableBag.Create(
                 revived.Subscribe(_ => SendHome(DogOrder.Follow)),
                 skipEnded.Subscribe(_ => AfterSleep()),
@@ -105,6 +114,7 @@ namespace MB13.Aipocalypse.Core.DogSystem
         public void Dispose()
         {
             _subscriptions.Dispose();
+            _comforts?.Remove(_comfort);
             if (_wheel.Owner == this)
                 _wheel.Close();
         }
@@ -346,6 +356,12 @@ namespace MB13.Aipocalypse.Core.DogSystem
         {
             dog.State.Pet(Time.time);
             TryPlay(dog, DogSound.Pant);
+            // Petting calms the player, at most once per cooldown.
+            if (Time.time >= _nextPetComfort && _settings.PetSanity > 0f)
+            {
+                _nextPetComfort = Time.time + _settings.PetSanityCooldown;
+                _comforted.Publish(new PlayerComforted(_settings.PetSanity, "dog.pet"));
+            }
         }
 
         // Q with an enemy under the aim: "get it!" (even Passive).

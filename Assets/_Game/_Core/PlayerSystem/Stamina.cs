@@ -1,10 +1,11 @@
 using System;
+using MB13.Aipocalypse.Core.Stats;
 using UnityEngine;
 
 namespace MB13.Aipocalypse.Core.PlayerSystem
 {
     [Serializable]
-    public sealed class Stamina
+    public sealed class Stamina : IMeter
     {
         [SerializeField] float _max;
         [SerializeField] float _current;
@@ -15,6 +16,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         readonly float _windedTime;
         float _regenDelayLeft;
         float _windedLeft;
+        float _spent;
 
         public float Max => _max;
         public float Current => _current;
@@ -40,6 +42,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             if (amount <= 0f)
                 return;
 
+            _spent += Mathf.Min(amount, _current);
             _current = Mathf.Max(0f, _current - amount);
             _regenDelayLeft = _regenDelay;
             // Only running dry winds you; draining an already exhausted meter again doesn't restart the wait.
@@ -79,6 +82,22 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             float share = Normalized;
             _max = Mathf.Max(1f, max);
             _current = share * _max;
+        }
+
+        // A cheat or a scenario: exhaustion ends once the value is back above the recover share.
+        public void Set(float current)
+        {
+            _current = Mathf.Clamp(current, 0f, _max);
+            if (_exhausted && _current >= _max * _recoverFraction)
+                _exhausted = false;
+        }
+
+        // Stamina spent since the last call (what needs count as effort).
+        public float TakeSpent()
+        {
+            float spent = _spent;
+            _spent = 0f;
+            return spent;
         }
 
         public void Restore()

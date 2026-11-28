@@ -42,7 +42,9 @@ namespace MB13.Aipocalypse.Core.UI
         [BoxGroup("Panel"), Tooltip("Full-screen tint behind the panels; dropping an item on it throws the item away")]
         public Color BackdropColor = new(0f, 0f, 0f, 0.45f);
         [BoxGroup("Panel")] public Color WeightBarColor = new(0.85f, 0.85f, 0.85f, 1f);
-        [BoxGroup("Panel"), Tooltip("Weight bar past the carry limit")] public Color OverweightColor = new(1f, 0.45f, 0.35f, 1f);
+        [BoxGroup("Panel"), Tooltip("Weight bar from 80% of Comfortable up to it (the HUD bag turns yellow)")] public Color NearWeightColor = new(1f, 0.86f, 0.25f, 1f);
+        [BoxGroup("Panel"), Tooltip("Weight bar past Comfortable: slower (the HUD bag turns orange)")] public Color HeavyWeightColor = new(1f, 0.55f, 0.15f, 1f);
+        [BoxGroup("Panel"), Tooltip("Weight bar at Max: a crawl")] public Color OverweightColor = new(1f, 0.45f, 0.35f, 1f);
 
         [BoxGroup("Inspector"), Tooltip("Gun part slots a dragged part fits")] public Color FitColor = new(0.45f, 0.75f, 0.4f, 0.95f);
         [BoxGroup("Inspector"), Tooltip("A stat a part would make better")] public Color BetterColor = new(0.45f, 0.9f, 0.45f, 1f);

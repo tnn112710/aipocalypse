@@ -1,14 +1,15 @@
 using System;
 using System.Collections.Generic;
 using MB13.Aipocalypse.Core.EquipmentSystem;
+using MB13.Aipocalypse.Core.PlayerSystem.Needs;
 using MB13.Aipocalypse.Core.SaveSystem;
 using UnityEngine;
 using VContainer;
 
 namespace MB13.Aipocalypse.Core.PlayerSystem
 {
-    // Saves the active player: where they stand and look, their health, everything they carry (hotbar, backpack, gear,
-    // ammo included) and the slot in their hands. Timed effects (buffs, healing) and stamina start fresh on load.
+    // Saves the active player: where they stand and look, their health and needs, everything they carry (hotbar, backpack,
+    // gear, ammo included) and the slot in their hands. Timed effects (buffs, healing) and stamina start fresh on load.
     public sealed class PlayerSaveSection : SaveSection
     {
         const string Key = "player";
@@ -35,6 +36,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
                 Pitch = player.Pitch,
                 Health = player.Health != null ? player.Health.Current : 0f,
             };
+            if (player.Needs != null)
+                CaptureNeeds(saved, player.Needs);
             Equipment equipment = player.Equipment;
             if (equipment != null && _catalog != null)
             {
@@ -52,6 +55,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             if (_players.Current is not Player player || !save.TryGet(Key, out PlayerSave saved) || saved == null)
                 return;
             player.RestoreSaved(saved.Position, saved.Yaw, saved.Pitch, saved.Health);
+            if (player.Needs != null)
+                RestoreNeeds(saved, player.Needs);
             Equipment equipment = player.Equipment;
             if (!saved.HasItems || equipment == null || _catalog == null)
                 return;
@@ -70,6 +75,27 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             equipment.SelectImmediately(saved.Selected);
         }
 
+        public static void CaptureNeeds(PlayerSave saved, PlayerNeeds needs)
+        {
+            saved.HasNeeds = true;
+            saved.Hunger = needs.Hunger.Current;
+            saved.Thirst = needs.Thirst.Current;
+            saved.Sanity = needs.Sanity.Current;
+            saved.HoursAwake = needs.HoursAwake;
+        }
+
+        // A save from before the needs has HasNeeds false: the fresh, full meters stay. Saved stat modifiers load first
+        // (SaveOrder.Stats), so a value above the base max isn't clamped.
+        public static void RestoreNeeds(PlayerSave saved, PlayerNeeds needs)
+        {
+            if (!saved.HasNeeds)
+                return;
+            needs.Hunger.Set(saved.Hunger);
+            needs.Thirst.Set(saved.Thirst);
+            needs.Sanity.Set(saved.Sanity);
+            needs.HoursAwake = saved.HoursAwake;
+        }
+
         static void Clear(ItemContainer container)
         {
             for (int i = 0; i < container.Count; i++)
@@ -83,6 +109,11 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             public float Yaw;
             public float Pitch;
             public float Health;
+            public bool HasNeeds;
+            public float Hunger;
+            public float Thirst;
+            public float Sanity;
+            public float HoursAwake;
             public bool HasItems;
             public List<SlotSave> Hotbar = new();
             public List<SlotSave> Backpack = new();

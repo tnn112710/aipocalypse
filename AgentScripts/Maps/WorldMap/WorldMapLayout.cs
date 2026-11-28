@@ -3132,7 +3132,12 @@ public static class Landmarks
         Put(fire, HL + "Camp/Bonfire.prefab", Campfire, R(0, 360), 1.3f, -0.02f);
         var fx = Put(fire, HL + "FX/Fire.prefab", Campfire, 0, 1f, 0.05f);
         foreach (var a in fx.GetComponentsInChildren<AudioSource>(true)) a.enabled = false;   // BroAudio owns audio
-        foreach (var l in fx.GetComponentsInChildren<Light>(true)) l.shadows = LightShadows.None;
+        foreach (var l in fx.GetComponentsInChildren<Light>(true))
+        {
+            l.shadows = LightShadows.None;
+            l.gameObject.SetActive(true);                                                      // ships inactive; the yard's fire light
+        }
+        fx.AddComponent<MB13.Aipocalypse.Core.PlayerSystem.Needs.SafeLight>();                // keeps the player sane (NEEDS.md)
         for (int i = 0; i < 9; i++)                                                            // stone ring
         {
             float ang = i / 9f * Mathf.PI * 2 + R(-0.12f, 0.12f);

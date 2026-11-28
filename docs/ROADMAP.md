@@ -14,6 +14,8 @@ Goal (user, 2026-11-09): stop prototyping and build a **vertical slice**. It is 
 
 **Status (2026-11-22):** the first two weeks went to shooting (gun parts and optics, 11 guns, arms with retargeted reloads), inventory and loot, save and menus, sleep, animals, ranged goblins, localization, weather rules and the UI look. Phase 1 has not started. What the loop still lacks is anything that spends Tokens (trading, repair costs, upgrades) and a cost for losing a night.
 
+**Built 2026-11-28 (user's request, uncommitted):** survival stats: hunger, thirst and sanity meters with tiers, carried-weight slowdown, HUD rings and bag gauge, the campfire as sanity's light, Loki's comfort, sanity's screen looks (swappable backend, SC Screen Effects) and lying HUD, every player stat upgradeable as a `StatId` ([NEEDS.md](technicals/NEEDS.md)). This is ahead of the roadmap: the slice had left hunger and sanity out. Next for it: nightmare enemies at zero sanity (own design), then food, drink and sleep refilling the meters.
+
 **Decided (user, 2026-11-22):**
 
 - **Keep the current map.** The slice work happens on `WorldMap`; the map redesign (Phase 1) waits until all the basic mechanics are done.

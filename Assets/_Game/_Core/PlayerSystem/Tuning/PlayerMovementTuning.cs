@@ -64,6 +64,9 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         [SerializeField, Min(0f), Tooltip("Stamina regenerates only while standing still: no move input, grounded, and slower than this (m/s)")]
         float _idleMaxSpeed = 0.2f;
 
+        [Header("Carried weight (CarryLoad; limits: StatId.ComfortableWeight over the inventory's, + WeightMargin)"), SerializeField, Sirenix.OdinInspector.InlineProperty, Sirenix.OdinInspector.HideLabel]
+        CarryLoadSettings _load = new();
+
         public float WalkSpeed => _walkSpeed;
         public float SprintMultiplier => _sprintMultiplier;
         public float StrafeSpeedMultiplier => _strafeSpeedMultiplier;
@@ -96,5 +99,6 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         public float SprintStaminaPerSecond => _sprintStaminaPerSecond;
         public float JumpStaminaCost => _jumpStaminaCost;
         public float IdleMaxSpeed => _idleMaxSpeed;
+        public CarryLoadSettings Load => _load;
     }
 }

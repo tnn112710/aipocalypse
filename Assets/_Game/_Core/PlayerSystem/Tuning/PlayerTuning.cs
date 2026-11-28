@@ -1,3 +1,4 @@
+using MB13.Aipocalypse.Core.PlayerSystem.Needs;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -15,6 +16,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         [SerializeField, Required, InlineEditor] PlayerSoundTuning _sounds;
         [SerializeField, Required, InlineEditor] PlayerVisionTuning _vision;
         [SerializeField, Required, InlineEditor, Tooltip("Plays when the player dies")] PoseSequence _deathSequence;
+        [SerializeField, InlineEditor, Tooltip("Optional: hunger, thirst and sanity. None = the needs are off")] PlayerNeedsSettings _needs;
 
         public PlayerMovementTuning Movement => _movement;
         public PlayerVitalsTuning Vitals => _vitals;
@@ -24,5 +26,6 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         public PlayerSoundTuning Sounds => _sounds;
         public PlayerVisionTuning Vision => _vision;
         public PoseSequence DeathSequence => _deathSequence;
+        public PlayerNeedsSettings Needs => _needs;
     }
 }

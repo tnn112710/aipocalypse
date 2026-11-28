@@ -292068,6 +292068,8 @@ GameObject:
   - component: {fileID: 1051056005}
   - component: {fileID: 1051056006}
   - component: {fileID: 1051056007}
+  - component: {fileID: 1051056008}
+  - component: {fileID: 1051056009}
   m_Layer: 0
   m_Name: GameLifetimeScope
   m_TagString: Untagged
@@ -292448,6 +292450,33 @@ MonoBehaviour:
   _settings: {fileID: 11400000, guid: 6f245883477ad9f47bd118d67c9610ea, type: 2}
   _boards:
   - {fileID: 1217570891}
+--- !u!114 &1051056008
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1051055992}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b29c00fc94dfc04a9e237dad0d92ffa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.PlayerSystem.Needs.NeedsInstaller
+  _lights:
+  - {fileID: 1192700914}
+--- !u!114 &1051056009
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1051055992}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dcf24be1ec8d10f449ceddebfdc56aeb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.GraphicsSystem.ScreenLooks.ScreenLookInstaller
+  _settings: {fileID: 11400000, guid: b080ff50bfc6fd34ebcdb88f86ac3320, type: 2}
 --- !u!1001 &1051122766
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -330298,7 +330327,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4860655572248500519, guid: 04fe343a407050d41a9ab86e574c1231, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4889480782345971928, guid: 04fe343a407050d41a9ab86e574c1231, type: 3}
       propertyPath: m_Enabled
@@ -330308,6 +330337,9 @@ PrefabInstance:
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4860655570423884656, guid: 04fe343a407050d41a9ab86e574c1231, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1192700914}
     - targetCorrespondingSourceObject: {fileID: 4860655572248500519, guid: 04fe343a407050d41a9ab86e574c1231, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1192700912}
@@ -330351,6 +330383,24 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!1 &1192700913 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4860655570423884656, guid: 04fe343a407050d41a9ab86e574c1231, type: 3}
+  m_PrefabInstance: {fileID: 1192700909}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1192700914
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1192700913}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3efd908496712ce47ac38e517a1d5694, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.PlayerSystem.Needs.SafeLight
+  _radius: 28
 --- !u!1001 &1193438824
 PrefabInstance:
   m_ObjectHideFlags: 0

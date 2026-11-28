@@ -162,6 +162,11 @@ namespace MB13.Aipocalypse.Core.DogSystem
         [Min(0f), Tooltip("The toughness bar shows while it follows within this (m) or fights")] public float HudRange = 40f;
         [Range(0f, 1f), Tooltip("Warning colour below this share of toughness")] public float HudWarnBelow = 0.3f;
 
+        [Header("Comfort (the player's sanity, NEEDS.md)")]
+        [Min(0f), Tooltip("Within this (m, flat) of the dog the darkness drain on sanity is slower")] public float ComfortRadius = 8f;
+        [Min(0f), Tooltip("Sanity a pet gives the player")] public float PetSanity = 5f;
+        [Min(0f), Tooltip("Seconds before petting gives sanity again")] public float PetSanityCooldown = 180f;
+
         [Header("Voice")]
         [Min(0f), Tooltip("At most one sound per this many seconds")] public float VoiceGap = 1.2f;
         [Min(0f)] public float BarkGap = 6f;

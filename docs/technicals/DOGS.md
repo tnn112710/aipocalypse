@@ -116,6 +116,8 @@ Loki, a Border Collie, lives at its dog house in the WorldMap yard and comes exp
    - **Passive:** it keeps 6 m away from raiders, running to the far side of the yard, and never bites.
    - It doesn't sleep during a raid: at home it stands alert where it is, facing the nearest raider it sees (`DogWatchRaid`).
 
+6. **Comfort** (the player's sanity, [NEEDS.md](NEEDS.md#sanity)): within `ComfortRadius` (8 m, flat) of the dog the darkness drain on sanity is 60% (`DogComfort`, an `IComfortSource` registered by `DogManager` in the scene's `ComfortSources`; inactive while it's down). A pet gives `PetSanity` (5) sanity at most once per `PetSanityCooldown` (180 s): `DogManager.Pet` publishes `PlayerComforted`. Nothing happens in a scene without a `NeedsInstaller`.
+
 ## Pieces
 
 ```

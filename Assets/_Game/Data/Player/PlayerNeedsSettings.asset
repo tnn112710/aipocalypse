@@ -1,0 +1,232 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66407181a99b35b4bbdd0e9a16fb284f, type: 3}
+  m_Name: PlayerNeedsSettings
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.PlayerSystem.Needs.PlayerNeedsSettings
+  Hunger:
+    Enabled: 1
+    BaseMax: 100
+    MaxStat: 15
+    DrainStat: 18
+    PenaltyScaleStat: 22
+    DrainPerHour: 4.1666665
+    PerStaminaSpent: 0.015
+    Tiers:
+    - Severity: 0
+      From: 0.75
+      Changes:
+      - Stat: 24
+        Add: 12
+        Multiply: 1
+      HealthPerHour: 0
+    - Severity: 1
+      From: 0.5
+      Changes: []
+      HealthPerHour: 0
+    - Severity: 2
+      From: 0.25
+      Changes:
+      - Stat: 25
+        Add: 0
+        Multiply: 0.85
+      - Stat: 8
+        Add: 0
+        Multiply: 1.25
+      HealthPerHour: 0
+    - Severity: 3
+      From: 0
+      Changes:
+      - Stat: 25
+        Add: 0
+        Multiply: 0.65
+      - Stat: 8
+        Add: 0
+        Multiply: 1.6
+      HealthPerHour: 0
+    - Severity: 4
+      From: 0
+      Changes:
+      - Stat: 25
+        Add: 0
+        Multiply: 0.5
+      - Stat: 8
+        Add: 0
+        Multiply: 2
+      HealthPerHour: -10
+  Thirst:
+    Enabled: 1
+    BaseMax: 100
+    MaxStat: 16
+    DrainStat: 19
+    PenaltyScaleStat: 23
+    DrainPerHour: 6.25
+    PerStaminaSpent: 0.025
+    Tiers:
+    - Severity: 0
+      From: 0.75
+      Changes:
+      - Stat: 5
+        Add: 0
+        Multiply: 1.15
+      HealthPerHour: 0
+    - Severity: 1
+      From: 0.5
+      Changes: []
+      HealthPerHour: 0
+    - Severity: 2
+      From: 0.25
+      Changes:
+      - Stat: 5
+        Add: 0
+        Multiply: 0.8
+      - Stat: 6
+        Add: 0
+        Multiply: 1.15
+      - Stat: 7
+        Add: 0
+        Multiply: 1.15
+      - Stat: 13
+        Add: 0
+        Multiply: 1.15
+      - Stat: 10
+        Add: 0
+        Multiply: 1.15
+      HealthPerHour: 0
+    - Severity: 3
+      From: 0
+      Changes:
+      - Stat: 5
+        Add: 0
+        Multiply: 0.6
+      - Stat: 6
+        Add: 0
+        Multiply: 1.35
+      - Stat: 7
+        Add: 0
+        Multiply: 1.35
+      - Stat: 13
+        Add: 0
+        Multiply: 1.35
+      - Stat: 10
+        Add: 0
+        Multiply: 1.35
+      HealthPerHour: 0
+    - Severity: 4
+      From: 0
+      Changes:
+      - Stat: 5
+        Add: 0
+        Multiply: 0.4
+      - Stat: 6
+        Add: 0
+        Multiply: 1.5
+      - Stat: 7
+        Add: 0
+        Multiply: 1.5
+      - Stat: 13
+        Add: 0
+        Multiply: 1.5
+      - Stat: 10
+        Add: 0
+        Multiply: 1.5
+      HealthPerHour: -10
+  Sanity:
+    Enabled: 1
+    BaseMax: 100
+    MaxStat: 17
+    DrainStat: 20
+    PenaltyScaleStat: 29
+    DrainPerHour: 0
+    PerStaminaSpent: 0
+    Tiers:
+    - Severity: 0
+      From: 0.6
+      Changes: []
+      HealthPerHour: 0
+    - Severity: 1
+      From: 0.4
+      Changes: []
+      HealthPerHour: 0
+    - Severity: 2
+      From: 0.2
+      Changes: []
+      HealthPerHour: 0
+    - Severity: 3
+      From: 0
+      Changes: []
+      HealthPerHour: 0
+    - Severity: 4
+      From: 0
+      Changes: []
+      HealthPerHour: 0
+  SanityRules:
+    AwakeGraceHours: 4
+    AwakeEmptyHours: 18
+    DarknessFullPerHour: 25
+    FullDrainDistance: 150
+    DarknessByDistance:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 1
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    LightRecoveryPerHour: 3.3
+    ComfortDrainScale: 0.6
+  SanityEffects:
+    UneasyFrom: 0.6
+    LowFrom: 0.4
+    CriticalFrom: 0.2
+    EaseTime: 1
+    LiesFrom: 0.4
+    BlipsFrom: 0.2
+    Drone:
+      _entity: {fileID: 11400000, guid: 28b9706fa85cbe845ba98cd352258229, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    DroneVolume: 0.5
+    Whisper:
+      _entity: {fileID: 11400000, guid: 12d8277641ac3be4dbaa09ae54a140ce, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    WhisperVolume: 0.35
+    WhisperEveryMin: 6
+    WhisperEveryMax: 14
+    Heartbeat:
+      _entity: {fileID: 11400000, guid: 76920d138e42550489b232e17e452ec7, type: 2}
+      ID: 0
+      <DebugObject>k__BackingField: {fileID: 0}
+    HeartbeatFrom: 0.4
+    HeartbeatEvery: 1.1
+    HeartbeatVolume: 0.6
+  AsleepDrainScale: 0.33
+  HealthFloor: 0.25
+  OutOfCombatSeconds: 10
+  BaseDeathFloor: 0.5
+  EaseTime: 0.35

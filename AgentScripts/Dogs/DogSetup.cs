@@ -1421,7 +1421,8 @@ public static class DogSetup
             var node = new GameObject("DogBar", typeof(RectTransform)).GetComponent<RectTransform>();
             node.SetParent(corner, false);
             node.anchorMin = node.anchorMax = node.pivot = Vector2.zero;
-            node.anchoredPosition = new Vector2(0f, 190f);
+            // Above the needs' ring row and the effects row (NeedsHudSetup).
+            node.anchoredPosition = new Vector2(0f, 222f);
             node.sizeDelta = new Vector2(260f, 34f);
             node.gameObject.AddComponent<Canvas>();
             var group = node.gameObject.AddComponent<CanvasGroup>();

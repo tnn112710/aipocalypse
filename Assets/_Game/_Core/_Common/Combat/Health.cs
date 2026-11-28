@@ -1,10 +1,11 @@
 using System;
+using MB13.Aipocalypse.Core.Stats;
 using UnityEngine;
 
 namespace MB13.Aipocalypse.Core.Combat
 {
     [Serializable]
-    public sealed class Health
+    public sealed class Health : IMeter
     {
         [SerializeField] float _max;
         [SerializeField] float _current;
