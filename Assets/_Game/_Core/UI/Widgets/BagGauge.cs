@@ -33,14 +33,15 @@ namespace MB13.Aipocalypse.Core.UI
             if (fill != _fillShown && _fill != null)
             {
                 _fillShown = fill;
-                _fill.fillAmount = fill;
+                _fill.fillAmount = fill > 0f ? OnBag(fill, Range) : 0f;
             }
             notch = Mathf.Clamp01(notch);
             if (notch != _notchShown && _notch != null)
             {
                 _notchShown = notch;
-                _notch.anchorMin = new Vector2(_notch.anchorMin.x, notch);
-                _notch.anchorMax = new Vector2(_notch.anchorMax.x, notch);
+                float y = OnBag(notch, Range);
+                _notch.anchorMin = new Vector2(_notch.anchorMin.x, y);
+                _notch.anchorMax = new Vector2(_notch.anchorMax.x, y);
                 _notch.anchoredPosition = new Vector2(_notch.anchoredPosition.x, 0f);
             }
             if (state == _state || _style == null)
@@ -54,6 +55,12 @@ namespace MB13.Aipocalypse.Core.UI
         }
 
         public TMP_Text Label => _label;
+
+        Vector2 Range => _style != null ? _style.FillRange : new Vector2(0f, 1f);
+
+        // A share of the load (0 empty .. 1 Max) as a share of the sprite's height, on the bag's body (FillRange: a fill that
+        // counted the thin handle would read low). Assumes the sprite fills the icon area's height (no wider than tall).
+        public static float OnBag(float share, Vector2 range) => Mathf.Lerp(range.x, range.y, share);
 
         void Update()
         {
@@ -69,6 +76,8 @@ namespace MB13.Aipocalypse.Core.UI
         {
             if (_style == null)
                 return;
+            // The next SetLoad re-maps both onto a possibly new FillRange.
+            _fillShown = _notchShown = -1f;
             if (_empty != null)
             {
                 _empty.sprite = _style.Icon;

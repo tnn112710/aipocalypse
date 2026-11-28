@@ -40,6 +40,18 @@ namespace MB13.Aipocalypse.Tests
         }
 
         [Test]
+        public void Stamina_SetToZeroExhaustsLikeRunningDry()
+        {
+            var stamina = new Stamina(100f, 1f, 0.3f, windedTime: 2f);
+
+            stamina.Set(0f);
+
+            Assert.IsTrue(stamina.IsExhausted, "out of breath: no sprint until the recover share");
+            Assert.IsTrue(stamina.IsWinded, "catching breath before regen, as when running dry");
+            Assert.IsFalse(stamina.CanExert);
+        }
+
+        [Test]
         public void Stamina_TakeSpentReturnsWhatWasSpentOnce()
         {
             var stamina = new Stamina(100f, 1f, 0.3f);

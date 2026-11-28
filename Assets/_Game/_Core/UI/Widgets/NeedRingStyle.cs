@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System;
 using Ami.BroAudio;
 using MB13.Aipocalypse.Core.PlayerSystem.Needs;
 using Sirenix.OdinInspector;
@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace MB13.Aipocalypse.Core.UI
 {
-    // Everything a NeedRing looks and sounds like: icon, ring sprites, a colour per tier, dimming and pulses. Sizes stay in the HUD.
+    // Everything a NeedRing looks and sounds like: icon, ring sprites, colours by how full it is, dimming and pulses. Sizes stay in the HUD.
     [CreateAssetMenu(menuName = "Aipocalypse/UI/Need Ring Style", fileName = "NeedRingStyle")]
     public sealed class NeedRingStyle : ScriptableObject
     {
@@ -15,17 +15,17 @@ namespace MB13.Aipocalypse.Core.UI
         [BoxGroup("Look"), Tooltip("The ring that empties clockwise (Image Filled, Radial 360)")] public Sprite RingSprite;
         [BoxGroup("Look"), Tooltip("Drawn under the ring: the empty part")] public Sprite TrackSprite;
         [BoxGroup("Look")] public Color TrackColor = new(0f, 0f, 0f, 0.45f);
-        [BoxGroup("Look"), SerializeField, Tooltip("Ring colour per tier; every NeedSeverity needs an entry")]
-        public Dictionary<NeedSeverity, Color> Colors = new()
+        [BoxGroup("Look"), Tooltip("Ring colour by how full it is, highest first: a band's colour shows above its share; the last "
+            + "(Above 0) covers the rest down to empty. The same on every need")]
+        public ColorBand[] Bands =
         {
-            { NeedSeverity.Good, new Color(0.55f, 0.9f, 0.45f) },
-            { NeedSeverity.Normal, Color.white },
-            { NeedSeverity.Low, new Color(1f, 0.62f, 0.18f) },
-            { NeedSeverity.VeryLow, new Color(0.95f, 0.25f, 0.2f) },
-            { NeedSeverity.Empty, new Color(0.95f, 0.25f, 0.2f) },
+            new() { Above = 0.6f, Color = new Color(0.45f, 0.85f, 0.35f) },
+            new() { Above = 0.3f, Color = new Color(1f, 0.86f, 0.25f) },
+            new() { Above = 0.1f, Color = new Color(1f, 0.55f, 0.15f) },
+            new() { Above = 0f, Color = new Color(0.95f, 0.22f, 0.18f) },
         };
 
-        [BoxGroup("Dimming"), Range(0f, 1f), Tooltip("Alpha while the need is fine (Good or Normal) and nothing just changed")]
+        [BoxGroup("Dimming"), Range(0f, 1f), Tooltip("Alpha while the ring is in its top band (green) and nothing just changed")]
         public float DimAlpha = 0.45f;
         [BoxGroup("Dimming"), Min(0f), Tooltip("Real seconds a ring stays bright after a tier change or a refill")] public float BrightTime = 2.5f;
         [BoxGroup("Dimming"), Min(0.01f), Tooltip("Alpha change per real second")] public float FadeSpeed = 2f;
@@ -38,7 +38,26 @@ namespace MB13.Aipocalypse.Core.UI
         [BoxGroup("Sound"), Tooltip("Played on entering Low or worse (2D); empty = silent")] public SoundID TierSound;
         [BoxGroup("Sound"), Min(0f), Tooltip("Real seconds between repeats while VeryLow or Empty (0 = never)")] public float RepeatSoundEvery = 40f;
 
-        public Color ColorFor(NeedSeverity severity) => Colors != null && Colors.TryGetValue(severity, out Color color) ? color : Color.white;
+        [Serializable]
+        public struct ColorBand
+        {
+            [Range(0f, 1f)] public float Above;
+            public Color Color;
+        }
+
+        // The first band (highest first) whose share the value is above; the last band covers the rest.
+        public Color ColorAt(float share)
+        {
+            if (Bands == null || Bands.Length == 0)
+                return Color.white;
+            for (int i = 0; i < Bands.Length - 1; i++)
+                if (share > Bands[i].Above)
+                    return Bands[i].Color;
+            return Bands[^1].Color;
+        }
+
+        // Only the top band (green) dims: a ring in any warning colour stays bright.
+        public bool Dims(float share) => Bands == null || Bands.Length == 0 || share > Bands[0].Above;
 
 #if UNITY_EDITOR
         // Edit-time preview only: rings re-apply their style in Awake.

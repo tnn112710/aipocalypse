@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hasta la Vista, M.A.Y.B.E — 3000×3000 m Illustrated World Map</title>
+  <style>
+    :root {
+      --bg: #12151a;
+      --card: #1a1f26;
+      --border: #2d3542;
+      --fg: #eef2f6;
+      --muted: #9aa4b2;
+      --primary: #d97706;
+      --primary-fg: #ffffff;
+      --sec: #252c36;
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f4efe6;
+        --card: #ffffff;
+        --border: #d5cdbf;
+        --fg: #1c1917;
+        --muted: #6b645c;
+        --primary: #b45309;
+        --primary-fg: #ffffff;
+        --sec: #ede7db;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 14px;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: var(--bg); color: var(--fg);
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrap { max-width: 1440px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; }
+    .header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+    .header h1 { margin: 0; font-size: 16px; font-weight: 700; }
+    .header p { margin: 2px 0 0; font-size: 12px; color: var(--muted); }
+    .btns { display: flex; gap: 8px; flex-wrap: wrap; }
+    button {
+      cursor: pointer; border-radius: 8px; padding: 7px 12px; font-size: 12px; font-weight: 600;
+      border: 1px solid var(--border); background: var(--sec); color: var(--fg);
+    }
+    button.primary { background: var(--primary); color: var(--primary-fg); border-color: transparent; }
+    button:hover { opacity: 0.92; }
+    .grid { display: grid; grid-template-columns: 1fr 300px; gap: 12px; }
+    @media (max-width: 980px) { .grid { grid-template-columns: 1fr; } }
+    .viewport {
+      position: relative; width: 100%; height: 760px; border-radius: 10px; overflow: hidden;
+      border: 1px solid var(--border); background: #efe4cf;
+    }
+    canvas { width: 100%; height: 100%; display: block; cursor: grab; }
+    canvas:active { cursor: grabbing; }
+    .pill {
+      position: absolute; pointer-events: none; background: var(--card); opacity: 0.94;
+      border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font-size: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.24);
+    }
+    .telemetry { bottom: 12px; left: 12px; line-height: 1.45; }
+    .zoom-badge { top: 12px; left: 12px; padding: 4px 8px; font-family: ui-monospace, monospace; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .side { display: flex; flex-direction: column; gap: 12px; }
+    .side h2 { margin: 0 0 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+    .chk { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 6px; cursor: pointer; }
+    .chk input { accent-color: var(--primary); }
+    .row { display: flex; align-items: center; justify-content: space-between; font-size: 12px; margin-bottom: 6px; }
+    .swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; border: 1px solid rgba(0,0,0,0.25); margin-right: 8px; vertical-align: -2px; }
+    .muted { color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card header">
+      <div>
+        <h1>Hasta la Vista, M.A.Y.B.E — 3000 × 3000 m Illustrated Multi-Biome World Map</h1>
+        <p>Hand-crafted oblique cartographic relief • Drag to pan, scroll to zoom in on individual landmarks, trees, cliffs &amp; Home Compound</p>
+      </div>
+      <div class="btns">
+        <button id="btn-home">Zoom to Home</button>
+        <button id="btn-reset">Fit Whole Map</button>
+        <button id="btn-export" class="primary">Export 4096×4096 PNG</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card" style="padding: 8px;">
+        <div class="viewport">
+          <canvas id="mapCanvas"></canvas>
+          <div class="pill zoom-badge" id="zoom-readout">100%</div>
+          <div class="pill telemetry">
+            <div class="mono" style="font-weight:700;" id="tel-coords">X: — m, Z: — m</div>
+            <div class="muted" id="tel-zone">Hover map to inspect biome, elevation &amp; sprint time</div>
+            <div class="muted mono" id="tel-dist">Distance from Home: —</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="side">
+        <div class="card">
+          <h2>Map Layers</h2>
+          <label class="chk"><input type="checkbox" id="lyr-contours" checked /> Elevation Contours &amp; Relief</label>
+          <label class="chk"><input type="checkbox" id="lyr-trees" checked /> Illustrated Flora, Cliffs &amp; Peaks</label>
+          <label class="chk"><input type="checkbox" id="lyr-trails" checked /> Footpaths, Boardwalks &amp; Bridges</label>
+          <label class="chk"><input type="checkbox" id="lyr-pois" checked /> Landmarks, Camps &amp; Boss Altars</label>
+          <label class="chk"><input type="checkbox" id="lyr-tiers" /> Threat Progression Rings</label>
+          <label class="chk"><input type="checkbox" id="lyr-grid" checked /> 500 m Grid &amp; Playable Boundary</label>
+          <label class="chk"><input type="checkbox" id="lyr-labels" checked /> Callout Labels &amp; Leader Lines</label>
+          <label class="chk"><input type="checkbox" id="lyr-inset" checked /> Home &amp; Paddock Diorama Inset</label>
+        </div>
+
+        <div class="card">
+          <h2>Biomes &amp; Progression</h2>
+          <div class="row"><span><span class="swatch" style="background:#7bc45a"></span>Flower Meadow</span><span class="muted">Safe (Day)</span></div>
+          <div class="row"><span><span class="swatch" style="background:#2b86ce"></span>Great Lake &amp; Rivers</span><span class="muted">19.5 m</span></div>
+          <div class="row"><span><span class="swatch" style="background:#346f3d"></span>Pine Forest</span><span class="muted">Tier 1</span></div>
+          <div class="row"><span><span class="swatch" style="background:#4b623f"></span>Murky Swamps</span><span class="muted">Tier 2</span></div>
+          <div class="row"><span><span class="swatch" style="background:#c47a32"></span>Autumn Foothills</span><span class="muted">Tier 3A</span></div>
+          <div class="row"><span><span class="swatch" style="background:#7a857e"></span>Rocky Highlands</span><span class="muted">Tier 3B</span></div>
+          <div class="row"><span><span class="swatch" style="background:#e2eef8"></span>Frozen Alpine Peaks</span><span class="muted">Tier 4</span></div>
+          <div class="row"><span><span class="swatch" style="background:#1c2330"></span>AI Scrap Citadel</span><span class="muted">Final (Locked)</span></div>
+        </div>
+
+        <div class="card">
+          <h2>Travel Distances (6 m/s Sprint)</h2>
+          <div class="row"><span>Home → Broken Bridge</span><span class="mono">170 m (~28s)</span></div>
+          <div class="row"><span>Home → Forest Altar</span><span class="mono">985 m (~2.7m)</span></div>
+          <div class="row"><span>Home → Swamp Scrapyard</span><span class="mono">1,955 m (~5.4m)</span></div>
+          <div class="row"><span>Home → Highlands Altar</span><span class="mono">1,180 m (~3.3m)</span></div>
+          <div class="row"><span>Home → Alpine Altar</span><span class="mono">1,930 m (~5.4m)</span></div>
+          <div class="row"><span>Home → Sealed Gate</span><span class="mono">1,910 m (~5.3m)</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const WORLD = 3000;
+  const HOME = { x: 750, z: 560 };
+
+  function mulberry32(a) {
+    return function() {
+      let t = a += 0x6D2B79F5;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function hash2(x, y) {
+    const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453123;
+    return s - Math.floor(s);
+  }
+  function smoothNoise(x, y) {
+    const ix = Math.floor(x), iy = Math.floor(y);
+    const fx = x - ix, fy = y - iy;
+    const u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy);
+    const a = hash2(ix, iy), b = hash2(ix + 1, iy);
+    const c = hash2(ix, iy + 1), d = hash2(ix + 1, iy + 1);
+    return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+  }
+  function fbm(x, y, oct = 4) {
+    let val = 0, amp = 0.5, freq = 1;
+    for (let i = 0; i < oct; i++) {
+      val += amp * smoothNoise(x * freq, y * freq);
+      freq *= 2.03; amp *= 0.5;
+    }
+    return val;
+  }
+  function distToSeg(px, pz, x1, z1, x2, z2) {
+    const dx = x2 - x1, dz = z2 - z1;
+    const len2 = dx * dx + dz * dz;
+    if (len2 === 0) return Math.hypot(px - x1, pz - z1);
+    let t = ((px - x1) * dx + (pz - z1) * dz) / len2;
+    t = Math.max(0, Math.min(1, t));
+    return Math.hypot(px - (x1 + t * dx), pz - (z1 + t * dz));
+  }
+  function distToPolyline(px, pz, pts) {
+    let minD = 1e9;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const d = distToSeg(px, pz, pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1]);
+      if (d < minD) minD = d;
+    }
+    return minD;
+  }
+
+  // Smooth river curves
+  const mainRiver = [[380, 760], [500, 745], [640, 732], [760, 718], [860, 690], [980, 665], [1120, 642], [1260, 622], [1420, 608]];
+  const outletRiver = [[2600, 955], [2700, 1005], [2820, 1065], [2990, 1125]];
+  const highlandStream = [[660, 2440], [635, 2240], [740, 2050], [960, 1860], [875, 1650], [670, 1525], [520, 1480], [465, 1210], [415, 950], [380, 760]];
+  const forestStream = [[1240, 1690], [1330, 1495], [1465, 1340], [1565, 1180], [1645, 1010], [1705, 835]];
+  const swampStream = [[2220, 1980], [2295, 1810], [2350, 1680], [2285, 1485], [2215, 1300], [2160, 1135]];
+
+  const lakeIslands = [
+    { x: 1785, z: 545, r: 58 },
+    { x: 2045, z: 465, r: 44 },
+    { x: 2155, z: 740, r: 84 },
+    { x: 2430, z: 625, r: 62 },
+    { x: 1920, z: 930, r: 48 },
+    { x: 2365, z: 960, r: 46 },
+    { x: 2560, z: 810, r: 34 },
+  ];
+
+  const trails = [
+    [[750, 560], [805, 620], [860, 690], [945, 825], [1085, 980], [1240, 1150], [1380, 1320]],
+    [[750, 560], [965, 518], [1160, 498], [1280, 500], [1460, 530], [1580, 580]],
+    [[750, 560], [565, 622], [420, 725]],
+    [[945, 825], [825, 995], [720, 1180], [610, 1365], [520, 1480]],
+    [[520, 1480], [625, 1640], [740, 1740], [960, 1860], [880, 2060], [790, 2245], [660, 2440]],
+    [[660, 2440], [820, 2490], [960, 2480], [1160, 2410], [1365, 2320], [1680, 2230]],
+    [[1380, 1320], [1565, 1455], [1785, 1525], [2025, 1595], [2200, 1645], [2350, 1680]],
+    [[2350, 1680], [2280, 1845], [2220, 1980], [2020, 2110], [1680, 2230]],
+    [[1680, 2230], [1865, 2345], [2015, 2435], [2120, 2500]],
+    [[1085, 980], [1325, 960], [1580, 945], [1805, 1045], [1985, 1185]],
+  ];
+
+  // Landmarks with explicit label offsets for zero overlap
+  const landmarks = [
+    { x: 750, z: 560, type: 'home', label: 'HOME BASE & PADDOCK', dx: 0, dz: -95 },
+    { x: 380, z: 760, type: 'waterfall', label: 'WATERFALL & SAKURA POND', dx: 45, dz: 105 },
+    { x: 860, z: 690, type: 'bridge', label: 'BROKEN BRIDGE', dx: 55, dz: 72 },
+    { x: 1280, z: 500, type: 'viewpoint', label: 'LAKESIDE VIEWPOINT', dx: -40, dz: -85 },
+    { x: 1580, z: 580, type: 'dock', label: 'FISHING DOCK', dx: 65, dz: -75 },
+    { x: 2740, z: 1030, type: 'gorge', label: 'OUTLET GORGE', dx: -115, dz: 75 },
+    { x: 1120, z: 1060, type: 'camp', label: 'GOBLIN OUTPOST', dx: -95, dz: 65 },
+    { x: 1680, z: 1200, type: 'camp', label: 'FOREST CAMP', dx: 95, dz: -65 },
+    { x: 1380, z: 1320, type: 'boss', color: '#22c55e', label: 'FOREST BOSS ALTAR', dx: 0, dz: 85 },
+    { x: 2350, z: 1680, type: 'scrapyard', label: 'ROBOT SCRAPYARD', dx: 115, dz: -75 },
+    { x: 2220, z: 1980, type: 'boss', color: '#a3e635', label: 'SWAMP BOSS ALTAR', dx: 0, dz: 85 },
+    { x: 520, z: 1480, type: 'pond', label: 'WEST GORGE POND', dx: 95, dz: -60 },
+    { x: 960, z: 1860, type: 'pond', label: 'HIGHLAND TARN', dx: 115, dz: 40 },
+    { x: 740, z: 1740, type: 'boss', color: '#f59e0b', label: 'HIGHLANDS BOSS ALTAR', dx: -95, dz: -80 },
+    { x: 660, z: 2440, type: 'pond', label: 'FROZEN TARN', dx: -95, dz: -70 },
+    { x: 960, z: 2480, type: 'boss', color: '#38bdf8', label: 'ALPINE BOSS ALTAR', dx: 80, dz: 80 },
+    { x: 1680, z: 2230, type: 'gate', label: 'SEALED KEY GATE', dx: -110, dz: -85 },
+    { x: 2120, z: 2500, type: 'portal', label: 'AI CORE PORTAL', dx: 0, dz: -90 },
+  ];
+
+  const regionLabels = [
+    { x: 1030, z: 405, text: 'FLOWER MEADOW', sub: 'Safe Day Zone' },
+    { x: 2080, z: 680, text: 'GREAT LAKE', sub: '7 Islands • 19.5 m' },
+    { x: 1470, z: 1060, text: 'PINE FOREST', sub: 'Tier 1' },
+    { x: 2470, z: 1420, text: 'MURKY SWAMPS', sub: 'Tier 2' },
+    { x: 690, z: 1210, text: 'AUTUMN FOOTHILLS', sub: 'Tier 3A' },
+    { x: 730, z: 1990, text: 'ROCKY HIGHLANDS', sub: 'Tier 3B' },
+    { x: 630, z: 2645, text: 'FROZEN PEAKS', sub: 'Tier 4' },
+    { x: 2130, z: 2665, text: 'FINAL ZONE: AI SCRAP CITADEL', sub: 'Locked Behind Boss Keys' },
+  ];
+
+  function classifyPoint(x, z) {
+    const n = (fbm(x * 0.0022, z * 0.0022, 3) - 0.5) * 145;
+    const n2 = (fbm(x * 0.005 + 11, z * 0.005 + 7, 2) - 0.5) * 65;
+    const wx = x + n, wz = z + n2;
+
+    const edgeDist = Math.min(x, WORLD - x, z, WORLD - z) + n * 0.48;
+    if (edgeDist < 235) {
+      return { biome: 'Mountain Rim', elev: 135 + (235 - edgeDist) * 0.78, tier: 'Boundary' };
+    }
+
+    const dPond = Math.hypot((x - 380) * 0.85, (z - 760) * 1.1);
+    if (dPond < 105 + n2 * 0.32) {
+      if (Math.hypot(x - 385, z - 760) < 28) return { biome: 'Sakura Island', elev: 21.5, tier: 'Safe' };
+      return { biome: 'Home Sakura Pond', elev: 19.5, water: true, tier: 'Safe' };
+    }
+
+    const dLake = Math.hypot((x - 2080) / 620, (z - 690) / 455);
+    const lakeShape = dLake + (fbm(x * 0.0035, z * 0.0035, 3) - 0.5) * 0.24;
+    if (lakeShape < 1.0 && x > 1320 && z < 1260) {
+      for (const isl of lakeIslands) {
+        const dIsl = Math.hypot(x - isl.x, z - isl.z);
+        if (dIsl < isl.r + n2 * 0.2) {
+          return { biome: 'Lake Island', elev: 23 + (isl.r - dIsl) * 0.22, tier: 'Safe/Shore' };
+        }
+      }
+      return { biome: 'Great Lake', elev: 19.5, water: true, shoreDist: Math.max(0, 1 - lakeShape), tier: 'Water' };
+    }
+
+    if (Math.hypot(x - 520, z - 1480) < 62 + n2 * 0.22) return { biome: 'West Gorge Pond', elev: 62, water: true, tier: 'Tier 3' };
+    if (Math.hypot(x - 960, z - 1860) < 76 + n2 * 0.22) return { biome: 'Highland Tarn', elev: 78, water: true, tier: 'Tier 3' };
+    if (Math.hypot(x - 660, z - 2440) < 68 + n2 * 0.22) return { biome: 'Frozen Tarn', elev: 132, water: true, tier: 'Tier 4' };
+
+    if (distToPolyline(x, z, mainRiver) < 25 + n2 * 0.1) return { biome: 'Main River', elev: 19.5, water: true, tier: 'Border' };
+    if (distToPolyline(x, z, outletRiver) < 24 + n2 * 0.1) return { biome: 'Outlet Gorge', elev: 18.5, water: true, tier: 'Boundary' };
+    if (distToPolyline(x, z, highlandStream) < 11) return { biome: 'Highland Stream', elev: 52, water: true, tier: 'Tier 3' };
+    if (distToPolyline(x, z, forestStream) < 10) return { biome: 'Forest Stream', elev: 32, water: true, tier: 'Tier 1' };
+    if (distToPolyline(x, z, swampStream) < 14) return { biome: 'Swamp Channel', elev: 24.5, water: true, tier: 'Tier 2' };
+
+    if (wx > 1340 && wz > 2190) {
+      return { biome: 'AI Scrap Citadel', elev: 72 + fbm(x * 0.004, z * 0.004, 3) * 45, tier: 'Final (Locked)' };
+    }
+    if (wx <= 1340 && wz > 2130) {
+      return { biome: 'Frozen Alpine Peaks', elev: 120 + fbm(x * 0.004, z * 0.004, 3) * 75, tier: 'Tier 4' };
+    }
+    if (wz < 735 && wx < 1460) {
+      return { biome: 'Flower Meadow', elev: 24 + fbm(x * 0.005, z * 0.005, 3) * 10, tier: 'Safe (Day)' };
+    }
+    if (wx > 1830 && wz >= 1140 && wz <= 2200) {
+      if (fbm(x * 0.009 + 3, z * 0.009 + 5, 3) > 0.57) {
+        return { biome: 'Swamp Pool', elev: 24.5, water: true, tier: 'Tier 2' };
+      }
+      return { biome: 'Murky Swamps', elev: 25 + fbm(x * 0.007, z * 0.007, 2) * 5, tier: 'Tier 2' };
+    }
+    if (wx < 1260 && wz >= 740 && wz <= 2140) {
+      if (wz < 1430) {
+        return { biome: 'Autumn Foothills', elev: 42 + fbm(x * 0.005, z * 0.005, 3) * 28, tier: 'Tier 3A' };
+      }
+      return { biome: 'Rocky Highlands', elev: 70 + fbm(x * 0.005, z * 0.005, 3) * 48, tier: 'Tier 3B' };
+    }
+    return { biome: 'Pine Forest', elev: 28 + fbm(x * 0.005, z * 0.005, 3) * 26, tier: 'Tier 1' };
+  }
+
+  // Higher-res baked terrain (1400×1400) with soft shoreline foam & bathymetry
+  const BAKE_SIZE = 1400;
+  const terrainCanvas = document.createElement('canvas');
+  terrainCanvas.width = BAKE_SIZE;
+  terrainCanvas.height = BAKE_SIZE;
+  const tctx = terrainCanvas.getContext('2d');
+
+  function bakeTerrain(showContours) {
+    const img = tctx.createImageData(BAKE_SIZE, BAKE_SIZE);
+    const data = img.data;
+    const step = WORLD / BAKE_SIZE;
+    const elevGrid = new Float32Array(BAKE_SIZE * BAKE_SIZE);
+    const infoGrid = new Array(BAKE_SIZE * BAKE_SIZE);
+
+    for (let py = 0; py < BAKE_SIZE; py++) {
+      const z = WORLD - (py + 0.5) * step;
+      for (let px = 0; px < BAKE_SIZE; px++) {
+        const x = (px + 0.5) * step;
+        const info = classifyPoint(x, z);
+        const idx = py * BAKE_SIZE + px;
+        elevGrid[idx] = info.elev;
+        infoGrid[idx] = info;
+      }
+    }
+
+    for (let py = 0; py < BAKE_SIZE; py++) {
+      const z = WORLD - (py + 0.5) * step;
+      for (let px = 0; px < BAKE_SIZE; px++) {
+        const x = (px + 0.5) * step;
+        const idx = py * BAKE_SIZE + px;
+        const info = infoGrid[idx];
+        const e = elevGrid[idx];
+
+        // Shoreline check (neighbour land/water)
+        let nearWater = false, nearLand = false;
+        if (px > 1 && px < BAKE_SIZE - 2 && py > 1 && py < BAKE_SIZE - 2) {
+          const w1 = infoGrid[idx - 1].water, w2 = infoGrid[idx + 1].water;
+          const w3 = infoGrid[idx - BAKE_SIZE].water, w4 = infoGrid[idx + BAKE_SIZE].water;
+          if (!info.water && (w1 || w2 || w3 || w4)) nearWater = true;
+          if (info.water && (!w1 || !w2 || !w3 || !w4)) nearLand = true;
+        }
+
+        const ex = px < BAKE_SIZE - 1 ? elevGrid[idx + 1] : e;
+        const ez = py > 0 ? elevGrid[idx - BAKE_SIZE] : e;
+        const dx = (ex - e) / step;
+        const dz = (ez - e) / step;
+        const shade = Math.max(0.60, Math.min(1.24, 0.98 - dx * 0.40 + dz * 0.40));
+
+        let r = 120, g = 160, b = 100;
+        const grain = (hash2(px * 0.85, py * 0.85) - 0.5) * 9;
+        const patch = fbm(x * 0.012, z * 0.012, 3);
+        const fine = fbm(x * 0.04, z * 0.04, 2);
+
+        switch (info.biome) {
+          case 'Mountain Rim':
+            if (e > 192) { r = 232; g = 238; b = 246; }
+            else { r = 104 + patch * 32; g = 107 + patch * 30; b = 112 + patch * 26; }
+            break;
+          case 'Home Sakura Pond':
+            r = 52 + fine * 14; g = 188 + fine * 18; b = 208 + fine * 14; break;
+          case 'Sakura Island':
+            r = 228; g = 158; b = 188; break;
+          case 'Great Lake': {
+            const t = Math.min(1, (info.shoreDist || 0.3) * 1.4);
+            r = 72 - t * 48; g = 172 - t * 72; b = 215 - t * 40;
+            break;
+          }
+          case 'Main River': case 'Outlet Gorge': case 'Highland Stream': case 'Forest Stream':
+            r = 54 + fine * 16; g = 152 + fine * 18; b = 208 + fine * 14; break;
+          case 'West Gorge Pond': case 'Highland Tarn':
+            r = 46; g = 142; b = 192; break;
+          case 'Frozen Tarn':
+            r = 168 + fine * 20; g = 220 + fine * 16; b = 242; break;
+          case 'Swamp Channel': case 'Swamp Pool':
+            r = 58 + fine * 14; g = 94 + fine * 16; b = 74; break;
+          case 'Lake Island':
+            r = 108 + patch * 26; g = 158 + patch * 22; b = 88; break;
+          case 'Flower Meadow':
+            r = 132 + patch * 38; g = 192 + patch * 26; b = 92 + patch * 22;
+            if (patch > 0.68) { r += 40; g -= 18; b += 48; }
+            else if (fine > 0.65) { r += 26; g += 18; b -= 12; }
+            break;
+          case 'Pine Forest':
+            r = 52 + patch * 32; g = 106 + patch * 34; b = 56 + patch * 18; break;
+          case 'Murky Swamps':
+            r = 76 + patch * 28; g = 98 + patch * 24; b = 62 + patch * 16; break;
+          case 'Autumn Foothills':
+            r = 184 + patch * 34; g = 122 + patch * 36; b = 52 + patch * 18; break;
+          case 'Rocky Highlands':
+            r = 112 + patch * 34; g = 118 + patch * 32; b = 108 + patch * 26; break;
+          case 'Frozen Alpine Peaks':
+            r = 216 + patch * 28; g = 230 + patch * 20; b = 244 + patch * 10; break;
+          case 'AI Scrap Citadel':
+            r = 30 + patch * 20; g = 36 + patch * 18; b = 48 + patch * 22;
+            break;
+        }
+
+        // Sandy / pebble shore & white surf foam
+        if (nearWater && info.biome !== 'Swamp Channel' && info.biome !== 'Murky Swamps') {
+          r = r * 0.45 + 214 * 0.55;
+          g = g * 0.45 + 196 * 0.55;
+          b = b * 0.45 + 154 * 0.55;
+        }
+        if (nearLand && info.biome !== 'Swamp Channel' && info.biome !== 'Swamp Pool') {
+          r = r * 0.55 + 235 * 0.45;
+          g = g * 0.55 + 245 * 0.45;
+          b = b * 0.55 + 252 * 0.45;
+        }
+
+        let contourMul = 1.0;
+        if (showContours && !info.water && (e % 15) < 1.1) contourMul = 0.89;
+
+        const p = idx * 4;
+        data[p] = Math.max(0, Math.min(255, r * shade * contourMul + grain));
+        data[p + 1] = Math.max(0, Math.min(255, g * shade * contourMul + grain));
+        data[p + 2] = Math.max(0, Math.min(255, b * shade * contourMul + grain));
+        data[p + 3] = 255;
+      }
+    }
+    tctx.putImageData(img, 0, 0);
+  }
+
+  // Generate illustrated scatter items (trees, mountains, wildflowers, swamp cypress, circuit ruins)
+  const rng = mulberry32(88421);
+  const flora = [];
+  const peaks = [];
+  for (let i = 0; i < 3400; i++) {
+    const x = 65 + rng() * (WORLD - 130);
+    const z = 65 + rng() * (WORLD - 130);
+    const info = classifyPoint(x, z);
+    if (info.water) continue;
+    if (Math.hypot(x - HOME.x, z - HOME.z) < 88) continue;
+    if (distToPolyline(x, z, mainRiver) < 38) continue;
+    if (info.biome === 'Mountain Rim') {
+      peaks.push({ x, z, e: info.elev, s: 0.75 + rng() * 0.9, v: rng() });
+    } else {
+      flora.push({ x, z, biome: info.biome, s: 0.7 + rng() * 0.75, v: rng() });
+    }
+  }
+  // Sort back-to-front (north to south = descending Z) for proper oblique painterly overlap!
+  peaks.sort((a, b) => b.z - a.z);
+  flora.sort((a, b) => b.z - a.z);
+
+  // Hand-crafted painterly sprite painters
+  function drawMountainPeak(c, sx, sy, rad, snow, v) {
+    const h = rad * (1.35 + v * 0.55);
+    const w = rad * 1.45;
+    // Shadow side (right)
+    c.fillStyle = snow ? '#8fa1b3' : '#535961';
+    c.beginPath();
+    c.moveTo(sx, sy - h);
+    c.lineTo(sx + w, sy + rad * 0.4);
+    c.lineTo(sx + w * 0.05, sy + rad * 0.55);
+    c.closePath();
+    c.fill();
+    // Sunlit side (left)
+    c.fillStyle = snow ? '#cbd5e1' : '#858d96';
+    c.beginPath();
+    c.moveTo(sx, sy - h);
+    c.lineTo(sx + w * 0.05, sy + rad * 0.55);
+    c.lineTo(sx - w, sy + rad * 0.35);
+    c.closePath();
+    c.fill();
+    // Snow cap
+    if (snow) {
+      c.fillStyle = '#f1f5f9';
+      c.beginPath();
+      c.moveTo(sx, sy - h);
+      c.lineTo(sx - w * 0.42, sy - h * 0.32);
+      c.lineTo(sx - w * 0.08, sy - h * 0.18);
+      c.lineTo(sx + w * 0.05, sy - h * 0.35);
+      c.lineTo(sx + w * 0.40, sy - h * 0.28);
+      c.closePath();
+      c.fill();
+    }
+  }
+
+  function drawPine(c, sx, sy, rad, colMain, colLight, snow) {
+    // Ground shadow
+    c.fillStyle = 'rgba(15, 25, 18, 0.25)';
+    c.beginPath();
+    c.ellipse(sx + rad * 0.35, sy + rad * 0.3, rad * 0.85, rad * 0.45, 0, 0, Math.PI * 2);
+    c.fill();
+    // Trunk
+    c.fillStyle = '#4a321e';
+    c.fillRect(sx - rad * 0.12, sy - rad * 0.1, rad * 0.24, rad * 0.45);
+    // 2 layered pine boughs
+    for (let t = 0; t < 2; t++) {
+      const yOff = -t * rad * 0.58;
+      const bw = rad * (1.0 - t * 0.25);
+      const bh = rad * (1.1 - t * 0.15);
+      c.fillStyle = colMain;
+      c.beginPath();
+      c.moveTo(sx, sy + yOff - bh);
+      c.lineTo(sx + bw, sy + yOff + bh * 0.35);
+      c.lineTo(sx - bw, sy + yOff + bh * 0.35);
+      c.closePath();
+      c.fill();
+      // Left sunlit highlight
+      c.fillStyle = snow ? '#e2eef8' : colLight;
+      c.beginPath();
+      c.moveTo(sx, sy + yOff - bh);
+      c.lineTo(sx, sy + yOff + bh * 0.35);
+      c.lineTo(sx - bw * 0.95, sy + yOff + bh * 0.32);
+      c.closePath();
+      c.fill();
+    }
+  }
+
+  function drawBroadleaf(c, sx, sy, rad, colDark, colMid, colLight) {
+    c.fillStyle = 'rgba(15, 25, 18, 0.22)';
+    c.beginPath();
+    c.ellipse(sx + rad * 0.3, sy + rad * 0.35, rad * 0.9, rad * 0.45, 0, 0, Math.PI * 2);
+    c.fill();
+    c.fillStyle = '#5c3c22';
+    c.fillRect(sx - rad * 0.12, sy - rad * 0.2, rad * 0.24, rad * 0.55);
+    // Cluster lobes
+    c.fillStyle = colDark;
+    c.beginPath(); c.arc(sx + rad * 0.2, sy - rad * 0.45, rad * 0.68, 0, Math.PI * 2); c.fill();
+    c.fillStyle = colMid;
+    c.beginPath(); c.arc(sx - rad * 0.18, sy - rad * 0.62, rad * 0.64, 0, Math.PI * 2); c.fill();
+    c.fillStyle = colLight;
+    c.beginPath(); c.arc(sx - rad * 0.28, sy - rad * 0.80, rad * 0.44, 0, Math.PI * 2); c.fill();
+  }
+
+  function drawSwampTree(c, sx, sy, rad, dead) {
+    c.strokeStyle = '#3b3326';
+    c.lineWidth = Math.max(1, rad * 0.22);
+    c.beginPath();
+    c.moveTo(sx, sy + rad * 0.3); c.lineTo(sx, sy - rad * 0.8);
+    c.moveTo(sx, sy - rad * 0.4); c.lineTo(sx - rad * 0.55, sy - rad * 0.85);
+    c.moveTo(sx, sy - rad * 0.55); c.lineTo(sx + rad * 0.52, sy - rad * 0.95);
+    c.stroke();
+    if (!dead) {
+      c.fillStyle = 'rgba(72, 98, 56, 0.88)';
+      c.beginPath(); c.arc(sx, sy - rad * 0.85, rad * 0.58, 0, Math.PI * 2); c.fill();
+    }
+  }
+
+  function drawServerMonolith(c, sx, sy, rad, glowCol) {
+    const w = rad * 0.9, h = rad * 1.6;
+    c.fillStyle = 'rgba(0,0,0,0.4)';
+    c.beginPath(); c.ellipse(sx + w * 0.4, sy + rad * 0.3, w * 0.8, rad * 0.35, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#1f2937';
+    c.beginPath();
+    c.moveTo(sx - w * 0.5, sy); c.lineTo(sx - w * 0.5, sy - h);
+    c.lineTo(sx + w * 0.5, sy - h * 0.88); c.lineTo(sx + w * 0.5, sy);
+    c.closePath(); c.fill();
+    c.strokeStyle = glowCol;
+    c.lineWidth = Math.max(1, rad * 0.14);
+    c.beginPath();
+    c.moveTo(sx - w * 0.2, sy - h * 0.25); c.lineTo(sx - w * 0.2, sy - h * 0.78);
+    c.moveTo(sx + w * 0.15, sy - h * 0.2); c.lineTo(sx + w * 0.15, sy - h * 0.68);
+    c.stroke();
+  }
+
+  // Landmark diorama icons (never generic blocks!)
+  function drawLandmarkArt(c, lm, sx, sy, scale) {
+    const r = Math.max(8, 22 * Math.min(1.6, Math.max(0.55, scale * 2.2)));
+    c.save();
+
+    if (lm.type === 'home') {
+      // Miniature Yard + Paddock compound on map
+      const u = r * 1.3;
+      // Yard fence
+      c.fillStyle = '#caa772';
+      c.strokeStyle = '#6b4423';
+      c.lineWidth = Math.max(1.5, u * 0.08);
+      c.beginPath();
+      c.roundRect(sx - u, sy - u * 0.55, u * 1.15, u * 0.95, 3);
+      c.fill(); c.stroke();
+      // Paddock beside it
+      c.fillStyle = '#9bd16b';
+      c.beginPath();
+      c.roundRect(sx + u * 0.22, sy - u * 0.45, u * 0.95, u * 0.85, 3);
+      c.fill(); c.stroke();
+      // Tiny pitched-roof cabin
+      c.fillStyle = '#9a3412';
+      c.beginPath();
+      c.moveTo(sx - u * 0.55, sy - u * 0.42);
+      c.lineTo(sx - u * 0.18, sy - u * 0.15);
+      c.lineTo(sx - u * 0.85, sy - u * 0.15);
+      c.closePath();
+      c.fill();
+      // Glow campfire
+      c.fillStyle = '#fb923c';
+      c.beginPath(); c.arc(sx - u * 0.18, sy + u * 0.06, u * 0.12, 0, Math.PI * 2); c.fill();
+    } else if (lm.type === 'waterfall') {
+      // Cascading white waterfall foam & turquoise splash
+      c.fillStyle = '#e0f2fe';
+      c.beginPath();
+      c.moveTo(sx - r * 0.45, sy - r * 1.1);
+      c.lineTo(sx - r * 0.1, sy - r * 1.1);
+      c.lineTo(sx + r * 0.05, sy + r * 0.15);
+      c.lineTo(sx - r * 0.55, sy + r * 0.15);
+      c.closePath(); c.fill();
+      c.strokeStyle = 'rgba(255,255,255,0.9)';
+      c.lineWidth = Math.max(1.5, r * 0.12);
+      c.beginPath(); c.arc(sx - r * 0.25, sy + r * 0.2, r * 0.45, 0, Math.PI * 2); c.stroke();
+      // Sakura island tree
+      drawBroadleaf(c, sx + r * 0.2, sy, r * 0.6, '#be185d', '#ec4899', '#fbcfe8');
+    } else if (lm.type === 'bridge') {
+      c.translate(sx, sy);
+      c.rotate(-0.55);
+      const bw = r * 2.1, bh = r * 0.72;
+      c.fillStyle = '#5c3415';
+      c.fillRect(-bw / 2, -bh / 2, bw * 0.36, bh);
+      c.fillRect(bw * 0.14, -bh / 2, bw * 0.36, bh);
+      // Individual wooden planks
+      c.fillStyle = '#b4743c';
+      for (let i = 0; i < 4; i++) {
+        c.fillRect(-bw / 2 + i * bw * 0.088 + 1, -bh * 0.42, bw * 0.068, bh * 0.84);
+        c.fillRect(bw * 0.15 + i * bw * 0.088, -bh * 0.42, bw * 0.068, bh * 0.84);
+      }
+    } else if (lm.type === 'boss') {
+      // Stone Boss Altar circle with glowing rune sigil
+      c.fillStyle = 'rgba(28, 25, 23, 0.75)';
+      c.beginPath(); c.arc(sx, sy, r * 0.85, 0, Math.PI * 2); c.fill();
+      c.strokeStyle = '#a8a29e';
+      c.lineWidth = Math.max(2, r * 0.15);
+      c.stroke();
+      // 4 standing pillars
+      for (let a = 0; a < 4; a++) {
+        const ang = a * Math.PI / 2 + 0.4;
+        c.fillStyle = '#d6d3d1';
+        c.beginPath(); c.arc(sx + Math.cos(ang) * r * 0.78, sy + Math.sin(ang) * r * 0.78, r * 0.16, 0, Math.PI * 2); c.fill();
+      }
+      // Inner glowing sigil
+      c.fillStyle = lm.color;
+      c.beginPath(); c.arc(sx, sy, r * 0.36, 0, Math.PI * 2); c.fill();
+      c.strokeStyle = '#ffffff';
+      c.lineWidth = Math.max(1, r * 0.08);
+      c.stroke();
+    } else if (lm.type === 'camp') {
+      // Goblin palisade & pointed tent
+      c.strokeStyle = '#78350f';
+      c.lineWidth = Math.max(2, r * 0.14);
+      c.beginPath(); c.arc(sx, sy, r * 0.75, 0.3, Math.PI * 1.9); c.stroke();
+      c.fillStyle = '#b91c1c';
+      c.beginPath();
+      c.moveTo(sx - r * 0.35, sy + r * 0.25); c.lineTo(sx, sy - r * 0.55); c.lineTo(sx + r * 0.35, sy + r * 0.25);
+      c.closePath(); c.fill();
+      c.fillStyle = '#f97316';
+      c.beginPath(); c.arc(sx + r * 0.25, sy + r * 0.3, r * 0.16, 0, Math.PI * 2); c.fill();
+    } else if (lm.type === 'scrapyard') {
+      // Rusted crane & salvage bots
+      c.strokeStyle = '#7c2d12';
+      c.lineWidth = Math.max(2, r * 0.16);
+      c.beginPath();
+      c.moveTo(sx - r * 0.6, sy + r * 0.4);
+      c.lineTo(sx - r * 0.1, sy - r * 0.6);
+      c.lineTo(sx + r * 0.65, sy - r * 0.25);
+      c.stroke();
+      c.fillStyle = '#38bdf8';
+      c.beginPath(); c.arc(sx + r * 0.2, sy + r * 0.25, r * 0.22, 0, Math.PI * 2); c.fill();
+    } else if (lm.type === 'gate') {
+      // Twin obsidian pylons + cyan barrier
+      c.strokeStyle = '#22d3ee';
+      c.lineWidth = Math.max(2.5, r * 0.2);
+      c.beginPath(); c.moveTo(sx - r * 0.9, sy); c.lineTo(sx + r * 0.9, sy); c.stroke();
+      drawServerMonolith(c, sx - r * 0.85, sy + r * 0.2, r * 0.75, '#a855f7');
+      drawServerMonolith(c, sx + r * 0.85, sy + r * 0.2, r * 0.75, '#a855f7');
+    } else if (lm.type === 'portal') {
+      // Glowing AI Core vortex
+      const grad = c.createRadialGradient(sx, sy, r * 0.1, sx, sy, r * 1.15);
+      grad.addColorStop(0, '#ffffff');
+      grad.addColorStop(0.35, '#22d3ee');
+      grad.addColorStop(0.7, '#d946ef');
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+      c.fillStyle = grad;
+      c.beginPath(); c.arc(sx, sy, r * 1.15, 0, Math.PI * 2); c.fill();
+      c.strokeStyle = '#e0f2fe';
+      c.lineWidth = Math.max(1.5, r * 0.12);
+      c.beginPath(); c.arc(sx, sy, r * 0.68, 0, Math.PI * 2); c.stroke();
+    } else if (lm.type === 'dock') {
+      c.fillStyle = '#92400e';
+      c.fillRect(sx - r * 0.18, sy - r * 0.7, r * 0.36, r * 1.2);
+      c.fillRect(sx - r * 0.55, sy + r * 0.2, r * 1.1, r * 0.28);
+    } else if (lm.type === 'viewpoint') {
+      c.fillStyle = '#78716c';
+      c.beginPath(); c.arc(sx, sy, r * 0.5, 0, Math.PI * 2); c.fill();
+      c.strokeStyle = '#f59e0b';
+      c.lineWidth = Math.max(1.5, r * 0.1);
+      c.beginPath(); c.arc(sx, sy, r * 0.72, -0.8, 0.8); c.stroke();
+    }
+    c.restore();
+  }
+
+  // Illustrated Home Compound & Paddock Diorama Inset (Zero generic rectangles!)
+  function drawHomeDioramaInset(c, ix, iy, iw, ih, isExport) {
+    c.save();
+    c.fillStyle = '#faf3e4';
+    c.strokeStyle = '#292524';
+    c.lineWidth = isExport ? 5 : 2;
+    c.shadowColor = 'rgba(0,0,0,0.28)';
+    c.shadowBlur = isExport ? 24 : 10;
+    c.fillRect(ix, iy, iw, ih);
+    c.shadowBlur = 0;
+    c.strokeRect(ix, iy, iw, ih);
+
+    const pad = iw * 0.045;
+    const gx = ix + pad, gy = iy + iw * 0.105;
+    const gw = iw - pad * 2, gh = ih - iw * 0.195;
+
+    // Meadow base inside inset
+    const gGrad = c.createLinearGradient(gx, gy, gx + gw, gy + gh);
+    gGrad.addColorStop(0, '#96ce6a');
+    gGrad.addColorStop(1, '#79b551');
+    c.fillStyle = gGrad;
+    c.fillRect(gx, gy, gw, gh);
+    c.strokeStyle = '#5c7c41';
+    c.lineWidth = 1;
+    c.strokeRect(gx, gy, gw, gh);
+
+    // Wildflowers around outside
+    const irng = mulberry32(77);
+    for (let i = 0; i < 65; i++) {
+      c.fillStyle = i % 3 === 0 ? '#e879f9' : (i % 3 === 1 ? '#fde047' : '#f472b6');
+      c.beginPath();
+      c.arc(gx + irng() * gw, gy + irng() * gh, Math.max(1.2, iw * 0.005), 0, Math.PI * 2);
+      c.fill();
+    }
+
+    // Dirt approach lane from NE gate
+    c.strokeStyle = '#cfa972';
+    c.lineWidth = iw * 0.045;
+    c.lineCap = 'round';
+    c.beginPath();
+    c.moveTo(gx + gw * 0.28, gy + gh * 0.52);
+    c.lineTo(gx + gw * 0.45, gy + gh * 0.14);
+    c.lineTo(gx + gw * 0.55, gy + gh * 0.02);
+    c.stroke();
+
+    // LEFT: Home Yard (~35x30m)
+    const yx = gx + gw * 0.05, yy = gy + gh * 0.14, yw = gw * 0.44, yh = gh * 0.74;
+    c.fillStyle = '#c2a06c';
+    c.beginPath(); c.roundRect(yx, yy, yw, yh, 6); c.fill();
+    // Wooden palisade posts along perimeter
+    const drawPalisade = (x1, y1, x2, y2, count) => {
+      for (let i = 0; i <= count; i++) {
+        const px = x1 + (x2 - x1) * (i / count);
+        const py = y1 + (y2 - y1) * (i / count);
+        c.fillStyle = '#6b4222';
+        c.beginPath(); c.arc(px, py, Math.max(1.6, iw * 0.009), 0, Math.PI * 2); c.fill();
+        c.fillStyle = '#9a6539';
+        c.beginPath(); c.arc(px - 0.5, py - 0.5, Math.max(1, iw * 0.0055), 0, Math.PI * 2); c.fill();
+      }
+    };
+    drawPalisade(yx, yy, yx + yw * 0.65, yy, 9);
+    drawPalisade(yx + yw * 0.85, yy, yx + yw, yy, 2);
+    drawPalisade(yx + yw, yy, yx + yw, yy + yh, 11);
+    drawPalisade(yx, yy + yh, yx + yw, yy + yh, 13);
+    drawPalisade(yx, yy, yx, yy + yh, 11);
+
+    // Log Cabin (oblique pitched roof + porch + chimney)
+    const cx = yx + yw * 0.10, cy = yy + yh * 0.14, cw = yw * 0.38, ch = yh * 0.30;
+    c.fillStyle = 'rgba(0,0,0,0.22)';
+    c.fillRect(cx + cw * 0.08, cy + ch * 0.14, cw, ch);
+    c.fillStyle = '#7c4524';
+    c.fillRect(cx, cy + ch * 0.25, cw, ch * 0.75); // walls
+    // Roof left & right slopes
+    c.fillStyle = '#9a3412';
+    c.beginPath();
+    c.moveTo(cx - cw * 0.06, cy + ch * 0.3);
+    c.lineTo(cx + cw * 0.5, cy - ch * 0.1);
+    c.lineTo(cx + cw * 1.06, cy + ch * 0.3);
+    c.lineTo(cx + cw * 0.5, cy + ch * 0.55);
+    c.closePath(); c.fill();
+    c.strokeStyle = '#451a03'; c.lineWidth = Math.max(1, iw * 0.004); c.stroke();
+    // Ridge beam & stone chimney
+    c.fillStyle = '#78716c';
+    c.fillRect(cx + cw * 0.68, cy - ch * 0.04, cw * 0.16, ch * 0.24);
+
+    // Campfire stone ring + flame
+    const fx = yx + yw * 0.56, fy = yy + yh * 0.50;
+    c.fillStyle = '#78716c';
+    c.beginPath(); c.arc(fx, fy, yw * 0.09, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#f97316';
+    c.beginPath(); c.arc(fx, fy, yw * 0.055, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#fef08a';
+    c.beginPath(); c.arc(fx, fy, yw * 0.025, 0, Math.PI * 2); c.fill();
+
+    // Crop garden beds (furrows + crops)
+    const gx0 = yx + yw * 0.10, gy0 = yy + yh * 0.60, gw0 = yw * 0.36, gh0 = yh * 0.28;
+    c.fillStyle = '#5b3a1e';
+    c.beginPath(); c.roundRect(gx0, gy0, gw0, gh0, 3); c.fill();
+    for (let r = 0; r < 3; r++) {
+      for (let col = 0; col < 4; col++) {
+        c.fillStyle = (r + col) % 2 === 0 ? '#4ade80' : '#fb923c';
+        c.beginPath();
+        c.arc(gx0 + gw0 * (0.16 + col * 0.22), gy0 + gh0 * (0.24 + r * 0.26), yw * 0.028, 0, Math.PI * 2);
+        c.fill();
+      }
+    }
+
+    // Service Robot Stalls (striped awnings + robot icons)
+    const rx0 = yx + yw * 0.62, ry0 = yy + yh * 0.18;
+    c.fillStyle = '#0284c7';
+    c.fillRect(rx0, ry0, yw * 0.28, yh * 0.16);
+    c.fillStyle = '#e0f2fe';
+    c.fillRect(rx0 + yw * 0.04, ry0, yw * 0.06, yh * 0.16);
+    c.fillRect(rx0 + yw * 0.16, ry0, yw * 0.06, yh * 0.16);
+
+    // Twin Tribute Bowls Altar
+    const tx0 = yx + yw * 0.66, ty0 = yy + yh * 0.72;
+    c.fillStyle = '#a8a29e';
+    c.beginPath(); c.roundRect(tx0, ty0, yw * 0.24, yh * 0.14, 3); c.fill();
+    c.fillStyle = '#38bdf8'; c.beginPath(); c.arc(tx0 + yw * 0.06, ty0 + yh * 0.07, yw * 0.032, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#ef4444'; c.beginPath(); c.arc(tx0 + yw * 0.18, ty0 + yh * 0.07, yw * 0.032, 0, Math.PI * 2); c.fill();
+
+    // Doghouse (Loki)
+    c.fillStyle = '#b45309';
+    c.beginPath();
+    c.moveTo(yx + yw * 0.84, yy + yh * 0.44);
+    c.lineTo(yx + yw * 0.92, yy + yh * 0.54);
+    c.lineTo(yx + yw * 0.76, yy + yh * 0.54);
+    c.closePath(); c.fill();
+
+    // RIGHT: Adjacent Animal Paddock (~40x30m)
+    const px = gx + gw * 0.52, py = gy + gh * 0.14, pw = gw * 0.43, ph = gh * 0.74;
+    c.fillStyle = '#a3d66e';
+    c.beginPath(); c.roundRect(px, py, pw, ph, 6); c.fill();
+    c.strokeStyle = '#7c4e29';
+    c.lineWidth = Math.max(1.5, iw * 0.008);
+    c.strokeRect(px, py, pw, ph);
+    drawPalisade(px, py, px + pw, py, 10);
+    drawPalisade(px, py + ph, px + pw, py + ph, 10);
+    drawPalisade(px + pw, py, px + pw, py + ph, 10);
+
+    // Red Barn Shelter
+    const bx = px + pw * 0.52, by = py + ph * 0.10, bw = pw * 0.38, bh = ph * 0.28;
+    c.fillStyle = '#b91c1c';
+    c.beginPath(); c.roundRect(bx, by, bw, bh, 3); c.fill();
+    c.strokeStyle = '#fef2f2'; c.lineWidth = Math.max(1, iw * 0.003);
+    c.beginPath(); c.moveTo(bx, by + bh * 0.5); c.lineTo(bx + bw, by + bh * 0.5); c.stroke();
+
+    // Recall Bell Post
+    c.fillStyle = '#eab308';
+    c.beginPath(); c.arc(px + pw * 0.14, py + ph * 0.18, pw * 0.045, 0, Math.PI * 2); c.fill();
+
+    // Drawn Animals (Cow, Sheep, Pig, Chickens)
+    const drawCow = (ax, ay) => {
+      c.fillStyle = '#f8fafc';
+      c.beginPath(); c.ellipse(ax, ay, pw * 0.065, ph * 0.045, 0, 0, Math.PI * 2); c.fill();
+      c.fillStyle = '#1e293b';
+      c.beginPath(); c.arc(ax - pw * 0.02, ay, pw * 0.024, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.arc(ax + pw * 0.05, ay - ph * 0.01, pw * 0.022, 0, Math.PI * 2); c.fill();
+    };
+    const drawSheep = (ax, ay) => {
+      c.fillStyle = '#f1f5f9';
+      c.beginPath(); c.arc(ax, ay, pw * 0.045, 0, Math.PI * 2); c.fill();
+      c.fillStyle = '#334155';
+      c.beginPath(); c.arc(ax + pw * 0.035, ay, pw * 0.02, 0, Math.PI * 2); c.fill();
+    };
+    const drawPig = (ax, ay) => {
+      c.fillStyle = '#f472b6';
+      c.beginPath(); c.ellipse(ax, ay, pw * 0.048, ph * 0.036, 0, 0, Math.PI * 2); c.fill();
+    };
+    drawCow(px + pw * 0.25, py + ph * 0.36);
+    drawCow(px + pw * 0.36, py + ph * 0.62);
+    drawSheep(px + pw * 0.68, py + ph * 0.56);
+    drawSheep(px + pw * 0.78, py + ph * 0.68);
+    drawPig(px + pw * 0.28, py + ph * 0.80);
+    // Chickens
+    for (const [chx, chy] of [[0.52, 0.78], [0.58, 0.83], [0.64, 0.76]]) {
+      c.fillStyle = '#fef08a';
+      c.beginPath(); c.arc(px + pw * chx, py + ph * chy, pw * 0.02, 0, Math.PI * 2); c.fill();
+    }
+
+    // Inset Title & Caption
+    const insTitle = isExport ? 32 : Math.max(9.5, iw * 0.046);
+    c.fillStyle = '#1c1917';
+    c.font = `800 ${insTitle}px system-ui, sans-serif`;
+    c.textAlign = 'center';
+    c.textBaseline = 'middle';
+    c.fillText('HOME COMPOUND & PADDOCK', ix + iw / 2, iy + iw * 0.052);
+    c.font = `600 ${Math.round(insTitle * 0.8)}px ui-monospace, monospace`;
+    c.fillStyle = '#57534e';
+    c.fillText('Yard ~35×30 m  •  Paddock ~40×30 m  •  Cabin, Robots & Bowls', ix + iw / 2, iy + ih - iw * 0.045);
+    c.restore();
+  }
+
+  const canvas = document.getElementById('mapCanvas');
+  const ctx = canvas.getContext('2d');
+  let view = { cx: 1500, cz: 1500, scale: 0.22 };
+
+  function fitView() {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.max(400, Math.floor(rect.width * dpr));
+    canvas.height = Math.max(400, Math.floor(rect.height * dpr));
+    view.scale = (Math.min(canvas.width, canvas.height) * 0.88) / WORLD;
+    view.cx = 1500;
+    view.cz = 1500;
+    draw();
+  }
+
+  function worldToScreen(wx, wz, originX, originY, scale) {
+    return [originX + wx * scale, originY + (WORLD - wz) * scale];
+  }
+
+  function drawMapToContext(c, width, height, originX, originY, scale, opts) {
+    const isExport = opts.isExport;
+    c.fillStyle = '#f3ead7';
+    c.fillRect(0, 0, width, height);
+    const mapPx = WORLD * scale;
+
+    c.save();
+    c.beginPath();
+    c.rect(originX, originY, mapPx, mapPx);
+    c.clip();
+    c.drawImage(terrainCanvas, originX, originY, mapPx, mapPx);
+
+    // Circuit trenches inside AI Scrap Citadel
+    c.strokeStyle = 'rgba(34, 211, 238, 0.55)';
+    c.lineWidth = Math.max(1.2, 4.5 * scale);
+    const circuits = [
+      [[1550, 2340], [1760, 2340], [1840, 2440], [2020, 2440]],
+      [[2520, 2350], [2350, 2350], [2250, 2460], [2180, 2460]],
+      [[1850, 2660], [1980, 2560], [2120, 2560], [2280, 2640]],
+    ];
+    for (const seg of circuits) {
+      c.beginPath();
+      seg.forEach((pt, i) => {
+        const [sx, sy] = worldToScreen(pt[0], pt[1], originX, originY, scale);
+        if (i === 0) c.moveTo(sx, sy); else c.lineTo(sx, sy);
+      });
+      c.stroke();
+    }
+
+    // Trails & boardwalks
+    if (opts.trails) {
+      c.lineCap = 'round';
+      c.lineJoin = 'round';
+      for (const tr of trails) {
+        c.strokeStyle = 'rgba(72, 48, 26, 0.58)';
+        c.lineWidth = Math.max(2, 13 * scale);
+        c.beginPath();
+        tr.forEach((pt, i) => {
+          const [sx, sy] = worldToScreen(pt[0], pt[1], originX, originY, scale);
+          if (i === 0) c.moveTo(sx, sy); else c.lineTo(sx, sy);
+        });
+        c.stroke();
+        c.strokeStyle = '#d7b37c';
+        c.lineWidth = Math.max(1.2, 7.5 * scale);
+        c.stroke();
+      }
+    }
+
+    // Flora & Illustrated Peaks (sorted back-to-front)
+    if (opts.trees) {
+      for (const pk of peaks) {
+        const [sx, sy] = worldToScreen(pk.x, pk.z, originX, originY, scale);
+        drawMountainPeak(c, sx, sy, Math.max(4, pk.s * 26 * scale), pk.e > 175, pk.v);
+      }
+      for (const item of flora) {
+        const [sx, sy] = worldToScreen(item.x, item.z, originX, originY, scale);
+        const rad = Math.max(2.2, item.s * 11 * scale);
+        if (item.biome === 'Pine Forest') {
+          if (item.v > 0.2) drawPine(c, sx, sy, rad, '#214d28', '#3c7a44', false);
+          else drawBroadleaf(c, sx, sy, rad * 0.9, '#557a34', '#7ca146', '#a4c45c');
+        } else if (item.biome === 'Flower Meadow') {
+          if (item.v > 0.55) {
+            c.fillStyle = item.v > 0.8 ? '#c084fc' : (item.v > 0.68 ? '#f472b6' : '#fde047');
+            c.beginPath(); c.arc(sx, sy, Math.max(1.3, rad * 0.25), 0, Math.PI * 2); c.fill();
+          } else if (item.v < 0.08) {
+            drawBroadleaf(c, sx, sy, rad * 0.9, '#3d7438', '#5fa14d', '#86c665');
+          }
+        } else if (item.biome === 'Lake Island') {
+          drawPine(c, sx, sy, rad * 0.85, '#25542d', '#43844b', false);
+        } else if (item.biome === 'Murky Swamps') {
+          drawSwampTree(c, sx, sy, rad * 0.95, item.v > 0.55);
+        } else if (item.biome === 'Autumn Foothills') {
+          drawBroadleaf(c, sx, sy, rad * 0.95, '#9a3412', '#d97706', '#fbbf24');
+        } else if (item.biome === 'Rocky Highlands') {
+          if (item.v > 0.3) drawPine(c, sx, sy, rad * 0.9, '#1f4445', '#346d6e', false);
+          else drawMountainPeak(c, sx, sy, rad * 0.85, false, item.v);
+        } else if (item.biome === 'Frozen Alpine Peaks') {
+          if (item.v > 0.45) drawPine(c, sx, sy, rad * 0.85, '#2b4a58', '#467082', true);
+          else drawMountainPeak(c, sx, sy, rad * 0.95, true, item.v);
+        } else if (item.biome === 'AI Scrap Citadel') {
+          if (item.v > 0.72) drawServerMonolith(c, sx, sy, rad * 0.9, item.v > 0.86 ? '#d946ef' : '#22d3ee');
+        }
+      }
+    }
+
+    // Progression Rings
+    if (opts.tiers) {
+      c.lineWidth = Math.max(2, 5 * scale);
+      c.setLineDash([10, 7]);
+      const [hx, hy] = worldToScreen(HOME.x, HOME.z, originX, originY, scale);
+      for (const ring of [
+        { r: 420, col: 'rgba(130, 220, 100, 0.8)' },
+        { r: 950, col: 'rgba(245, 195, 66, 0.8)' },
+        { r: 1480, col: 'rgba(240, 125, 50, 0.8)' },
+        { r: 2050, col: 'rgba(220, 60, 80, 0.85)' },
+      ]) {
+        c.strokeStyle = ring.col;
+        c.beginPath(); c.arc(hx, hy, ring.r * scale, 0, Math.PI * 2); c.stroke();
+      }
+      c.setLineDash([]);
+    }
+
+    // Grid & Playable boundary
+    if (opts.grid) {
+      c.strokeStyle = 'rgba(255,255,255,0.20)';
+      c.lineWidth = 1;
+      for (let m = 500; m < WORLD; m += 500) {
+        const [gx] = worldToScreen(m, 0, originX, originY, scale);
+        const [, gy] = worldToScreen(0, m, originX, originY, scale);
+        c.beginPath(); c.moveTo(gx, originY); c.lineTo(gx, originY + mapPx); c.stroke();
+        c.beginPath(); c.moveTo(originX, gy); c.lineTo(originX + mapPx, gy); c.stroke();
+      }
+      const [p1x, p1y] = worldToScreen(250, 2750, originX, originY, scale);
+      const [p2x, p2y] = worldToScreen(2750, 250, originX, originY, scale);
+      c.strokeStyle = 'rgba(255,255,255,0.9)';
+      c.lineWidth = Math.max(1.5, 4 * scale);
+      c.setLineDash([10, 7]);
+      c.strokeRect(p1x, p1y, p2x - p1x, p2y - p1y);
+      c.setLineDash([]);
+    }
+
+    // Illustrated Landmarks
+    if (opts.pois) {
+      for (const lm of landmarks) {
+        const [sx, sy] = worldToScreen(lm.x, lm.z, originX, originY, scale);
+        drawLandmarkArt(c, lm, sx, sy, scale);
+      }
+    }
+
+    // Labels & Leader lines
+    if (opts.labels) {
+      const baseFont = isExport ? 44 : Math.max(11, Math.min(18, 12.5 * Math.sqrt(scale * 4)));
+      c.textAlign = 'center';
+      c.textBaseline = 'middle';
+      for (const reg of regionLabels) {
+        const [sx, sy] = worldToScreen(reg.x, reg.z, originX, originY, scale);
+        c.font = `800 ${Math.round(baseFont * 1.15)}px system-ui, sans-serif`;
+        c.lineWidth = Math.max(3.5, baseFont * 0.28);
+        c.strokeStyle = 'rgba(15, 20, 26, 0.88)';
+        c.strokeText(reg.text, sx, sy);
+        c.fillStyle = '#fffbeb';
+        c.fillText(reg.text, sx, sy);
+
+        c.font = `600 ${Math.round(baseFont * 0.72)}px system-ui, sans-serif`;
+        c.strokeText(reg.sub, sx, sy + baseFont * 1.12);
+        c.fillStyle = '#fde68a';
+        c.fillText(reg.sub, sx, sy + baseFont * 1.12);
+      }
+
+      const pillFont = isExport ? 26 : Math.max(9.5, Math.min(12.5, 10 * Math.sqrt(scale * 4)));
+      c.font = `700 ${Math.round(pillFont)}px system-ui, sans-serif`;
+      for (const lm of landmarks) {
+        const [sx, sy] = worldToScreen(lm.x, lm.z, originX, originY, scale);
+        const [lx, ly] = worldToScreen(lm.x + lm.dx, lm.z + lm.dz, originX, originY, scale);
+        // Leader line
+        c.strokeStyle = 'rgba(28, 25, 23, 0.82)';
+        c.lineWidth = Math.max(1, pillFont * 0.12);
+        c.beginPath(); c.moveTo(sx, sy); c.lineTo(lx, ly); c.stroke();
+        c.fillStyle = '#ffffff';
+        c.beginPath(); c.arc(sx, sy, Math.max(2, pillFont * 0.22), 0, Math.PI * 2); c.fill();
+        c.stroke();
+
+        const w = c.measureText(lm.label).width + pillFont * 1.15;
+        const h = pillFont * 1.6;
+        c.fillStyle = 'rgba(255, 251, 242, 0.94)';
+        c.strokeStyle = '#334155';
+        c.lineWidth = Math.max(1, pillFont * 0.1);
+        c.beginPath();
+        c.roundRect(lx - w / 2, ly - h / 2, w, h, 4);
+        c.fill(); c.stroke();
+        c.fillStyle = '#0f172a';
+        c.fillText(lm.label, lx, ly + 0.5);
+      }
+    }
+
+    c.restore();
+
+    // Border & Rulers
+    c.strokeStyle = '#292524';
+    c.lineWidth = isExport ? 5 : 2;
+    c.strokeRect(originX, originY, mapPx, mapPx);
+
+    const rulerFont = isExport ? 34 : 11;
+    c.font = `700 ${rulerFont}px ui-monospace, monospace`;
+    c.fillStyle = '#292524';
+    for (let m = 0; m <= WORLD; m += 500) {
+      const [rx] = worldToScreen(m, 0, originX, originY, scale);
+      const [, ry] = worldToScreen(0, m, originX, originY, scale);
+      c.textAlign = 'center';
+      c.textBaseline = 'top';
+      c.fillText(`${m}m`, rx, originY + mapPx + (isExport ? 14 : 4));
+      c.textBaseline = 'bottom';
+      c.fillText(`${m}`, rx, originY - (isExport ? 14 : 4));
+      c.textAlign = 'right';
+      c.textBaseline = 'middle';
+      c.fillText(`${m}`, originX - (isExport ? 14 : 5), ry);
+    }
+
+    // Home Diorama Inset
+    if (opts.inset) {
+      const iw = isExport ? 880 : Math.min(275, width * 0.30);
+      const ih = iw * 0.72;
+      drawHomeDioramaInset(c, width - iw - (isExport ? 48 : 14), height - ih - (isExport ? 48 : 14), iw, ih, isExport);
+    }
+
+    if (isExport) {
+      c.fillStyle = '#1c1917';
+      c.textAlign = 'center';
+      c.textBaseline = 'middle';
+      c.font = '800 68px system-ui, sans-serif';
+      c.fillText('HASTA LA VISTA, M.A.Y.B.E — FINAL WORLD MAP', width / 2, 68);
+      c.font = '600 34px system-ui, sans-serif';
+      c.fillStyle = '#57534e';
+      c.fillText('3000 × 3000 m Multi-Biome Concept  •  ~2500 × 2500 m Playable Valley', width / 2, 124);
+      c.fillStyle = '#1c1917';
+      c.font = '800 42px system-ui, sans-serif';
+      c.fillText('N', width - 96, 72);
+      c.beginPath();
+      c.moveTo(width - 96, 96); c.lineTo(width - 118, 152); c.lineTo(width - 74, 152);
+      c.closePath(); c.fill();
+    }
+  }
+
+  function getOpts(isExport = false) {
+    return {
+      contours: document.getElementById('lyr-contours').checked,
+      trees: document.getElementById('lyr-trees').checked,
+      trails: document.getElementById('lyr-trails').checked,
+      pois: document.getElementById('lyr-pois').checked,
+      tiers: document.getElementById('lyr-tiers').checked,
+      grid: document.getElementById('lyr-grid').checked,
+      labels: document.getElementById('lyr-labels').checked,
+      inset: document.getElementById('lyr-inset').checked,
+      isExport
+    };
+  }
+
+  function draw() {
+    const opts = getOpts(false);
+    const originX = canvas.width / 2 - view.cx * view.scale;
+    const originY = canvas.height / 2 - (WORLD - view.cz) * view.scale;
+    drawMapToContext(ctx, canvas.width, canvas.height, originX, originY, view.scale, opts);
+    const baseScale = (Math.min(canvas.width, canvas.height) * 0.88) / WORLD;
+    document.getElementById('zoom-readout').textContent = `${Math.round((view.scale / baseScale) * 100)}%`;
+  }
+
+  let dragging = false, lastX = 0, lastY = 0;
+  canvas.addEventListener('mousedown', (e) => { dragging = true; lastX = e.clientX; lastY = e.clientY; });
+  window.addEventListener('mouseup', () => { dragging = false; });
+  window.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    if (dragging) {
+      const dx = (e.clientX - lastX) * dpr;
+      const dy = (e.clientY - lastY) * dpr;
+      lastX = e.clientX; lastY = e.clientY;
+      view.cx -= dx / view.scale;
+      view.cz += dy / view.scale;
+      draw();
+    }
+    if (e.target === canvas) {
+      const sx = (e.clientX - rect.left) * dpr;
+      const sy = (e.clientY - rect.top) * dpr;
+      const originX = canvas.width / 2 - view.cx * view.scale;
+      const originY = canvas.height / 2 - (WORLD - view.cz) * view.scale;
+      const wx = (sx - originX) / view.scale;
+      const wz = WORLD - (sy - originY) / view.scale;
+      if (wx >= 0 && wx <= WORLD && wz >= 0 && wz <= WORLD) {
+        const info = classifyPoint(wx, wz);
+        const dist = Math.hypot(wx - HOME.x, wz - HOME.z);
+        const sprintSec = Math.round(dist / 6);
+        const timeStr = sprintSec >= 60 ? `${(sprintSec / 60).toFixed(1)} min` : `${sprintSec} s`;
+        document.getElementById('tel-coords').textContent = `X: ${Math.round(wx)} m, Z: ${Math.round(wz)} m`;
+        document.getElementById('tel-zone').textContent = `${info.biome} • ${info.tier} • Elev ${info.elev.toFixed(1)} m`;
+        document.getElementById('tel-dist').textContent = `From Home: ${Math.round(dist)} m (~${timeStr} sprint)`;
+      }
+    }
+  });
+  canvas.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 1.15 : 0.87;
+    view.scale = Math.max(0.08, Math.min(2.8, view.scale * factor));
+    draw();
+  }, { passive: false });
+
+  document.getElementById('lyr-contours').addEventListener('change', (e) => { bakeTerrain(e.target.checked); draw(); });
+  for (const id of ['lyr-trees', 'lyr-trails', 'lyr-pois', 'lyr-tiers', 'lyr-grid', 'lyr-labels', 'lyr-inset']) {
+    document.getElementById(id).addEventListener('change', draw);
+  }
+  document.getElementById('btn-reset').addEventListener('click', fitView);
+  document.getElementById('btn-home').addEventListener('click', () => {
+    const baseScale = (Math.min(canvas.width, canvas.height) * 0.88) / WORLD;
+    view.cx = 760;
+    view.cz = 620;
+    view.scale = baseScale * 3.1;
+    draw();
+  });
+
+  document.getElementById('btn-export').addEventListener('click', () => {
+    const out = document.createElement('canvas');
+    out.width = 4096;
+    out.height = 4096;
+    const octx = out.getContext('2d');
+    const margin = 190;
+    const mapSize = 4096 - margin * 2;
+    drawMapToContext(octx, 4096, 4096, margin, margin + 28, mapSize / WORLD, getOpts(true));
+    const link = document.createElement('a');
+    link.download = 'world-map-final-3000m-4k.png';
+    link.href = out.toDataURL('image/png');
+    link.click();
+  });
+
+  window.addEventListener('resize', fitView);
+  bakeTerrain(true);
+  fitView();
+})();
+</script>
+</body>
+</html>

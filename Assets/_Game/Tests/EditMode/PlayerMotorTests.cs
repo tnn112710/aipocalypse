@@ -229,6 +229,75 @@ namespace MB13.Aipocalypse.Tests
         }
 
         [Test]
+        public void Overloaded_StackedSlowdownsNeverGoUnderTheCrawl()
+        {
+            StandOnGround();
+            _motor.Overloaded = true;
+            _motor.LoadSpeedMultiplier = 0.15f;
+            _motor.SpeedMultiplier = 0.5f;
+
+            Run(new PlayerIntent { Move = Vector2.down }, 120);
+
+            Assert.AreEqual(_motor.WalkSpeed * 0.15f, _motor.HorizontalVelocity.magnitude, 0.05f, "backward and aiming: still the plain crawl");
+        }
+
+        [Test]
+        public void Overloaded_InWaterOrMud_CrawlsSlowerStill()
+        {
+            StandOnGround();
+            _motor.Overloaded = true;
+            _motor.LoadSpeedMultiplier = 0.15f;
+            _motor.GroundMultiplier = 0.5f;
+
+            Run(Forward(), 120);
+
+            Assert.AreEqual(_motor.WalkSpeed * 0.15f * 0.5f, _motor.HorizontalVelocity.magnitude, 0.05f, "the footing slows the crawl too");
+        }
+
+        [Test]
+        public void Overloaded_EachFreshSprintOrJumpPressIsRefused()
+        {
+            StandOnGround();
+            _motor.Overloaded = true;
+            _motor.LoadSpeedMultiplier = 0.15f;
+            int refused = 0;
+            _motor.LoadRefused += () => refused++;
+
+            Run(Forward(sprint: true), 30);
+            Assert.AreEqual(1, refused, "holding sprint is one press");
+            Run(Forward(), 2);
+            Run(Forward(sprint: true), 5);
+            Assert.AreEqual(2, refused, "a fresh press");
+            Run(new PlayerIntent { Jump = true }, 1);
+            Run(default, 20);
+            Assert.AreEqual(3, refused, "a jump press, once");
+        }
+
+        [Test]
+        public void NotOverloaded_SprintAndJumpAreNotRefused()
+        {
+            StandOnGround();
+            int refused = 0;
+            _motor.LoadRefused += () => refused++;
+
+            Run(Forward(sprint: true), 10);
+            Run(new PlayerIntent { Jump = true }, 1);
+            Run(default, 60);
+
+            Assert.AreEqual(0, refused);
+        }
+
+        [TestCase(0.9f, 3f, 0.15f, 0.45f, 0.45f)] // overloaded walk with every slowdown: the crawl
+        [TestCase(3f, 3f, 0.15f, 0.45f, 0.45f)] // overloaded walk, nothing else: the crawl
+        [TestCase(0.9f, 1.5f, 0.15f, 0.45f, 0.225f)] // overloaded crouch: slower than the crawl, kept
+        [TestCase(0.9f, 3f, 0.6f, 0.45f, 0.54f)] // heavy: the other slowdowns still count
+        [TestCase(0.9f, 3f, 1f, 0.45f, 0.9f)] // light: untouched
+        public void LoadedSpeed_FloorsAtTheCrawlOrTheLoadedGait(float slowed, float gait, float load, float crawl, float expected)
+        {
+            Assert.AreEqual(expected, PlayerMotor.LoadedSpeed(slowed, gait, load, crawl), 1e-4f);
+        }
+
+        [Test]
         public void HeavyLoad_SlowsTheWalk()
         {
             StandOnGround();

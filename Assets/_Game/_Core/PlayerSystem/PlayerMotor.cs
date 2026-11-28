@@ -45,6 +45,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         float _crouchBlend;
         // Sprint was held when crouching: it stands up only after a fresh press.
         bool _sprintLatched;
+        bool _sprintHeld;
 
         public bool IsGrounded { get; private set; }
         public bool IsOnSteepSlope { get; private set; }
@@ -71,7 +72,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         // Ground acceleration and braking scale set by the player each frame (a heavy item in hand gets going and stops slower).
         public float AccelerationMultiplier { get; set; } = 1f;
         // Carried weight (CarryLoad), set by the player when the load changes: a speed scale applied after the slowdown floor (a
-        // heavy pack always slows), a scale on every stamina cost, and Overloaded (no sprint, no jump).
+        // heavy pack always slows; LoadedSpeed keeps the crawl, × the footing, as the slowest), a scale on every stamina cost, and
+        // Overloaded (no sprint, no jump).
         public float LoadSpeedMultiplier { get; set; } = 1f;
         public float LoadCostMultiplier { get; set; } = 1f;
         public bool Overloaded { get; set; }
@@ -81,6 +83,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
 
         public event Action Jumped;
         public event Action<LandingInfo> Landed;
+        // A fresh sprint press or a jump press while Overloaded (the HUD says why nothing happened).
+        public event Action LoadRefused;
 
         public PlayerMotor(CharacterController controller, PlayerMovementTuning tuning, IStatProvider stats, Stamina stamina)
         {
@@ -101,6 +105,9 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
 
             bool stableGround = IsGrounded && !IsOnSteepSlope;
             Vector2 move = Vector2.ClampMagnitude(intent.Move, 1f);
+            if (intent.Sprint && !_sprintHeld && Overloaded)
+                LoadRefused?.Invoke();
+            _sprintHeld = intent.Sprint;
             bool sprintInput = intent.Sprint && move.y >= _tuning.SprintMinForwardInput && _stamina.CanExert && !Overloaded;
             UpdateCrouch(intent.Crouch, intent.Sprint, sprintInput, stableGround, deltaTime);
             bool wantsSprint = sprintInput && !_sprintLatched && !IsCrouching;
@@ -182,6 +189,11 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         public static float SlowedSpeed(float gaitSpeed, float slowdown, float floorSpeed) =>
             Mathf.Max(gaitSpeed * slowdown, Mathf.Min(gaitSpeed, floorSpeed));
 
+        // The slowed speed × the carried-weight scale, never under the plain crawl (walking at the overloaded scale), so other
+        // slowdowns can't stack under it; a gait already slower once loaded (a loaded crouch) keeps its own speed.
+        public static float LoadedSpeed(float slowedSpeed, float gaitSpeed, float load, float crawlSpeed) =>
+            Mathf.Max(slowedSpeed * load, Mathf.Min(gaitSpeed * load, crawlSpeed));
+
         void UpdateTimers(bool jumpPressed, float deltaTime)
         {
             _jumpBufferLeft = jumpPressed ? _tuning.JumpBufferTime : Mathf.Max(0f, _jumpBufferLeft - deltaTime);
@@ -262,12 +274,14 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             if (_landingSlowLeft > 0f && _tuning.HeavyLandingRecoveryTime > 0f)
                 slowdown *= Mathf.Lerp(1f, _tuning.HeavyLandingSpeedMultiplier, _landingSlowLeft / _tuning.HeavyLandingRecoveryTime);
             float floorSpeed = WalkSpeed * _tuning.MinSpeedShare;
+            // The footing (water, mud) slows the crawl too: the floor only stops the other slowdowns stacking under it.
+            float crawlSpeed = WalkSpeed * _tuning.Load.OverloadedSpeed * GroundMultiplier;
             TargetSpeed = 0f;
 
             if (stableGround)
             {
                 float gaitSpeed = wantsSprint ? SprintSpeed : IsCrouching ? CrouchSpeed : WalkSpeed;
-                TargetSpeed = SlowedSpeed(gaitSpeed, slowdown, floorSpeed) * LoadSpeedMultiplier * move.magnitude;
+                TargetSpeed = LoadedSpeed(SlowedSpeed(gaitSpeed, slowdown, floorSpeed), gaitSpeed, LoadSpeedMultiplier, crawlSpeed) * move.magnitude;
                 Vector3 target = wishDirection * TargetSpeed;
                 float rate = target.sqrMagnitude >= _horizontalVelocity.sqrMagnitude ? _tuning.GroundAcceleration : _tuning.GroundDeceleration;
                 _horizontalVelocity = Vector3.Lerp(_horizontalVelocity, target, Damping.ByRate(rate * AccelerationMultiplier, deltaTime));
@@ -276,7 +290,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             {
                 // Airborne: steer, keep momentum, never gain sprint speed mid-air; slowed like on foot, so hops don't outrun aiming.
                 float gaitSpeed = IsCrouching ? CrouchSpeed : WalkSpeed;
-                TargetSpeed = SlowedSpeed(gaitSpeed, slowdown, floorSpeed) * LoadSpeedMultiplier * move.magnitude;
+                TargetSpeed = LoadedSpeed(SlowedSpeed(gaitSpeed, slowdown, floorSpeed), gaitSpeed, LoadSpeedMultiplier, crawlSpeed) * move.magnitude;
                 float speed = Mathf.Max(_horizontalVelocity.magnitude, TargetSpeed);
                 _horizontalVelocity = Vector3.Lerp(_horizontalVelocity, wishDirection * speed, Damping.ByRate(_tuning.AirAcceleration, deltaTime));
             }
@@ -291,8 +305,15 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
 
         bool TryJump()
         {
-            if (_jumpBufferLeft <= 0f || _isJumping || _timeSinceStableGround > _tuning.CoyoteTime || !_stamina.CanExert || Overloaded)
+            if (_jumpBufferLeft <= 0f || _isJumping || _timeSinceStableGround > _tuning.CoyoteTime || !_stamina.CanExert)
                 return false;
+            if (Overloaded)
+            {
+                // Refused once per press: the buffer would ask again for JumpBufferTime.
+                _jumpBufferLeft = 0f;
+                LoadRefused?.Invoke();
+                return false;
+            }
 
             float height = _stats.Get(StatId.JumpHeight, _tuning.JumpHeight);
             _verticalVelocity = Mathf.Sqrt(2f * _tuning.Gravity * height);

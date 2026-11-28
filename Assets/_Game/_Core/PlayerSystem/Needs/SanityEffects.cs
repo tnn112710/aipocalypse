@@ -11,13 +11,13 @@ namespace MB13.Aipocalypse.Core.PlayerSystem.Needs
     public sealed class SanityEffectSettings
     {
         [Range(0f, 1f), Tooltip("Sanity share where the first effects start")] public float UneasyFrom = 0.6f;
-        [Range(0f, 1f)] public float LowFrom = 0.4f;
-        [Range(0f, 1f)] public float CriticalFrom = 0.2f;
+        [Range(0f, 1f)] public float LowFrom = 0.3f;
+        [Range(0f, 1f)] public float CriticalFrom = 0.1f;
         [Min(0f), Tooltip("Real seconds for a look to follow a change")] public float EaseTime = 1f;
 
         [Header("HUD")]
-        [Range(0f, 1f), Tooltip("Below this the clock lies now and then and the bars and gauges flicker (values stay true)")] public float LiesFrom = 0.4f;
-        [Range(0f, 1f), Tooltip("Below this the minimap shows fake enemy dots and the compass letters swap")] public float BlipsFrom = 0.2f;
+        [Range(0f, 1f), Tooltip("Below this the clock lies now and then and the bars and gauges flicker (values stay true)")] public float LiesFrom = 0.3f;
+        [Range(0f, 1f), Tooltip("Below this the minimap shows fake enemy dots and the compass letters swap")] public float BlipsFrom = 0.1f;
 
         [Header("Sound (2D)")]
         [Tooltip("A low loop under the Low and Critical looks, at the Low look's strength")] public SoundID Drone;
@@ -27,7 +27,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem.Needs
         [Min(0.5f), Tooltip("Seconds between whispers (random in this range)")] public float WhisperEveryMin = 6f;
         [Min(0.5f)] public float WhisperEveryMax = 14f;
         [Tooltip("Beats below HeartbeatFrom (the low-health heartbeat's entity)")] public SoundID Heartbeat;
-        [Range(0f, 1f)] public float HeartbeatFrom = 0.4f;
+        [Range(0f, 1f)] public float HeartbeatFrom = 0.3f;
         [Min(0.2f), Tooltip("Seconds between beats at HeartbeatFrom; faster towards empty")] public float HeartbeatEvery = 1.1f;
         [Range(0f, 1f)] public float HeartbeatVolume = 0.6f;
 

@@ -45,7 +45,7 @@ With nothing typed, the line under the input lists this scene's command groups (
 | `cheat.kill`, `cheat.revive` | Kill the player with a real hit (through `DamageService`, like K, even in god mode) / revive (like L) |
 | `cheat.hp [amount]` | Heal to full, or by an amount |
 | `cheat.stamina` | Refill stamina |
-| `cheat.meter <meter> [percent=100]` | Set any meter to a percent of its max: `health`, `stamina`, `hunger`, `thirst`, `sanity` (any unique start: `hun`) or `all` (`IPlayer.Meter`, [NEEDS.md](NEEDS.md)); health 0, and health while dead, are refused (`all` skips it then; use `cheat.revive`) |
+| `cheat.meter <meter> [percent=100]` | Set any meter to a percent of its max: `health`, `stamina`, `hunger`, `thirst`, `sanity` (any unique start: `hun`) or `all` (`IPlayer.Meter`, [NEEDS.md](NEEDS.md)); health 0, and health while dead, are refused (`all` skips it then; use `cheat.revive`); stamina 0 leaves the player out of breath, as running dry does |
 | `cheat.needs` | Every meter with its max, the needs' tiers, hours awake, whether the drains are frozen |
 | `cheat.needsfreeze [on/off]` | Freeze every need drain (`PlayerNeeds.Frozen`); refills and cheats still work |
 | `cheat.awake [hours]` | Read or set the hours awake (lack of sleep drains sanity) |

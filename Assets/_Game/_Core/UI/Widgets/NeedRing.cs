@@ -6,8 +6,8 @@ using UnityEngine.UI;
 
 namespace MB13.Aipocalypse.Core.UI
 {
-    // A need's HUD gauge: an icon inside a ring that empties clockwise, coloured by tier, dim while the need is fine and
-    // bright for a moment after a change. A presenter feeds it; its look comes from a NeedRingStyle. Real time throughout.
+    // A need's HUD gauge: an icon inside a ring that empties clockwise, coloured by how full it is (the style's bands), dim
+    // while green and bright for a moment after a change. A presenter feeds it; its look comes from a NeedRingStyle. Real time throughout.
     public sealed class NeedRing : MonoBehaviour
     {
         [SerializeField, InlineEditor] NeedRingStyle _style;
@@ -40,15 +40,16 @@ namespace MB13.Aipocalypse.Core.UI
             if (_normalized >= 0f && normalized > _normalized + 0.001f)
                 Brighten();
             _normalized = normalized;
-            if (_fill != null)
-                _fill.fillAmount = normalized;
+            if (_fill == null)
+                return;
+            _fill.fillAmount = normalized;
+            if (_style != null)
+                _fill.color = _style.ColorAt(normalized);
         }
 
         public void SetSeverity(NeedSeverity severity, bool pulse)
         {
             _severity = severity;
-            if (_fill != null && _style != null)
-                _fill.color = _style.ColorFor(severity);
             if (!pulse)
                 return;
             Brighten();
@@ -71,8 +72,7 @@ namespace MB13.Aipocalypse.Core.UI
                 return;
             float dt = Time.unscaledDeltaTime;
             _brightLeft -= dt;
-            bool fine = _severity is NeedSeverity.Good or NeedSeverity.Normal;
-            float target = fine && _brightLeft <= 0f ? _style.DimAlpha : 1f;
+            float target = _style.Dims(_normalized) && _brightLeft <= 0f ? _style.DimAlpha : 1f;
             if (_severity == NeedSeverity.Empty && _style.EmptyPulseRate > 0f)
             {
                 float wave = 0.5f + 0.5f * Mathf.Cos(Time.unscaledTime * _style.EmptyPulseRate * Mathf.PI * 2f);
@@ -105,7 +105,7 @@ namespace MB13.Aipocalypse.Core.UI
                 _fill.fillMethod = Image.FillMethod.Radial360;
                 _fill.fillOrigin = (int)Image.Origin360.Top;
                 _fill.fillClockwise = true;
-                _fill.color = _style.ColorFor(_severity);
+                _fill.color = _style.ColorAt(_normalized >= 0f ? _normalized : 1f);
             }
             _alpha = _style.DimAlpha;
             if (_group != null)

@@ -22,6 +22,9 @@ namespace MB13.Aipocalypse.Core.UI
             { LoadState.Overloaded, new Color(0.95f, 0.22f, 0.18f) },
         };
         [BoxGroup("Icon")] public Color NotchColor = new(1f, 1f, 1f, 0.85f);
+        [BoxGroup("Icon"), MinMaxSlider(0f, 1f, true), Tooltip("The bag's body as shares of the sprite's height (bottom, top; the handle left out): an "
+            + "empty bag fills from the first, a full one to the last; the notch sits on the same scale. LoadHudSetup.MeasureFill measures it")]
+        public Vector2 FillRange = new(0f, 1f);
 
         [BoxGroup("Label")] public TMP_FontAsset Font;
         [BoxGroup("Label"), Min(1f)] public float FontSize = 22f;

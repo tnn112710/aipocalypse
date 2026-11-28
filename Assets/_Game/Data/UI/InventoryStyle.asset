@@ -23,6 +23,7 @@ MonoBehaviour:
   HighlightColor: {r: 0.24705882, g: 0.8392157, b: 1, a: 1}
   IconColor: {r: 1, g: 1, b: 1, a: 1}
   EmptyIconColor: {r: 1, g: 1, b: 1, a: 0.18}
+  LockedColor: {r: 1, g: 0.85, b: 0.4, a: 1}
   DraggedAlpha: 0.35
   NameFontSize: 13
   CountFontSize: 16
@@ -57,6 +58,8 @@ MonoBehaviour:
   PanelColor: {r: 0.047058824, g: 0.09411765, b: 0.15686275, a: 0.9}
   BackdropColor: {r: 0, g: 0, b: 0, a: 0.45}
   WeightBarColor: {r: 0.85, g: 0.85, b: 0.85, a: 1}
+  NearWeightColor: {r: 1, g: 0.86, b: 0.25, a: 1}
+  HeavyWeightColor: {r: 1, g: 0.55, b: 0.15, a: 1}
   OverweightColor: {r: 1, g: 0.45, b: 0.35, a: 1}
   FitColor: {r: 0.45, g: 0.75, b: 0.4, a: 0.95}
   BetterColor: {r: 0.45, g: 0.9, b: 0.45, a: 1}
@@ -96,5 +99,9 @@ MonoBehaviour:
     <DebugObject>k__BackingField: {fileID: 0}
   DetachSound:
     _entity: {fileID: 11400000, guid: 46f2b1bba54ca83478b2dbbcf89bff3e, type: 2}
+    ID: 0
+    <DebugObject>k__BackingField: {fileID: 0}
+  OverloadedSound:
+    _entity: {fileID: 11400000, guid: a5d618b8ba70efd4c8f85b703807682f, type: 2}
     ID: 0
     <DebugObject>k__BackingField: {fileID: 0}

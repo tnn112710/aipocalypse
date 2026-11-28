@@ -60,6 +60,7 @@ namespace MB13.Aipocalypse.Core.UI
         [BoxGroup("Sounds"), Tooltip("Tokens picked up (instead of the pickup sound)")] public SoundID TokensSound;
         [BoxGroup("Sounds"), Tooltip("A part fitted to the inspected gun")] public SoundID AttachSound;
         [BoxGroup("Sounds"), Tooltip("A part taken off the inspected gun")] public SoundID DetachSound;
+        [BoxGroup("Sounds"), Tooltip("The carried weight reached Max (a crawl): played with the pickup feed's 'Too heavy' line")] public SoundID OverloadedSound;
 
         public Color RarityColor(ItemRarity rarity) =>
             _rarityColors != null && _rarityColors.TryGetValue(rarity, out Color color) ? color : TextColor;

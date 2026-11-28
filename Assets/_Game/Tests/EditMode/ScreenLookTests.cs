@@ -100,12 +100,13 @@ namespace MB13.Aipocalypse.Tests
         {
             var effects = new SanityEffectSettings();
 
-            Assert.AreEqual(0.5f, effects.Strength(ScreenLookId.SanityUneasy, 0.5f), 1e-4f);
-            Assert.AreEqual(0f, effects.Strength(ScreenLookId.SanityLow, 0.5f), 1e-4f);
-            Assert.AreEqual(0f, effects.Strength(ScreenLookId.SanityCritical, 0.5f), 1e-4f);
-            Assert.AreEqual(1f, effects.Strength(ScreenLookId.SanityUneasy, 0.1f), 1e-4f);
-            Assert.AreEqual(1f, effects.Strength(ScreenLookId.SanityLow, 0.1f), 1e-4f);
-            Assert.AreEqual(0.5f, effects.Strength(ScreenLookId.SanityCritical, 0.1f), 1e-4f);
+            // Bands 60 → 30 → 10 → 0, where the rings change colour.
+            Assert.AreEqual(0.5f, effects.Strength(ScreenLookId.SanityUneasy, 0.45f), 1e-4f);
+            Assert.AreEqual(0f, effects.Strength(ScreenLookId.SanityLow, 0.45f), 1e-4f);
+            Assert.AreEqual(0f, effects.Strength(ScreenLookId.SanityCritical, 0.45f), 1e-4f);
+            Assert.AreEqual(1f, effects.Strength(ScreenLookId.SanityUneasy, 0.05f), 1e-4f);
+            Assert.AreEqual(1f, effects.Strength(ScreenLookId.SanityLow, 0.05f), 1e-4f);
+            Assert.AreEqual(0.5f, effects.Strength(ScreenLookId.SanityCritical, 0.05f), 1e-4f);
             Assert.AreEqual(0f, effects.Strength(ScreenLookId.SanityUneasy, 0.9f), 1e-4f);
         }
 

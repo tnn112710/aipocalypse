@@ -12,7 +12,7 @@ using Object = UnityEngine.Object;
 // Builds the needs' HUD (docs/technicals/NEEDS.md, UI.md): the body sounds (2D entities in the Player library, found in the
 // imported packs), Data/UI/<Need>RingStyle assets and the Needs row in HUD.prefab (SafeFrame/BottomLeft above Vitals, with
 // Effects and DogBar moved up by the row; a CanvasGroup on Vitals for sanity's flicker), and sanity's sounds on
-// PlayerNeedsSettings.SanityEffects (drone, whispers, the low-health heartbeat). Safe to re-run: sounds and styles are updated in place, the row is rebuilt, the
+// PlayerNeedsSettings.SanityEffects (drone, whispers, the low-health heartbeat), the overloaded sound on InventoryStyle. Safe to re-run: sounds and styles are updated in place, the row is rebuilt, the
 // others move only once.
 // Run: unity command script run --file AgentScripts/Hud/NeedsHudSetup.cs --entry NeedsHudSetup.Build
 // Then the import presets: AgentScripts/Audio/AudioImportKit.cs Apply ["used:Assets/_Game/Data/Audio", false, "Assets/_Game/Settings/Audio"].
@@ -38,6 +38,7 @@ public static class NeedsHudSetup
     {
         var log = new List<string> { Audio() };
         log.Add(SanityAudio());
+        log.Add(LoadAudio());
         log.Add(Styles());
         log.Add(Hud());
         return string.Join("\n", log);
@@ -87,6 +88,28 @@ public static class NeedsHudSetup
             settings.SanityEffects.Heartbeat = new SoundID(heartbeat);
         Save(settings);
         return $"audio: Sanity_Drone (loop), Sanity_Whisper ({whispers.Count} clips), heartbeat {(heartbeat != null ? "reused" : "missing")}";
+    }
+
+    // Carried weight reaching Max: a heavy shuffle of gear (Gamemaster foley), on InventoryStyle.OverloadedSound for the
+    // pickup feed's 'Too heavy' line.
+    public static string LoadAudio()
+    {
+        var library = AssetDatabase.LoadAssetAtPath<AudioAsset>("Assets/_Game/Data/Audio/Player.asset") ?? throw new Exception("missing Player library");
+        var clips = new List<string>();
+        for (int i = 1; i <= 8; i++)
+        {
+            string path = $"{Gamemaster}Foley/foley_soldier_gear_equipment_metal_cloth_heavy_movement_strong_{i:00}.wav";
+            if (AssetDatabase.LoadAssetAtPath<AudioClip>(path) != null)
+                clips.Add(path);
+        }
+        if (clips.Count == 0)
+            return "audio: no heavy_movement_strong clips found, overloading stays silent";
+        Entity(library, "Load_Overloaded", 0.8f, clips, false);
+        Save(library);
+        var style = AssetDatabase.LoadAssetAtPath<InventoryStyle>("Assets/_Game/Data/UI/InventoryStyle.asset") ?? throw new Exception("missing InventoryStyle");
+        style.OverloadedSound = new SoundID(AssetDatabase.LoadAssetAtPath<AudioEntity>($"{PlayerAudioDir}/Load_Overloaded.asset"));
+        Save(style);
+        return $"audio: Load_Overloaded ({clips.Count} clips, random) on InventoryStyle.OverloadedSound";
     }
 
     public static string Styles()

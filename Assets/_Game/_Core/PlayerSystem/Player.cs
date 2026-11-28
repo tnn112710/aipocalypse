@@ -94,6 +94,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         public PlayerEffects Effects => _effects;
         public PlayerNeeds Needs => _needs;
         public CarryLoad Load { get; private set; }
+        public int LoadRefusals { get; private set; }
         public float Darkness => _darkness != null ? Mathf.Max(0f, _darkness.Weight) : 0f;
         public float ExtraLoad
         {
@@ -219,6 +220,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             _life.Reviving += OnReviving;
             _sequence.Ended += OnSequenceEnded;
             _motor.Landed += _life.OnLanded;
+            // The motor lives and dies with the player: no unsubscribe.
+            _motor.LoadRefused += () => LoadRefusals++;
             _stats.Changed += OnStatsChanged;
             _looting = new PlayerLooting(_tuning.Interaction);
 

@@ -48,7 +48,7 @@ HUD                          Canvas · CanvasScaler · CanvasGroup + HudVisibili
    │  └─ Hotbar              nested Canvas · HorizontalLayoutGroup · ContentSizeFitter · HotbarHud
    │     └─ Slot1…SlotN      HotbarSlot.prefab, spawned at Start, one per hotbar slot
    ├─ BottomRight
-   │  ├─ PickupFeed          nested Canvas · PickupFeedHud: Line0…Line4 ("+30 Rifle Ammo", newest at the bottom) + Warning ("Backpack full"), 150 px up
+   │  ├─ PickupFeed          nested Canvas · PickupFeedHud: Line0…Line4 ("+30 Rifle Ammo", newest at the bottom) + Warning ("Backpack full" / "Too heavy"), 150 px up
    │  └─ Bag                 nested Canvas · PlayerLoadHud > Gauge (CanvasGroup · BagGauge): the carried weight, 40 px up, under the feed; built by AgentScripts/Hud/LoadHudSetup (see Bag gauge below)
    └─ Center
       ├─ Crosshair           nested Canvas · CrosshairHud; moved to where the barrel points
@@ -111,8 +111,8 @@ Needs                        Canvas · PlayerNeedsHud (_hunger, _thirst, _sanity
 ```
 
 - **Look** (`Data/UI/HungerRingStyle`, `ThirstRingStyle`, `SanityRingStyle`): Synty Apocalypse HUD `SPR_HUD_Apocalypse_Ring_Medium_01_Clean` for the ring and the track (white at 22%), its `ICON_Apocalpyse_Status_Hunger_01` / `Thirst_01` (the bars' icon set) and Layer Lab `Pictoicon_brain` for sanity (the Synty pack has none).
-- **Colour per tier** (`NeedRingStyle.Colors`, every `NeedSeverity`): green well fed, white normal, orange low, red very low and empty.
-- **Dim while fine:** at `DimAlpha` (0.45) while Good or Normal; full while Low or worse. A tier change or a refill brightens it for `BrightTime` (2.5 s). Entering a tier punches its scale once (`PulseScale` 1.18); at empty it pulses slowly (`EmptyPulseRate` 1.2 Hz).
+- **Colour by how full** (`NeedRingStyle.Bands`, highest first, user 2026-11-28): green above 60%, yellow above 30% (warning), orange above 10% (near empty), red below (critical); the same on every ring. The bands show the value; the tiers change on the same edges (NEEDS.md), and the pulse and the sound follow the tiers.
+- **Dim while green:** at `DimAlpha` (0.45) while in the top band (`NeedRingStyle.Dims`); full in any warning colour. A tier change or a refill brightens it for `BrightTime` (2.5 s). Entering a tier punches its scale once (`PulseScale` 1.18); at empty it pulses slowly (`EmptyPulseRate` 1.2 Hz).
 - **Body sound:** `TierSound` plays on entering Low or worse and every `RepeatSoundEvery` (40 s) while VeryLow or Empty. Only thirst has one (`Thirst_Cough`, 15 random Gamemaster coughs, Player library); no pack has a stomach growl; sanity's sounds come with its own pass.
 - `NeedRing.SetFlicker(alpha)` multiplies its alpha: sanity's flicker (`SanityGlitch.Flicker`, also on the `Vitals` CanvasGroup through `PlayerVitalsHud._group`); it never changes the value shown.
 - **Low sanity lies** ([NEEDS.md → What low sanity shows](NEEDS.md#what-low-sanity-shows)): `ClockHud` shows a wrong time for at most 0.6 s now and then, `MinimapHud` adds fake enemy dots and swaps the compass letters. Bars, rings, ammo and the bag never show a wrong value.
@@ -127,12 +127,14 @@ Bag                          130×82 · Canvas · PlayerLoadHud (_gauge)
 └─ Gauge                     CanvasGroup · BagGauge (BagGaugeStyle)
    ├─ Icon                   56×56, top centre
    │  ├─ Empty               the bag, dim (EmptyColor)
-   │  ├─ Fill                the bag again, Filled vertically from the bottom: carried / Max
-   │  └─ Notch               2 px line at Comfortable / Max
+   │  ├─ Fill                the bag again, Filled vertically from the bottom: carried / Max on the bag's body
+   │  └─ Notch               2 px line at Comfortable / Max, same scale
    └─ Label                  "22.9 / 35 kg" (HUD table hud.weight; carried, one decimal / Max, whole)
 ```
 
 - **Colours** (`Data/UI/BagGaugeStyle.Colors`, fill and label, every `LoadState`): white light, yellow from 80% of Comfortable, orange past it (slower), red at Max (a crawl). Dim (`DimAlpha` 0.5) while light.
+- **Body range** (`BagGaugeStyle.FillRange`, 0.009..0.885 of the Synty backpack's height): empty to Max maps onto the bag's body, leaving out the thin carry handle on top, so a fill doesn't read low; the notch uses the same scale. `LoadHudSetup.MeasureFill` measures it from the sprite (rows at least half as wide as the widest); it assumes a sprite no wider than tall in the square icon area.
+- The label is rebuilt when a shown number or the language changes.
 - **Icon:** Synty Apocalypse HUD `ICON_Apocalpyse_Inventory_Backpack_01`.
 - The label is rebuilt only when the carried tenth of a kilo or the whole Max changes (`SetText` with the cached format).
 - The inventory screen's weight bar uses the same states (`InventoryStyle` `WeightBarColor`, `NearWeightColor`, `HeavyWeightColor`, `OverweightColor`) and shows carried / Max.
@@ -238,7 +240,7 @@ The pause menu, the main menu and the save slot list. What they do: [SAVE.md →
 ## Loot markers and pickup feed
 
 - `LootMarkerHud` (`LootMarkers`, under the inventory screen): every 0.2 s (unscaled) it picks the nearest 8 `LootRegistry` containers holding loot within 15 m (sorted insert into fixed arrays, no allocation); each frame it projects only those (`Camera.main.WorldToScreenPoint` of `LootContainer.MarkerPoint`) and places the cloned markers: `UnsearchedColor` while something is hidden, `SearchedColor` (dim) after, scaled down to `FarScale` at the range's edge. Hidden behind the camera, for the container the player looks at, while a menu holds the UI and while dead. Values on the component.
-- `PickupFeedHud` (BottomRight): `Equipment.PickedUp` adds "+count Name" at the bottom (the same item while still showing adds up on its line), `PickUpBlocked` shows "Backpack full"; lines hold 2.5 s and fade over 0.6 s on unscaled time, then the component does nothing until the next pickup. Colours and times on the component. It plays the pickup sound (Tokens have their own) and the refused sound from `InventoryStyle`, at most one per 0.06 s, so the magnet collecting several piles sounds once.
+- `PickupFeedHud` (BottomRight): `Equipment.PickedUp` adds "+count Name" at the bottom (the same item while still showing adds up on its line), `PickUpBlocked` shows "Backpack full", entering Overloaded shows "Too heavy" with `InventoryStyle.OverloadedSound`, and a sprint or jump refused for the load (`IPlayer.LoadRefusals` changed) shows it again with the refused sound unless the line is still up; lines hold 2.5 s and fade over 0.6 s on unscaled time, then the component does nothing until the next pickup. Colours and times on the component. It plays the pickup sound (Tokens have their own) and the refused sound from `InventoryStyle`, at most one per 0.06 s, so the magnet collecting several piles sounds once.
 
 ## Interact prompt
 

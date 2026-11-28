@@ -23,8 +23,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem.Needs
             Tiers = new[]
             {
                 Tier(NeedSeverity.Good, 0.75f, 0f, new StatChange(StatId.HealthRegen, add: 12f)),
-                Tier(NeedSeverity.Normal, 0.5f, 0f),
-                Tier(NeedSeverity.Low, 0.25f, 0f, Melee(0.85f), Sway(1.25f)),
+                Tier(NeedSeverity.Normal, 0.6f, 0f),
+                Tier(NeedSeverity.Low, 0.3f, 0f, Melee(0.85f), Sway(1.25f)),
                 Tier(NeedSeverity.VeryLow, 0f, 0f, Melee(0.65f), Sway(1.6f)),
                 Tier(NeedSeverity.Empty, 0f, -10f, Melee(0.5f), Sway(2f)),
             },
@@ -41,8 +41,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem.Needs
             Tiers = new[]
             {
                 Tier(NeedSeverity.Good, 0.75f, 0f, new StatChange(StatId.StaminaRegen, multiply: 1.15f)),
-                Tier(NeedSeverity.Normal, 0.5f, 0f),
-                Tier(NeedSeverity.Low, 0.25f, 0f, Parched(0.8f, 1.15f)),
+                Tier(NeedSeverity.Normal, 0.6f, 0f),
+                Tier(NeedSeverity.Low, 0.3f, 0f, Parched(0.8f, 1.15f)),
                 Tier(NeedSeverity.VeryLow, 0f, 0f, Parched(0.6f, 1.35f)),
                 Tier(NeedSeverity.Empty, 0f, -10f, Parched(0.4f, 1.5f)),
             },
@@ -57,8 +57,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem.Needs
             Tiers = new[]
             {
                 Tier(NeedSeverity.Good, 0.6f, 0f),
-                Tier(NeedSeverity.Normal, 0.4f, 0f),
-                Tier(NeedSeverity.Low, 0.2f, 0f),
+                Tier(NeedSeverity.Normal, 0.3f, 0f),
+                Tier(NeedSeverity.Low, 0.1f, 0f),
                 Tier(NeedSeverity.VeryLow, 0f, 0f),
                 Tier(NeedSeverity.Empty, 0f, 0f),
             },

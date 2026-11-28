@@ -6,7 +6,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem.Needs
     [Serializable]
     public sealed class SanitySettings
     {
-        [Min(0f), Tooltip("Game hours after waking before the lack of sleep drains sanity")] public float AwakeGraceHours = 4f;
+        [Min(0f), Tooltip("Game hours after waking before the lack of sleep drains sanity")] public float AwakeGraceHours = 8f;
         [Min(0f), Tooltip("Hours awake at which the lack of sleep alone has emptied a full (base max) meter")] public float AwakeEmptyHours = 18f;
         [Min(0f), Tooltip("Darkness drain per game hour at FullDrainDistance and beyond, at night")] public float DarknessFullPerHour = 25f;
         [Min(1f), Tooltip("Metres outside the nearest light where the darkness drain reaches its full rate")] public float FullDrainDistance = 150f;

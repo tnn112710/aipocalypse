@@ -84,11 +84,16 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
             _current = share * _max;
         }
 
-        // A cheat or a scenario: exhaustion ends once the value is back above the recover share.
+        // A cheat or a scenario: 0 exhausts and winds like running dry; exhaustion ends once back above the recover share.
         public void Set(float current)
         {
             _current = Mathf.Clamp(current, 0f, _max);
-            if (_exhausted && _current >= _max * _recoverFraction)
+            if (_current <= 0f && !_exhausted)
+            {
+                _exhausted = true;
+                _windedLeft = _windedTime;
+            }
+            else if (_exhausted && _current >= _max * _recoverFraction)
                 _exhausted = false;
         }
 

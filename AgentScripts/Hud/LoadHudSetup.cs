@@ -10,6 +10,7 @@ using Object = UnityEngine.Object;
 // HUD.prefab (SafeFrame/BottomRight, under the pickup feed: a bag icon that fills from the bottom, a notch at Comfortable,
 // "kg / max kg" under it). Safe to re-run: the style is updated in place, the node rebuilt.
 // Run: unity command script run --file AgentScripts/Hud/LoadHudSetup.cs --entry LoadHudSetup.Build
+// After changing the bag sprite: --entry LoadHudSetup.MeasureFill (the drawn rows the fill and notch map onto).
 public static class LoadHudSetup
 {
     const string HudPath = "Assets/_Game/_Core/UI/Prefabs/HUD.prefab";
@@ -35,6 +36,7 @@ public static class LoadHudSetup
         style.Font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontPath) ?? throw new Exception("missing font " + FontPath);
         EditorUtility.SetDirty(style);
         AssetDatabase.SaveAssetIfDirty(style);
+        string measured = MeasureFill();
 
         GameObject root = PrefabUtility.LoadPrefabContents(HudPath);
         try
@@ -101,12 +103,67 @@ public static class LoadHudSetup
             hudSo.ApplyModifiedPropertiesWithoutUndo();
 
             PrefabUtility.SaveAsPrefabAsset(root, HudPath, out bool saved);
-            return saved ? $"HUD.prefab: {NodeName} bottom right at y {Y}, {StylePath}" : "failed to save " + HudPath;
+            return saved ? $"HUD.prefab: {NodeName} bottom right at y {Y}, {StylePath}; {measured}" : "failed to save " + HudPath;
         }
         finally
         {
             PrefabUtility.UnloadPrefabContents(root);
         }
+    }
+
+    // The bag's body as shares of the sprite's height, into BagGaugeStyle.FillRange: from its lowest drawn row (any pixel over
+    // a tenth alpha) up to the last row at least half as wide as the widest, which leaves out the thin carry handle on top.
+    public static string MeasureFill()
+    {
+        var style = AssetDatabase.LoadAssetAtPath<BagGaugeStyle>(StylePath) ?? throw new Exception("missing " + StylePath);
+        Sprite sprite = style.Icon != null ? style.Icon : throw new Exception("BagGaugeStyle has no icon");
+        Rect rect = sprite.textureRect;
+        Color32[] pixels = Pixels(sprite.texture, rect, out int width, out int height);
+        var spans = new int[height];
+        int widest = 0;
+        for (int y = 0; y < height; y++)
+        {
+            int left = -1, right = -1;
+            for (int x = 0; x < width; x++)
+            {
+                if (pixels[y * width + x].a <= 25)
+                    continue;
+                if (left < 0)
+                    left = x;
+                right = x;
+            }
+            spans[y] = left < 0 ? 0 : right - left + 1;
+            widest = Mathf.Max(widest, spans[y]);
+        }
+        int low = Array.FindIndex(spans, span => span > 0);
+        int high = Array.FindLastIndex(spans, span => span * 2 >= widest);
+        if (low < 0)
+            throw new Exception(sprite.name + " has no opaque pixel");
+        style.FillRange = new Vector2(low / (float)height, (high + 1) / (float)height);
+        EditorUtility.SetDirty(style);
+        AssetDatabase.SaveAssetIfDirty(style);
+        // The square icon area fits the sprite by its height only when it is no wider than tall; otherwise the rows shift.
+        string fit = width <= height ? "fills the icon's height" : "WIDER than tall: the fill and notch rows are off";
+        return $"FillRange {style.FillRange.x:0.###}..{style.FillRange.y:0.###} of {sprite.name} ({width}x{height}, {fit})";
+    }
+
+    // A texture's pixels in a rect, bottom row first, whether or not the texture is readable.
+    static Color32[] Pixels(Texture2D texture, Rect rect, out int width, out int height)
+    {
+        width = Mathf.RoundToInt(rect.width);
+        height = Mathf.RoundToInt(rect.height);
+        RenderTexture target = RenderTexture.GetTemporary(texture.width, texture.height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
+        RenderTexture previous = RenderTexture.active;
+        Graphics.Blit(texture, target);
+        RenderTexture.active = target;
+        var copy = new Texture2D(width, height, TextureFormat.RGBA32, false);
+        copy.ReadPixels(new Rect(rect.x, rect.y, width, height), 0, 0);
+        copy.Apply();
+        RenderTexture.active = previous;
+        RenderTexture.ReleaseTemporary(target);
+        Color32[] pixels = copy.GetPixels32();
+        Object.DestroyImmediate(copy);
+        return pixels;
     }
 
     static RectTransform Stretch(RectTransform rect)

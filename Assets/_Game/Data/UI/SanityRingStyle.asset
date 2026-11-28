@@ -17,17 +17,15 @@ MonoBehaviour:
   RingSprite: {fileID: 21300000, guid: ee62bb4712e643844ac1d8f3815ad8fb, type: 3}
   TrackSprite: {fileID: 21300000, guid: ee62bb4712e643844ac1d8f3815ad8fb, type: 3}
   TrackColor: {r: 1, g: 1, b: 1, a: 0.22}
-  Colors:
-  - key: 0
-    value: {r: 0.55, g: 0.9, b: 0.45, a: 1}
-  - key: 1
-    value: {r: 1, g: 1, b: 1, a: 1}
-  - key: 2
-    value: {r: 1, g: 0.62, b: 0.18, a: 1}
-  - key: 3
-    value: {r: 0.95, g: 0.25, b: 0.2, a: 1}
-  - key: 4
-    value: {r: 0.95, g: 0.25, b: 0.2, a: 1}
+  Bands:
+  - Above: 0.6
+    Color: {r: 0.45, g: 0.85, b: 0.35, a: 1}
+  - Above: 0.3
+    Color: {r: 1, g: 0.86, b: 0.25, a: 1}
+  - Above: 0.1
+    Color: {r: 1, g: 0.55, b: 0.15, a: 1}
+  - Above: 0
+    Color: {r: 0.95, g: 0.22, b: 0.18, a: 1}
   DimAlpha: 0.45
   BrightTime: 2.5
   FadeSpeed: 2

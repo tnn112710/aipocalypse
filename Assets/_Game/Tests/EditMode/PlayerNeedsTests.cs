@@ -243,7 +243,7 @@ namespace MB13.Aipocalypse.Tests
         {
             _needs.Advance(2f, false, FarInTheDark);
 
-            Assert.AreEqual(50f, _needs.Sanity.Current, 0.05f, "25 an hour, not yet 4 hours awake");
+            Assert.AreEqual(50f, _needs.Sanity.Current, 0.05f, "25 an hour, not yet 8 hours awake");
         }
 
         [Test]

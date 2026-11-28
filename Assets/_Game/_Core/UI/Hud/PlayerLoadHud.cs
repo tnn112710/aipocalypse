@@ -6,7 +6,7 @@ using UnityEngine.Localization;
 namespace MB13.Aipocalypse.Core.UI
 {
     // The carried-weight gauge for the active player (IPlayer.Load): fill = carried / Max, notch at Comfortable, "kg / max kg"
-    // rebuilt only when a shown number changes. Hidden without a player.
+    // rebuilt only when a shown number or the language changes. Hidden without a player.
     public sealed class PlayerLoadHud : PlayerHudView
     {
         static readonly LocalizedString WeightFormat = Loc.Hud("hud.weight");
@@ -15,6 +15,7 @@ namespace MB13.Aipocalypse.Core.UI
 
         int _shownTenths = -1;
         int _shownMax = -1;
+        Locale _shownLocale;
 
         protected override void Bind(IPlayer player)
         {
@@ -39,10 +40,11 @@ namespace MB13.Aipocalypse.Core.UI
             _gauge.SetLoad(load.Weight / max, load.Comfortable / max, load.State);
             int tenths = Mathf.RoundToInt(load.Weight * 10f);
             int maxShown = Mathf.RoundToInt(load.Max);
-            if ((tenths == _shownTenths && maxShown == _shownMax) || _gauge.Label == null)
+            if ((tenths == _shownTenths && maxShown == _shownMax && _shownLocale == Loc.Current) || _gauge.Label == null)
                 return;
             _shownTenths = tenths;
             _shownMax = maxShown;
+            _shownLocale = Loc.Current;
             _gauge.Label.SetText(WeightFormat.Text(), tenths / 10f, maxShown);
         }
     }

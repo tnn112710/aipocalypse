@@ -7,6 +7,7 @@ namespace MB13.Aipocalypse.Tests
     {
         const float Max = 100f;
         static readonly SanitySettings Rules = new();
+        const float AwakeRate = 100f / 10f; // empty at 18 h awake after 8 h of grace
 
         static SanityInput Night(float distance, bool inLight = false, bool comfort = false) =>
             new(darkness: 1f, distanceOutsideLight: distance, inLight: inLight, nearComfort: comfort);
@@ -16,9 +17,9 @@ namespace MB13.Aipocalypse.Tests
         static float Rate(in SanityInput input, float hoursAwake) => SanityExposure.RatePerHour(input, hoursAwake, Rules, Max);
 
         [Test]
-        public void Awake_NoDrainForFourHours()
+        public void Awake_NoDrainForEightHours()
         {
-            Assert.AreEqual(0f, Rate(Day(), 3.9f), 1e-4f);
+            Assert.AreEqual(0f, Rate(Day(), 7.9f), 1e-4f);
         }
 
         [Test]
@@ -34,7 +35,7 @@ namespace MB13.Aipocalypse.Tests
         [Test]
         public void Darkness_NothingByDay()
         {
-            Assert.AreEqual(Rate(Day(), 10f), -100f / 14f, 1e-3f, "only the lack of sleep");
+            Assert.AreEqual(Rate(Day(), 10f), -AwakeRate, 1e-3f, "only the lack of sleep");
         }
 
         [Test]
@@ -76,7 +77,7 @@ namespace MB13.Aipocalypse.Tests
         [Test]
         public void Light_OnlySlowsTheLossLateAtNight()
         {
-            Assert.AreEqual(3.3f - 100f / 14f, Rate(Night(0f, inLight: true), 10f), 1e-3f);
+            Assert.AreEqual(3.3f - AwakeRate, Rate(Night(0f, inLight: true), 10f), 1e-3f);
         }
 
         [Test]
@@ -84,7 +85,7 @@ namespace MB13.Aipocalypse.Tests
         {
             float alone = Rate(Night(150f), 10f);
             float withDog = Rate(Night(150f, comfort: true), 10f);
-            float awake = 100f / 14f;
+            float awake = AwakeRate;
 
             Assert.AreEqual(-(25f * 0.6f + awake), withDog, 1e-3f);
             Assert.AreEqual(-(25f + awake), alone, 1e-3f);

@@ -30,6 +30,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem
         PlayerNeeds Needs { get; }
         // What the carried weight does now (limits, speed and stamina scales, state for the bag gauge).
         CarryLoad Load { get; }
+        // Sprint or jump presses refused for the load (Overloaded) so far; the HUD warns when it changes.
+        int LoadRefusals { get; }
         // How dark it is around the player now: 0 by day to 1 at night (always 0 without a time-of-day director).
         float Darkness { get; }
         // Dev tools: kg added to what the inventory weighs (cheat.carry).

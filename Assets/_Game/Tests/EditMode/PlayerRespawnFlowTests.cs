@@ -35,6 +35,7 @@ namespace MB13.Aipocalypse.Tests
             public PlayerEffects Effects => null;
             public PlayerNeeds Needs => null;
             public CarryLoad Load => default;
+            public int LoadRefusals => 0;
             public float Darkness => 0f;
             public float ExtraLoad { get; set; }
             public IMeter Meter(PlayerMeterId id) => null;

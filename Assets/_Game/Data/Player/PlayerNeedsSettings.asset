@@ -29,11 +29,11 @@ MonoBehaviour:
         Multiply: 1
       HealthPerHour: 0
     - Severity: 1
-      From: 0.5
+      From: 0.6
       Changes: []
       HealthPerHour: 0
     - Severity: 2
-      From: 0.25
+      From: 0.3
       Changes:
       - Stat: 25
         Add: 0
@@ -79,11 +79,11 @@ MonoBehaviour:
         Multiply: 1.15
       HealthPerHour: 0
     - Severity: 1
-      From: 0.5
+      From: 0.6
       Changes: []
       HealthPerHour: 0
     - Severity: 2
-      From: 0.25
+      From: 0.3
       Changes:
       - Stat: 5
         Add: 0
@@ -153,11 +153,11 @@ MonoBehaviour:
       Changes: []
       HealthPerHour: 0
     - Severity: 1
-      From: 0.4
+      From: 0.3
       Changes: []
       HealthPerHour: 0
     - Severity: 2
-      From: 0.2
+      From: 0.1
       Changes: []
       HealthPerHour: 0
     - Severity: 3
@@ -169,7 +169,7 @@ MonoBehaviour:
       Changes: []
       HealthPerHour: 0
   SanityRules:
-    AwakeGraceHours: 4
+    AwakeGraceHours: 8
     AwakeEmptyHours: 18
     DarknessFullPerHour: 25
     FullDrainDistance: 150
@@ -201,11 +201,11 @@ MonoBehaviour:
     ComfortDrainScale: 0.6
   SanityEffects:
     UneasyFrom: 0.6
-    LowFrom: 0.4
-    CriticalFrom: 0.2
+    LowFrom: 0.3
+    CriticalFrom: 0.1
     EaseTime: 1
-    LiesFrom: 0.4
-    BlipsFrom: 0.2
+    LiesFrom: 0.3
+    BlipsFrom: 0.1
     Drone:
       _entity: {fileID: 11400000, guid: 28b9706fa85cbe845ba98cd352258229, type: 2}
       ID: 0
@@ -222,7 +222,7 @@ MonoBehaviour:
       _entity: {fileID: 11400000, guid: 76920d138e42550489b232e17e452ec7, type: 2}
       ID: 0
       <DebugObject>k__BackingField: {fileID: 0}
-    HeartbeatFrom: 0.4
+    HeartbeatFrom: 0.3
     HeartbeatEvery: 1.1
     HeartbeatVolume: 0.6
   AsleepDrainScale: 0.33

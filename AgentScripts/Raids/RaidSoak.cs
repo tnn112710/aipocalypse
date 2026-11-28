@@ -89,7 +89,7 @@ public static class RaidSoak
     static string GiveGuns(IPlayer player, string names)
     {
         Equipment equipment = player.Equipment;
-        Hotbar hotbar = equipment.Hotbar;
+        ItemContainer hotbar = equipment.Hotbar;
         GunDefinition[] definitions = AssetDatabase.FindAssets("t:" + nameof(GunDefinition), new[] { "Assets/_Game/Content" })
             .Select(guid => AssetDatabase.LoadAssetAtPath<GunDefinition>(AssetDatabase.GUIDToAssetPath(guid)))
             .Where(d => d != null).ToArray();
@@ -109,14 +109,14 @@ public static class RaidSoak
             else
             {
                 ItemInstance gun = definition.CreateInstance();
-                if (equipment.GetPickUpAction(gun) != PickUpAction.Store)
+                if (hotbar.FindFreeSlot(gun) < 0)
                 {
                     report.Add(name + " (hotbar full)");
                     continue;
                 }
                 equipment.TryPickUp(gun, out _);
                 slot = hotbar.IndexOf(gun);
-                report.Add(name);
+                report.Add(slot >= 0 ? name : name + " (not in the hotbar)");
             }
             if (first < 0)
                 first = slot;
@@ -126,7 +126,7 @@ public static class RaidSoak
         return string.Join(", ", report);
     }
 
-    static int FindGun(Hotbar hotbar, GunDefinition definition)
+    static int FindGun(ItemContainer hotbar, GunDefinition definition)
     {
         for (int i = 0; i < hotbar.Count; i++)
             if (hotbar[i] is GunInstance gun && gun.Gun == definition)
