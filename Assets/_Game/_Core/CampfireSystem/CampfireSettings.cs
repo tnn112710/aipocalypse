@@ -29,14 +29,14 @@ namespace MB13.Aipocalypse.Core.CampfireSystem
         [Header("Light")]
         [Min(0f), Tooltip("Core light range at full strength: the hot pool around the pit")]
         public float CoreRange = 8f;
-        [Min(0f), Tooltip("Metres (flat) inside which the player is safe from the dark at full strength (the SafeLight radius)")]
-        public float SafeRadius = 30f;
+        [Min(0f), Tooltip("Metres (flat) inside which the player is safe from the dark at full strength (the SafeLight radius): 1.5 × the ~15 m lit area (user 2026-11-29)")]
+        public float SafeRadius = 22.5f;
         [Min(0f), Tooltip("Core light intensity at full strength")]
         public float CoreIntensity = 6f;
-        [Min(0f), Tooltip("Fill light intensity at full strength (it hangs high above the pit, so it lights the yard evenly, ~20 m)")]
+        [Min(0f), Tooltip("Fill light intensity at full strength (it hangs high above the pit, so it lights the yard evenly, ~15 m)")]
         public float FillIntensity = 50f;
         [Min(0f), Tooltip("Fill light range at full strength")]
-        public float FillRange = 42f;
+        public float FillRange = 21f;
         [Range(0f, 1f), Tooltip("How far the flicker dips the lights (0.3 = down to 70 %)")]
         public float FlickerAmount = 0.3f;
         [Range(0f, 1f), Tooltip("Share of the flicker the fill light gets (the core gets all of it): the whole yard pulsing reads as a strobe")]

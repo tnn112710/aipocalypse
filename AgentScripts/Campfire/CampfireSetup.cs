@@ -30,8 +30,9 @@ public static class CampfireSetup
     {
         var log = new List<string>();
         var profile = AssetDatabase.LoadAssetAtPath<TimeOfDayProfile>(ProfilePath) ?? throw new Exception("no " + ProfilePath);
-        VolumeProfile nightDark = CloneGrade(NightDarkGrade, -0.5f, log);
-        VolumeProfile blueDark = CloneGrade(BlueHourDarkGrade, -0.25f, log);
+        // PP_Night − 1.5 EV (−0.5 on 2026-11-28, another −1 on 2026-11-29, user); Blue hour half of it.
+        VolumeProfile nightDark = CloneGrade(NightDarkGrade, -1.5f, log);
+        VolumeProfile blueDark = CloneGrade(BlueHourDarkGrade, -0.75f, log);
         for (int i = 0; i < profile.Keys.Count; i++)
         {
             TimeOfDayKey key = profile.Keys[i];
@@ -321,6 +322,7 @@ public static class CampfireSetup
         settings.CoreRange = defaults.CoreRange;
         settings.FillIntensity = defaults.FillIntensity;
         settings.FillRange = defaults.FillRange;
+        settings.SafeRadius = defaults.SafeRadius;
         UnityEngine.Object.DestroyImmediate(defaults);
         EditorUtility.SetDirty(settings);
         AssetDatabase.SaveAssetIfDirty(settings);
@@ -334,13 +336,16 @@ public static class CampfireSetup
             core.GetComponent<Light>().intensity = settings.CoreIntensity;
             fill.GetComponent<Light>().range = settings.FillRange;
             fill.GetComponent<Light>().intensity = settings.FillIntensity;
+            var safeSo = new SerializedObject(root.GetComponent<MB13.Aipocalypse.Core.PlayerSystem.Needs.SafeLight>());
+            safeSo.FindProperty("_radius").floatValue = settings.SafeRadius;
+            safeSo.ApplyModifiedPropertiesWithoutUndo();
             var vfx = root.GetComponentInChildren<UnityEngine.VFX.VisualEffect>();
             vfx.SetVector4("FlamesColor", FlameColor);
             vfx.SetVector4("FlameStaticColor", FlameColor);
             vfx.SetVector4("AmbersColor", EmberColor);
             PrefabUtility.RecordPrefabInstancePropertyModifications(vfx);
             PrefabUtility.SaveAsPrefabAsset(root, CampfirePrefabPath, out bool saved);
-            return $"settings core {settings.CoreIntensity}/{settings.CoreRange} m, fill {settings.FillIntensity}/{settings.FillRange} m at {FillHeight} m; flame {FlameColor}; prefab saved {saved}";
+            return $"settings core {settings.CoreIntensity}/{settings.CoreRange} m, fill {settings.FillIntensity}/{settings.FillRange} m at {FillHeight} m, safe {settings.SafeRadius} m; flame {FlameColor}; prefab saved {saved}";
         }
         finally
         {
@@ -734,15 +739,14 @@ public static class CampfireSetup
     // A copy of PP_Night with its post exposure moved by `ev`; an existing copy is left as tuned.
     static VolumeProfile CloneGrade(string path, float ev, List<string> log)
     {
-        var existing = AssetDatabase.LoadAssetAtPath<VolumeProfile>(path);
-        if (existing != null)
-            return existing;
-        if (!AssetDatabase.CopyAsset(NightGrade, path))
+        if (AssetDatabase.LoadAssetAtPath<VolumeProfile>(path) == null && !AssetDatabase.CopyAsset(NightGrade, path))
             throw new Exception("couldn't copy " + NightGrade);
         var grade = AssetDatabase.LoadAssetAtPath<VolumeProfile>(path);
-        if (!grade.TryGet(out ColorAdjustments adjust))
+        // From PP_Night's own exposure each run, so a re-run sets the offset instead of stacking it.
+        var night = AssetDatabase.LoadAssetAtPath<VolumeProfile>(NightGrade);
+        if (!grade.TryGet(out ColorAdjustments adjust) || !night.TryGet(out ColorAdjustments nightAdjust))
             throw new Exception(NightGrade + " has no Color Adjustments");
-        adjust.postExposure.Override(adjust.postExposure.value + ev);
+        adjust.postExposure.Override(nightAdjust.postExposure.value + ev);
         EditorUtility.SetDirty(adjust);
         EditorUtility.SetDirty(grade);
         AssetDatabase.SaveAssetIfDirty(grade);

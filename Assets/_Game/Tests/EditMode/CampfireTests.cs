@@ -321,7 +321,7 @@ namespace MB13.Aipocalypse.Tests
             campfire.Fuel.Light();
             campfire.Refresh(0f);
             Assert.IsTrue(safe.enabled);
-            Assert.AreEqual(30f, safe.Radius, 1e-4f, "user: safe within 30 m");
+            Assert.AreEqual(22.5f, safe.Radius, 1e-4f, "user: safe within 1.5 × the 15 m lit area");
 
             campfire.Burn(9f, 1f);
             campfire.Refresh(0f);
@@ -336,7 +336,7 @@ namespace MB13.Aipocalypse.Tests
 
             campfire.Refresh(0f);
 
-            Assert.AreEqual(15f, safe.Radius, 1e-4f);
+            Assert.AreEqual(11.25f, safe.Radius, 1e-4f);
         }
 
         [Test]

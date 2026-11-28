@@ -65,7 +65,7 @@ Starts full and drains (`SanityExposure`, settings in `PlayerNeedsSettings.Sanit
 - Drains are scaled by `StatId.SanityDrain`, recovery (light, comfort) by `StatId.SanityRecovery`. `Frozen` stops the drains, not the recovery.
 - **Asleep:** sanity doesn't change (sleep restoring it comes later). A sleep's end (`SleepStage.Waking`) resets the hours awake (`PlayerNeeds.OnWoke`).
 - Late at night by the fire the lack-of-sleep drain (10) outweighs the fire (3.3): staying up never replaces sleep.
-- **Lights:** `SafeLight` (a component with a flat radius, gizmo when selected), collected into `NeedsInstaller` on scene save / Play. In WorldMap: the yard campfire's (30 m while lit, shrinking with the fuel below 25 %, off while unlit: an unlit fire keeps nobody safe; [CAMPFIRE.md](CAMPFIRE.md)). The radius is flat distance and walls don't block it: the house counts as in the fire's light. No light in a scene = dark everywhere at night.
+- **Lights:** `SafeLight` (a component with a flat radius, gizmo when selected), collected into `NeedsInstaller` on scene save / Play. In WorldMap: the yard campfire's (22.5 m while lit, shrinking with the fuel below 25 %, off while unlit: an unlit fire keeps nobody safe; [CAMPFIRE.md](CAMPFIRE.md)). The radius is flat distance and walls don't block it: the house counts as in the fire's light. No light in a scene = dark everywhere at night.
 - **Comfort sources:** `IComfortSource` in the scene's `ComfortSources`; the dog registers itself (DOGS.md).
 
 ### What low sanity shows
