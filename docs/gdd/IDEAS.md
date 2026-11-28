@@ -172,6 +172,15 @@ Still suggested:
 - Later (user): fire pits lit across the river, Loki carrying a lantern, a torch then a belt lantern (torch + pistol), calming consumables, comfort food, resting on a bench
 - Open (???): the nightmare enemies' design; flares and moon phases as extra night tools
 
+### Boss rings (user, 2026-11-28)
+
+- User: a region boss's first kill gives a **ring** (a Lord of the Rings nod) that is also its key toward the final boss: collect the rings to face the ultimate AI boss. Replaces the "key or trophy" in [RAIDS.md](RAIDS.md#region-bosses) once confirmed
+- Decided (user): each ring gives the player a power; **only one ring worn at a time** (wearing several may come later); plain ring names for now, no AI-themed names. In the backlog ([ROADMAP.md](../ROADMAP.md#later-features--after-the-core-feels-good))
+  - Ref: Valheim — boss trophies hung on the Sacrificial Stones give Forsaken Powers, one active at a time, 5 min uptime, 20 min cooldown
+  - Ref: Elden Ring — 2 Great Runes open the capital; one rune equipped at a time, active until death
+- Suggested, not confirmed: passive or automatic powers so they need no new key (e.g. get back up once a day when knocked out; see enemies through walls for a few seconds; a short dash or float for cliffs); change rings at home only, so picking one is part of preparing; keep rings apart from learned skills (recoil, reload) so pillar 5 stays about learning
+- Open (???): the powers per region; where and when rings can be swapped; whether the final zone needs every ring or N, with extra rings weakening the final boss (Zelda: Breath of the Wild, each freed Divine Beast weakens Ganon); whether a rematch upgrades a ring; pawning a ring to the AI Lord for a debt payment; Endings 2–3 as destroying vs keeping the boss's master ring; keep the LOTR nod a parody (no Tolkien names, script or "One Ring" wording)
+
 ### Valheim / Enshrouded + Escape from Duckov mix (user, 2026-11-07)
 
 **Status (2026-11-07):** the confirmed decisions below, plus tribute levels, boss drops, weaker bosses only on Blood Moons and eclipses, the night-2 first raid and later gun rarity/attachments, now live in [CORE.md](CORE.md), [RAIDS.md](RAIDS.md) and [FARM_AND_ECONOMY.md](FARM_AND_ECONOMY.md). This section is the discussion history; unconfirmed suggestions are listed in RAIDS.md → Proposals.

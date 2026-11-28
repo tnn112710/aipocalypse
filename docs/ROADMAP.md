@@ -167,6 +167,7 @@ The mechanics are tested together in `Scenes/Prototypes/WorldMap.unity`; each me
 ## Later (Features — after the core feels good)
 
 - Enemy liveliness backlog (user, 2026-11-01; design each before building): **wounded goblins** limp (slower, hunched walk) or sometimes flee below ~30% health; **group reactions**: nearby goblins flinch or hesitate when one dies, duck at a headshot kill, taunt when the player retreats (Synty Emotes taunts are imported).
+- [ ] Boss rings (user, 2026-11-28; design before building, [IDEAS.md](gdd/IDEAS.md#boss-rings-user-2026-11-28)): a region boss's first kill gives a ring that grants a power and counts toward unlocking the final boss; only one ring worn at a time (several maybe later); plain ring names for now. Comes with region bosses.
 - DayNight rules (dusk warning, sleeping with `SkipTo`, night enemies), Weather effects on play (the weather and its rules are built: phases A and B in WEATHER.md), Progression, Persistence (save, death, rewind), Activities, Economy — scope follows the GDD
 
 ## Polish levels
