@@ -172,6 +172,25 @@ Still suggested:
 - Later (user): fire pits lit across the river, Loki carrying a lantern, a torch then a belt lantern (torch + pistol), calming consumables, comfort food, resting on a bench
 - Open (???): the nightmare enemies' design; flares and moon phases as extra night tools
 
+### Firelight and darker nights (user, 2026-11-28)
+
+- User: the campfire should light the area like a real fire; make the night a bit darker so light sources matter (enemies are readable enough today); the player lights the fire (adds wood, turns it on); the fire sits in the middle of the yard, and more campfires outside the yard widen the sanity / vision area. Asked whether the GigaLights pack helps
+- Suggested, not decided:
+  - Darkness in two parts: a moderately darker night everywhere, plus the Dark thickening with distance from the nearest lit fire (the same distance that drives the Sanity drain), so the rule is visible
+  - What is lit is what is safe: the fire's lit ground and its Sanity radius match
+  - Fuel in night-sized loads, three sizes (embers / fire / bonfire: bigger radius, burns faster); no fuel burned by day; a robot can tend it later
+  - Outer fires: fixed pits at points of interest first; player-built fires later, capped and built by day only (the dusk emergency campfire stays rejected)
+  - Outer fires burn down, so a night trip is timed by the fire behind you; wood is heavy, so fuel competes with loot (carried weight)
+  - The fire as a hub: cooking, boiling river water (Thirst), sitting by it (faster Sanity recovery, time passes)
+  - GigaLights: not needed; URP Forward+ already allows many lights
+- Ref: Don't Starve — light and heat step up with fuel in discrete tiers, and darkness itself attacks; tiers are easy to read, the constant feeding is the part to avoid
+- Ref: Valheim — a fire counts for comfort only while burning and rain puts out an uncovered campfire; a roof over the fire is a natural upgrade
+- Ref: Darkwood — fuelling the hideout generator before night is the evening's decision; lights alone don't stop the attacks, which matches "light protects against the Dark, not enemies"
+- Decided (user, 2026-11-28): night darkness = ambient × 0.3, moon × 0.5 (picked from captures); flame = Gabriel Aguiar Stylized Fire 01 v1; the fire lights ~20 m, the sanity-safe radius is 30 m (× 1.5, upgradeable later); the fire goes out by itself at 06:00 or when the player puts it out; crackle sound yes
+- Fuel (user, 2026-11-28): wood pieces placed in the yard to pick up (chopping comes later), put on the fire by the player. A fuel meter with min / max: max 4 pieces = 4 hours for now, the max upgradeable so the fire lasts longer; each fuel material has its own fuel value; the player must notice and refuel in time; a progress bar shows the fuel level
+- Later (user): cook food on the fire; throw things into it: a special ingredient buffs the lit area (the fire can change colour), relics or items summon assistance
+- Open (???): fixed pits only or also player-built; what rain does to a fire; whether raiders can attack the fire
+
 ### Boss rings (user, 2026-11-28)
 
 - User: a region boss's first kill gives a **ring** (a Lord of the Rings nod) that is also its key toward the final boss: collect the rings to face the ultimate AI boss. Replaces the "key or trophy" in [RAIDS.md](RAIDS.md#region-bosses) once confirmed

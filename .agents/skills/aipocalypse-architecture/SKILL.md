@@ -57,7 +57,7 @@ Who publishes → who subscribes today:
 | `RespawnStageChanged` | `PlayerRespawnFlow` | `DeathScreenHud` |
 | `QteStarted`, `QteAttempted`, `QteEnded` | `QuickTimeService` | `QteHud`; `GunJam` (`QteAttempted`) |
 | `GunJamBeat`, `GunRepairCompleted` | `GunRepairFeedback` (per gun) | `GunJamFeedback` |
-| `HourChanged`, `DayPhaseChanged`, `DayStarted`, `TimeJumped`, `TimeSkipEnded` | `WorldClock` | `EnemyBodyManager` (`DayPhaseChanged` at Dawn: bodies lying with loot sink); otherwise none yet (HUD, director, ambience and `RaidDirector` read `WorldClock` directly) |
+| `HourChanged`, `DayPhaseChanged`, `DayStarted`, `TimeJumped`, `TimeSkipEnded` | `WorldClock` | `EnemyBodyManager` (`DayPhaseChanged` at Dawn: bodies lying with loot sink); `WoodPile` (`DayPhaseChanged` at Dawn: the yard pile refills); otherwise none yet (HUD, director, ambience and `RaidDirector` read `WorldClock` directly) |
 | `BarrierBroken`, `BarrierRestored` | `BarrierSegment` | `BreachAlertHud` (`BarrierBroken`); the morning report later |
 | `RaidStarted`, `RaidWaveStarted`, `RaidEnded` | `RaidDirector` | `RaidBannerHud` (`RaidStarted`, `RaidEnded` Cleared / Dawn); music and morning report later |
 | `WeatherChanged` (empty: read `WeatherService`) | `WeatherService` | none yet (weather rules, HUD later) |

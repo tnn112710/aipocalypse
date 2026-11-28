@@ -9,8 +9,9 @@ using VContainer.Unity;
 namespace MB13.Aipocalypse.Core.PlayerSystem.Needs
 {
     // Scene service: turns the active player's sanity into screen looks (ScreenLookService, optional, eased) and sounds (a
-    // drone loop at the Low look's strength, whispers now and then, a heartbeat). No player, no needs or sanity off: every
-    // look fades to 0 and the sounds stop. The drone pauses with the game.
+    // drone loop at the Low look's strength, whispers now and then, a heartbeat), and the cue for stepping out of every safe
+    // light at night (LightEdgeCue: the LeftLight look and a sound; needs the NeedsTicker). No player, no needs or sanity off:
+    // every look fades to 0 and the sounds stop. The drone pauses with the game.
     public sealed class SanityPresenter : ITickable, System.IDisposable
     {
         static readonly ScreenLookId[] Looks = { ScreenLookId.SanityUneasy, ScreenLookId.SanityLow, ScreenLookId.SanityCritical };
@@ -20,6 +21,8 @@ namespace MB13.Aipocalypse.Core.PlayerSystem.Needs
         readonly TimeService _time;
         readonly ScreenLookService _looks;
         readonly float[] _shown = new float[Looks.Length];
+        readonly LightEdgeCue _edge = new();
+        readonly NeedsTicker _exposure;
         // The volume to step by: BroAudio restarts a fade on every SetVolume, so it's sent only when it really moved.
         const float DroneStep = 0.02f;
 
@@ -35,6 +38,7 @@ namespace MB13.Aipocalypse.Core.PlayerSystem.Needs
             _audio = audio;
             _time = time;
             resolver.TryResolve(out _looks);
+            resolver.TryResolve(out _exposure);
         }
 
         public void Tick()
@@ -50,7 +54,21 @@ namespace MB13.Aipocalypse.Core.PlayerSystem.Needs
                 _shown[i] = Mathf.MoveTowards(_shown[i], target, ease);
                 _looks?.Request(Looks[i], _shown[i]);
             }
+            Edge(on ? effects : null);
             Sounds(on ? effects : null, share);
+        }
+
+        void Edge(SanityEffectSettings effects)
+        {
+            if (effects == null || _exposure == null)
+                _edge.Reset();
+            else if (_time == null || !_time.IsPaused)
+            {
+                SanityInput input = _exposure.Exposure(_players.Current);
+                if (_edge.Advance(input.InLight, input.Darkness, Time.unscaledDeltaTime, effects) && effects.LeftLightSound.IsValid())
+                    _audio.Play(effects.LeftLightSound, effects.LeftLightVolume);
+            }
+            _looks?.Request(ScreenLookId.LeftLight, _edge.Strength);
         }
 
         void Sounds(SanityEffectSettings effects, float share)

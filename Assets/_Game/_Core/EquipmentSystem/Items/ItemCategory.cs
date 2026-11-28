@@ -27,5 +27,7 @@ namespace MB13.Aipocalypse.Core.EquipmentSystem
         Face = 1 << 10,
         // Gun parts (AttachmentDefinition): carried, fitted to guns in the inventory screen.
         Attachment = 1 << 11,
+        // Materials (MaterialDefinition: wood): carried in the backpack, some burn as campfire fuel.
+        Material = 1 << 12,
     }
 }

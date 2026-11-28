@@ -6,5 +6,6 @@ namespace MB13.Aipocalypse.Core.GraphicsSystem.ScreenLooks
         SanityUneasy,
         SanityLow,
         SanityCritical,
+        LeftLight,
     }
 }

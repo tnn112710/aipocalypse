@@ -85,8 +85,8 @@ A change takes `Transition Duration` (5 s, real time; 0 = cut). It glides the ho
 
 | Hour | Key | Look (`Looks/TOD_*`) | Grade (`Grades/PP_*`) |
 | --- | --- | --- | --- |
-| 00:00 | Midnight | Midnight | Night |
-| 04:30 | Blue hour | BlueHour | Night |
+| 00:00 | Midnight | Midnight | NightDark |
+| 04:30 | Blue hour | BlueHour | BlueHourDark |
 | 05:30 | Dawn | Dawn | Dawn |
 | 06:30 | Sunrise | Sunrise | Golden |
 | 09:00 | Morning | Morning (the old static world map look) | Day (the old grade) |
@@ -95,7 +95,7 @@ A change takes `Transition Duration` (5 s, real time; 0 = cut). It glides the ho
 | 17:00 | Golden hour | GoldenHour | Golden |
 | 18:00 | Sunset | Sunset | Golden |
 | 19:00 | Dusk | Dusk | Night |
-| 20:30 | Night | Night | Night |
+| 20:30 | Night | Night | NightDark |
 
 - **`LightingPreset`** (one asset per look): sun colour / intensity / shadow strength, moon colour / intensity / shadows, trilight ambient, reflection intensity, fog colour / density, sky (painted tint and exposure, night gradient and how much it covers the painted sky, horizon glow toward the sun, sun disc, stars, moon glow), far-mountain haze, unlit-effect tint. Sun direction is not in a look.
 - **Grades:** each `PP_*` grade is the whole post-processing look (tonemapping, colour adjustments, white balance, bloom, vignette, lift/gamma/gain); the scene has no base volume under them. `Time Of Day/Grade From` (priority 10, weight 1) holds the key before the hour and `Grade To` (priority 11) the next key, weighted by the blend. URP's volume stack does the lerp. The director switches a grade volume off while its weight is 0, so outside a blend between two different grades only Grade From is on. The saved scene keeps Grade From on `PP_Day` so edit mode (no director running) shows the morning grade. Every grade must override the same settings, or a setting pops at the key; the profile shows a warning when they differ. `Base_PostProcessing.asset` is only the source the setup script copies the fixed settings from (`DayNightSetup.SingleGrade()` merges it into the grades and removes the scene's base volume).
@@ -200,7 +200,7 @@ At night a light around the player lights the near ground, so things close by re
 - **Where:** the light sits above the head (`Position` 3 m; `LanternPosition` 3.2 m, a little to the right). The lantern isn't drawn in first person, so its light is placed for the look: from the belt it lit the underside of the gun and little else, and closer to the hands it washed them out.
 - **Changing lantern** (on / off / another lantern) eases radius, colour, brightness and position over `BlendTime` (0.35 s). A lantern flickers (`Flicker`, `FlickerSpeed`).
 - **No shadows** by default: a point light renders six shadow maps. `LanternDefinition.Shadows` turns them on per lantern; measure first.
-- Against the current night looks (moonlit, fairly bright ambient) the lit area shows near you, but the far field stays readable. Darker `TOD_Night` / `TOD_Midnight` ambient would make the radius matter more.
+- **Darker night** (user, 2026-11-28, picked from captures; [CAMPFIRE.md](CAMPFIRE.md)): `TOD_Night` and `TOD_Midnight` ambient × 0.3 and moon × 0.5, graded by `PP_NightDark` (`PP_Night` − 0.5 EV); `TOD_BlueHour` half of it (ambient × 0.65, moon × 0.75, `PP_BlueHourDark` − 0.25 EV); Dusk unchanged. The lit fire and the player's light now carry the yard; enemies stay readable through the night highlight below. `CampfireSetup.Night` made it (re-run safe), then `CozySetup.Atmosphere`.
 
 ## Enemies at night
 

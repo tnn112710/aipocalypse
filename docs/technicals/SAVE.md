@@ -32,6 +32,7 @@ Look and feel (shared by every menu, mouse and gamepad, sounds): [UI.md → Menu
 | `raids` | `RaidSaveSection` (RaidSystem) | Nights already handled | A raid in progress (saving is refused during one) |
 | `forecast` | `ForecastSaveSection` (ForecastSystem) | The day whose forecast was revealed | A spin in progress |
 | `defense` | `DefenseSaveSection` (DefenseSystem) | Each segment / gate: health, broken, gate open | Upgrade tiers |
+| `campfires` | `CampfireSaveSection` (CampfireSystem) | Each campfire's fuel and whether it burns, each wood pile's logs (by `SaveId`) | The flare-up / die-down fade |
 | `dog` | `DogSaveSection` (DogSystem) | The dog's order, stay point, how long it had been herding, position, facing; stance, toughness, down, limp time left; the night its howl roll was used | What it was doing (its tree starts afresh), annoyance, a pending call |
 | `animals` | `AnimalSaveSection` (AnimalSystem) | The herd's orders (pen gate open, bell rung); each animal by its `SaveId`: position, facing, Tokens held, sent home | What an animal was doing (its tree starts afresh), a hurry |
 | `loot` | `LootSaveSection` (EquipmentSystem, root) | Scene crates: items by slot, which slots are still hidden | Enemy bodies and their loot |

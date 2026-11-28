@@ -8,7 +8,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 // Survival needs (docs/technicals/NEEDS.md): the settings asset (Settings) and wiring it in (Wire: PlayerTuning's needs
-// field, NeedsInstaller on the open WorldMap's GameLifetimeScope; Campfire: the yard fire's light on and a SafeLight on it). Safe to re-run: an existing asset is left as tuned;
+// field, NeedsInstaller on the open WorldMap's GameLifetimeScope; the campfire's SafeLight is on its prefab, CampfireSetup). Safe to re-run: an existing asset is left as tuned;
 // ResetSettings writes the design's starting values (the class's field defaults) again. Wire saves the open scene only
 // when it was clean before.
 // Run: unity command script run --file AgentScripts/Needs/NeedsSetup.cs --entry NeedsSetup.Settings (then NeedsSetup.Wire)
@@ -68,44 +68,8 @@ public static class NeedsSetup
         return string.Join("\n", log);
     }
 
-    // The yard campfire keeps the player sane: its HIGHLANDS fire effect gets a SafeLight (the sanity radius) and its point
-    // light is switched on (it shipped inactive). The Campfire root sits at the origin, so the SafeLight goes on the fire.
-    public static string Campfire()
-    {
-        Scene scene = SceneManager.GetActiveScene();
-        if (scene.path != ScenePath)
-            return $"open {ScenePath} first (active: {scene.path})";
-        bool wasDirty = scene.isDirty;
-        GameObject fire = GameObject.Find("Environment/Landmarks/Home Base/Campfire/Fire");
-        if (fire == null)
-            return "no Environment/Landmarks/Home Base/Campfire/Fire in the scene";
-        var log = new List<string>();
-        if (!fire.TryGetComponent(out SafeLight _))
-        {
-            Undo.AddComponent<SafeLight>(fire);
-            log.Add($"SafeLight added on {fire.name} at {fire.transform.position}");
-        }
-        foreach (Light light in fire.GetComponentsInChildren<Light>(true))
-        {
-            light.shadows = LightShadows.None;
-            if (!light.gameObject.activeSelf)
-            {
-                light.gameObject.SetActive(true);
-                log.Add($"{light.name} switched on (range {light.range}, intensity {light.intensity})");
-            }
-        }
-        if (log.Count == 0)
-            return "campfire: already set up";
-        EditorSceneManager.MarkSceneDirty(scene);
-        if (wasDirty)
-            log.Add("the scene had other unsaved changes, so it is NOT saved");
-        else
-        {
-            EditorSceneManager.SaveScene(scene);
-            log.Add("scene saved");
-        }
-        return string.Join("\n", log);
-    }
+    // The yard campfire's SafeLight now comes with its prefab (Content/Structures/Campfire, CampfireSetup; CAMPFIRE.md).
+    public static string Campfire() => "the campfire prefab carries its SafeLight: run AgentScripts/Campfire/CampfireSetup.cs (Scene)";
 
     // Adds a scene installer to the open WorldMap's GameLifetimeScope and saves the scene if it was clean before.
     internal static string AddInstaller<T>() where T : SceneInstaller

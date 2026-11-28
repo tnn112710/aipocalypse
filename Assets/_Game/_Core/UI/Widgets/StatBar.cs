@@ -33,6 +33,13 @@ namespace MB13.Aipocalypse.Core.UI
         }
 
         // Skips unchanged values, so calling it every frame costs almost nothing.
+        // Rounded up to `decimals`, so a sliver never reads as 0.
+        public static float Rounded(float value, int decimals)
+        {
+            float scale = Mathf.Pow(10f, Mathf.Max(0, decimals));
+            return Mathf.Ceil(value * scale - 1e-3f) / scale;
+        }
+
         public void SetValue(float current, float max)
         {
             float normalized = max > 0f ? Mathf.Clamp01(current / max) : 0f;
@@ -49,12 +56,16 @@ namespace MB13.Aipocalypse.Core.UI
                     UpdateTrail(drop);
             }
 
-            // Rounded up so a sliver of health never reads as 0.
-            int shown = Mathf.CeilToInt(current);
+            int decimals = _style != null ? _style.Decimals : 0;
+            float rounded = Rounded(current, decimals);
+            int shown = Mathf.RoundToInt(rounded * Mathf.Pow(10f, decimals));
             if (shown != _shownValue && _label != null)
             {
                 _shownValue = shown;
-                _label.SetText("{0}", shown);
+                if (decimals > 0)
+                    _label.SetText("{0:1}", rounded);
+                else
+                    _label.SetText("{0}", shown);
             }
         }
 

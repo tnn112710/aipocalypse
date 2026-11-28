@@ -90,6 +90,22 @@ public static class NeedsHudSetup
         return $"audio: Sanity_Drone (loop), Sanity_Whisper ({whispers.Count} clips), heartbeat {(heartbeat != null ? "reused" : "missing")}";
     }
 
+    // Stepping out of every safe light at night: a cold gust of wind (PlaceHolder Inc Environment Sounds, picked by name and
+    // length, not listened to by the agent: check by ear), on SanityEffects.LeftLightSound.
+    public static string LeftLightAudio()
+    {
+        var library = AssetDatabase.LoadAssetAtPath<AudioAsset>("Assets/_Game/Data/Audio/Player.asset") ?? throw new Exception("missing Player library");
+        const string wind = "Assets/_StoreAssets/Audio/PlaceHolder Inc/Environment Sounds/Wind/";
+        var gusts = new List<string> { wind + "Wind Gust 2-5.wav", wind + "Wind Gust 1-5.wav", wind + "Wind Gust 2-1.wav" };
+        Entity(library, "Sanity_LeftLight", 0.7f, gusts, false);
+        Save(library);
+        var settings = AssetDatabase.LoadAssetAtPath<PlayerNeedsSettings>("Assets/_Game/Data/Player/PlayerNeedsSettings.asset")
+            ?? throw new Exception("missing PlayerNeedsSettings (run NeedsSetup.Settings)");
+        settings.SanityEffects.LeftLightSound = new SoundID(AssetDatabase.LoadAssetAtPath<AudioEntity>($"{PlayerAudioDir}/Sanity_LeftLight.asset"));
+        Save(settings);
+        return $"audio: Sanity_LeftLight ({gusts.Count} wind gusts, random) on SanityEffects.LeftLightSound";
+    }
+
     // Carried weight reaching Max: a heavy shuffle of gear (Gamemaster foley), on InventoryStyle.OverloadedSound for the
     // pickup feed's 'Too heavy' line.
     public static string LoadAudio()

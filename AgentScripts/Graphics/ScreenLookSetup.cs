@@ -66,9 +66,35 @@ public static class ScreenLookSetup
             { ScreenLookId.SanityUneasy, new VolumeLook { Profile = Profile($"Look_SanityUneasy_{suffix}", Uneasy) } },
             { ScreenLookId.SanityLow, new VolumeLook { Profile = Profile($"Look_SanityLow_{suffix}", p => Low(p, withSc)), PulseRate = withSc ? 0.35f : 0f, PulseDepth = withSc ? 0.25f : 0f } },
             { ScreenLookId.SanityCritical, new VolumeLook { Profile = Profile($"Look_SanityCritical_{suffix}", p => Critical(p, withSc)), PulseRate = 0.5f, PulseDepth = 0.4f } },
+            { ScreenLookId.LeftLight, new VolumeLook { Profile = Profile("Look_LeftLight", LeftLightLook) } },
         };
         Save(asset);
         return asset;
+    }
+
+    // Adds the LeftLight look (stepping out of every safe light at night) to both backends without touching the scene or the
+    // renderer: one URP-only profile serves both.
+    // Run: unity command script run --file AgentScripts/Graphics/ScreenLookSetup.cs --entry ScreenLookSetup.LeftLight
+    public static string LeftLight()
+    {
+        VolumeProfile profile = Profile("Look_LeftLight", LeftLightLook);
+        foreach (string name in new[] { "UrpLooks", "ScLooks" })
+        {
+            var asset = AssetDatabase.LoadAssetAtPath<VolumeLookBackendAsset>($"{Dir}/{name}.asset") ?? throw new Exception("run Build first: no " + name);
+            asset.Looks[ScreenLookId.LeftLight] = new VolumeLook { Profile = profile };
+            Save(asset);
+        }
+        return "Look_LeftLight on UrpLooks and ScLooks";
+    }
+
+    // The dark closing in: cold blue-black edges and the picture a little darker, for a few seconds.
+    static void LeftLightLook(VolumeProfile profile)
+    {
+        var vignette = Override<Vignette>(profile);
+        vignette.color.Override(new Color(0.02f, 0.03f, 0.08f));
+        vignette.intensity.Override(0.42f);
+        vignette.smoothness.Override(0.5f);
+        Override<ColorAdjustments>(profile).postExposure.Override(-0.4f);
     }
 
     // Darker edges, a little colour gone.

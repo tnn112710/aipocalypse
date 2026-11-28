@@ -52,6 +52,17 @@ namespace MB13.Aipocalypse.Core.AudioSystem
                 player.Stop(fadeOut);
         }
 
+        // 3D sound kept by the caller (a campfire's crackle loop) at a point in the world. Null when unset.
+        public IAudioPlayer StartAt(SoundID id, Vector3 position, float volume = 1f)
+        {
+            if (!id.IsValid())
+                return null;
+            IAudioPlayer player = BroAudio.Play(id, position);
+            if (volume != 1f)
+                player.SetVolume(volume);
+            return player;
+        }
+
         // 3D one-shot at a point in the world.
         public void PlayAt(SoundID id, Vector3 position, float volume = 1f)
         {

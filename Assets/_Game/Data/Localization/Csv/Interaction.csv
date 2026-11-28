@@ -37,3 +37,13 @@ verb.dog_call,3635984689352705,Call,,,Whistle prompt when the dog answers: [Q] C
 verb.dog_help_up,3700119238168576,Help up,,,Hold-E prompt on the dog while it is knocked down: Hold: Help up Loki
 verb.spin,5041050092654592,Spin,,,Prompt on the forecast board's pull rope: [E] Spin Forecast (the plaques spin like slot reels)
 target.forecast,5041050142986240,Forecast,,,The forecast board in the yard: [E] Spin Forecast
+verb.add_wood,5741720424763392,Add Wood,,,"Prompt on the campfire while carrying wood: [E] Add Wood (3.0 / 8 h), followed by target.fuel"
+verb.light_fire,5741720466706432,Light,,,Prompt on an unlit campfire with fuel: [E] Light Fire (6.0 / 8 h)
+verb.put_out,5741720466706433,Put Out,,,Hold-E prompt on a lit campfire: Hold: Put Out Fire
+verb.fire,5741720466706434,Fire,,,"Campfire status prompt when there's nothing to do on a tap: [E] Fire burning (6.0 / 8 h), [E] Fire out: needs wood"
+target.fire,5741720466706435,Fire,,,Hold: Put Out Fire
+target.fire_fuel,5741720466706436,Fire ({0} / {1} h),,,"After verb.light_fire; {0} = fuel hours left, {1} = max"
+target.fuel,5741720466706437,({0} / {1} h),,,"After verb.add_wood; {0} = fuel hours left, {1} = max"
+target.fire_burning,5741720466706438,burning ({0} / {1} h),,,"After verb.fire; {0} = fuel hours left, {1} = max"
+target.fire_needs_wood,5741720466706439,out: needs wood,,,After verb.fire on an empty campfire
+verb.take_all,5758524589166592,Take All,,,Hold-E prompt on the yard wood pile: Hold: Take All Wood (8)

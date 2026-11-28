@@ -31,6 +31,14 @@ namespace MB13.Aipocalypse.Core.PlayerSystem.Needs
         [Min(0.2f), Tooltip("Seconds between beats at HeartbeatFrom; faster towards empty")] public float HeartbeatEvery = 1.1f;
         [Range(0f, 1f)] public float HeartbeatVolume = 0.6f;
 
+        [Header("Leaving the light")]
+        [Tooltip("Played (2D) when the player steps out of every safe light in the dark: where safety ends (LightEdgeCue)")] public SoundID LeftLightSound;
+        [Range(0f, 1f)] public float LeftLightVolume = 0.5f;
+        [Range(0f, 1f), Tooltip("Darkness (0 day .. 1 night) above which stepping out is cued")] public float LeftLightDarkness = 0.5f;
+        [Min(0.01f), Tooltip("Real seconds the LeftLight screen look takes to come in")] public float LeftLightRise = 0.4f;
+        [Min(0f), Tooltip("Real seconds it then takes to fade: it marks the moment, it doesn't stay on")] public float LeftLightFade = 3f;
+        [Min(0f), Tooltip("Real seconds before it can cue again (walking along the edge)")] public float LeftLightCooldown = 10f;
+
         // 0 above the look's band, 1 below it, linear inside.
         public float Strength(ScreenLookId look, float share) => look switch
         {

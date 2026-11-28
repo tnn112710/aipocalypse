@@ -33,6 +33,8 @@ namespace MB13.Aipocalypse.Core.UI
         [BoxGroup("Label"), ShowIf(nameof(ShowLabel))] public TMP_FontAsset Font;
         [BoxGroup("Label"), ShowIf(nameof(ShowLabel))] public Color LabelColor = Color.white;
         [BoxGroup("Label"), ShowIf(nameof(ShowLabel)), Min(1f)] public float FontSize = 20f;
+        [BoxGroup("Label"), ShowIf(nameof(ShowLabel)), Range(0, 1), Tooltip("Decimals on the value (0: whole numbers; 1: tenths, the campfire's hours). Always rounded up")]
+        public int Decimals;
 
 #if UNITY_EDITOR
         // Edit-time preview only: bars re-apply their style in Awake.

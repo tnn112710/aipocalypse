@@ -12,6 +12,9 @@ namespace MB13.Aipocalypse.Core.PlayerSystem.Needs
 
         public float Radius => _radius;
 
+        // Set at runtime by what owns the light (a campfire shrinks it as its fuel runs low).
+        public void SetRadius(float radius) => _radius = Mathf.Max(0f, radius);
+
         // Flat metres from the nearest light's edge: 0 inside any, infinite with none.
         public static float DistanceOutside(Vector3 position, IReadOnlyList<SafeLight> lights)
         {

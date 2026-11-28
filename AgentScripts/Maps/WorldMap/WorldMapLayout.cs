@@ -3096,7 +3096,9 @@ public static class Landmarks
 
     static readonly Vector2 HouseAt = WorldMapLayout.Yard(1.5f, -4f);
     const float HouseYaw = WorldMapLayout.HomeYaw;                  // door (local +Z) faces the gate and the bridge
-    static readonly Vector2 Campfire = WorldMapLayout.Yard(3.5f, 6.5f);
+    static readonly Vector2 Campfire = WorldMapLayout.Yard(0f, 6.5f);          // the middle of the yard (user 2026-11-28)
+    const string CampfirePrefab = "Assets/_Game/Content/Structures/Campfire/Campfire.prefab";
+    const string WoodPilePrefab = "Assets/_Game/Content/Structures/Campfire/WoodPile.prefab";
     const string FencePrefab = "Assets/_Game/Content/Structures/WoodFence/WoodFence.prefab";
     const string GatePrefab = "Assets/_Game/Content/Structures/WoodGate/WoodGate_Double.prefab";
     const float SegmentWidth = 2.25f;                                 // the segment prefabs' width (DefenseSetup.PanelWidth)
@@ -3128,26 +3130,13 @@ public static class Landmarks
         log.Add($"house at {house.transform.position:F1}");
         BuildFence(Child(home, "Fence"), log);
 
+        // The campfire (pit, stones, flame, lights, SafeLight) and the yard wood pile are prefabs (CAMPFIRE.md, CampfireSetup).
         var fire = Child(home, "Campfire");
-        Put(fire, HL + "Camp/Bonfire.prefab", Campfire, R(0, 360), 1.3f, -0.02f);
-        var fx = Put(fire, HL + "FX/Fire.prefab", Campfire, 0, 1f, 0.05f);
-        foreach (var a in fx.GetComponentsInChildren<AudioSource>(true)) a.enabled = false;   // BroAudio owns audio
-        foreach (var l in fx.GetComponentsInChildren<Light>(true))
-        {
-            l.shadows = LightShadows.None;
-            l.gameObject.SetActive(true);                                                      // ships inactive; the yard's fire light
-        }
-        fx.AddComponent<MB13.Aipocalypse.Core.PlayerSystem.Needs.SafeLight>();                // keeps the player sane (NEEDS.md)
-        for (int i = 0; i < 9; i++)                                                            // stone ring
-        {
-            float ang = i / 9f * Mathf.PI * 2 + R(-0.12f, 0.12f);
-            var p = Campfire + new Vector2(Mathf.Cos(ang), Mathf.Sin(ang)) * R(0.85f, 0.95f);
-            Put(fire, KN + "Rocks/SmallStone_" + (1 + rng.Next(4)) + ".prefab", p, R(0, 360), R(0.55f, 0.75f), -0.08f);
-        }
+        Put(fire, CampfirePrefab, Campfire, 0, 1f, 0);
         Seat(fire, LV + "Environment/Bench_1.prefab", HouseYaw + 160, 2.5f);
         Seat(fire, LV + "Environment/Bench_1.prefab", HouseYaw + 250, 2.5f);
         Seat(fire, LV + "Environment/Bench_1.prefab", HouseYaw + 355, 2.5f);
-        Put(fire, LV + "Environment/Log_2.prefab", Campfire + WorldMapLayout.Rot(new Vector2(3.9f, 0.2f), HouseYaw), HouseYaw + 30, 1f, 0);   // firewood pile
+        Put(fire, WoodPilePrefab, Campfire + WorldMapLayout.Rot(new Vector2(3.9f, 0.2f), HouseYaw), HouseYaw + 30, 1f, 0);
         Put(fire, HL + "Camp/Log_1.prefab", Campfire + WorldMapLayout.Rot(new Vector2(1.98f, 0.28f), HouseYaw), R(0, 360), 1f, 0);
         Put(fire, HL + "Camp/Log_3.prefab", Campfire + WorldMapLayout.Rot(new Vector2(1.98f, 0.71f), HouseYaw), R(0, 360), 1f, 0);
 

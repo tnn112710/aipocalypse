@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 08d41fc79ebeedd42b1cb2e65a77e21c, type: 3}
+  m_Name: CampfireSettings
+  m_EditorClassIdentifier: MB13.Aipocalypse.Core::MB13.Aipocalypse.Core.CampfireSystem.CampfireSettings
+  MaxFuel: 8
+  ShrinkBelow: 0.25
+  WarnBelow: 0.35
+  FuelBarRange: 60
+  RainBurn:
+  - key: 4
+    value: 1.25
+  - key: 5
+    value: 1.5
+  - key: 6
+    value: 2
+  CoreRange: 8
+  SafeRadius: 30
+  CoreIntensity: 6
+  FillIntensity: 50
+  FillRange: 42
+  FlickerAmount: 0.3
+  FillFlicker: 0.25
+  FlickerSpeed: 6
+  FadeSeconds: 1.2
+  MinFlameScale: 0.35
+  PileSize: 8

@@ -56,6 +56,7 @@ HUD                          Canvas · CanvasScaler · CanvasGroup + HudVisibili
       │  └─ HitMarker        HitFeedbackHud (HitFeedbackStyle)
       ├─ RepairQte           nested Canvas · QteHud (QteStyle): the running QTE beside the crosshair, see QTE below
    ├─ (BottomLeft) DogBar    nested Canvas · CanvasGroup · DogHud: StatBar (DogToughness style, paw icon) 222 px up; the dog's toughness (DOGS.md), built by DogSetup.DogBar
+   ├─ (BottomLeft) FireBar   nested Canvas · CanvasGroup · CampfireFuelHud: StatBar (CampfireFuel style, fire icon) 262 px up; the home campfire's fuel in tenths of an hour, shown when it's low or out at night near home (CAMPFIRE.md), built by CampfireSetup.Hud
       ├─ CommandWheel        nested Canvas · CanvasGroup (alpha 0 until open) · CommandWheel (CommandWheelStyle): Backdrop + Slot0…7 (Label); the dog's orders, driven by CommandWheelPresenter (DOGS.md), built by DogSetup.Hud
       ├─ Interact            nested Canvas · InteractPromptHud, 120 px below the centre (hidden while a menu holds the UI)
       │  ├─ InteractPrompt   InteractPrompt.prefab (hidden while nothing is focused)
@@ -151,7 +152,7 @@ StatBar                      StatBar component
    ├─ Background
    ├─ Trail                  Filled, horizontal; lags behind drops (optional)
    ├─ Fill                   Filled, horizontal
-   └─ Label                  TMP, current value rounded up
+   └─ Label                  TMP, current value rounded up (to the style's Decimals: 0 whole numbers, 1 tenths)
 ```
 
 API, called by a presenter:
