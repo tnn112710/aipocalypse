@@ -10,6 +10,8 @@ Goal (user, 2026-11-09): stop prototyping and build a **vertical slice**. It is 
 - Weeks assume about 45 h of work a week: 4–6 h on weekdays, 8–12 h on weekend days.
 - Counting from 2026-11-09, the slice was about **585–875 h (about 730)**, or **13–19 weeks**: early to mid-March 2027.
 - Re-estimated 2026-11-22, with Phase 1 postponed (below): about **375–580 h left**, or **9–13 weeks**: late January to late February 2027. The new map comes on top of that when it is picked up again.
+- 2026-11-28: item collecting and crafting (Phase 3) and fence upgrades (Phase 5) moved into the slice (user), adding about **60–95 h** (1.5–2 weeks): about **435–675 h left** from 2026-11-22.
+- 2026-11-28, later: the daily box (Phase 3), 1–2 regions, 1–2 region bosses and boss rings (Phase 4) moved into the slice (user), adding about **90–195 h** (2–4 weeks): about **525–870 h left** from 2026-11-22.
 - Early Access follows in about late June 2027.
 
 **Status (2026-11-22):** the first two weeks went to shooting (gun parts and optics, 11 guns, arms with retargeted reloads), inventory and loot, save and menus, sleep, animals, ranged goblins, localization, weather rules and the UI look. Phase 1 has not started. What the loop still lacks is anything that spends Tokens (trading, repair costs, upgrades) and a cost for losing a night.
@@ -72,7 +74,7 @@ The whole map gets generator quality. Only the home side and one corner of the P
 - [ ] Main menu, pause menu, basic settings: sensitivity, FOV, volume (12–17 h). Main and pause menus built 2026-11-11 with the save system ([SAVE.md](technicals/SAVE.md)). Left: the settings menu (5–8 h; the pause menu's Settings button waits for it)
 - [ ] Sleep in bed → skip to morning → morning report (10–15 h). Built 2026-11-11: the bed in the WorldMap house, a wake-up clock (whole hours, never past a raid that hasn't run), lie down / time skip / get up ([SLEEP.md](technicals/SLEEP.md)). Left: the morning report, what sleeping gives
 
-### Phase 3: The day, farm, economy and progression (about 100–150 h left)
+### Phase 3: The day, farm, economy and progression (about 155–230 h left)
 
 - [x] Inventory (built 2026-11-10, ~55–80 h with the loot below; uncommitted): Duckov-style slots, 2 active guns + melee (V) + quick slots 3–9, backpack sized by the worn bag, gear slots, item weights (no slowdown yet), Tokens and ammo as items, the Token magnet, pickups with a feed, throwing, a paused drag-and-drop inventory screen ([EQUIPMENT.md](technicals/EQUIPMENT.md), [UI.md](technicals/UI.md#inventory-screen)). Produce items come with the animals
 - [ ] One animal species: roams, drops produce, comes home at the bell (17–23 h). Built 2026-11-12 with two species: cows and a sheep flock in a pen in the WorldMap yard, released by the pen gate to a pasture (double rate), called home by the bell, hurried with E, asleep at night; E sends one home and lets it out, they earn Tokens the player collects with C on the animal, they look up at the player and scatter from gunshots, saved; chickens and pigs added the same day ([ANIMALS.md](technicals/ANIMALS.md)). Left: produce items instead of Tokens, the paddock on the new map, tuning by hand
@@ -85,20 +87,31 @@ The whole map gets generator quality. Only the home side and one corner of the P
   - about 10 nodes in 3 branches, with unlock rules
   - a skill tree screen
   - skill effects through a shared stat-modifier layer, which upgrades use too
+- [ ] Item collecting and crafting (user, 2026-11-28; 45–70 h). The design waits for approval (proposal artifact, full item scope first); the slice's item list gets cut from it once approved:
+  - gathering: scrap piles and wrecks searched like crates, plants and mushrooms to pick; junk and basic materials in the loot tables
+  - a workbench at home with tiers: instant recipes (ammo, meds, gun parts, backpacks, armour), dismantling anything into basic materials
+  - a cooking spot with tiers: food recipes
+  - the stash the bench draws from, with limited slots
+  - item icons rendered from the models
+- [ ] Daily box (user, 2026-11-28; 8–12 h): a free reward box at home each day; what it holds and how it improves are designed first
 - [ ] *Stretch:* 1–2 crops (12–17 h), rod fishing (`Proto_Fishing`, 23–35 h)
 
-### Phase 4: Explore (about 32–49 h left)
+### Phase 4: Explore (about 115–230 h left)
 
 - [ ] Bridge repair (9–14 h)
 - [ ] Points of interest in one corner of the Pine Forest (17–26 h)
 - [x] Loot containers and loot tables: searched crates (`LootContainer`), lootable goblin bodies (`LootTable`, 20 at most, gone at dawn), Take all (built with the inventory above). Left: loot tables for crates and points of interest
 - [ ] Wandering goblins with caps (6–9 h)
+- [ ] 1–2 regions on `WorldMap` (user, 2026-11-28; 35–55 h): Pine Forest, then Swamps if there is time; each with its own enemy mix, region materials and rare parts (for crafting), points of interest and loot tables
+- [ ] 1–2 region bosses (user, 2026-11-28; 35–55 h each): summoned by the player, its own fight and arena, first-kill rewards, harder rematches ([RAIDS.md](gdd/RAIDS.md#region-bosses)); the boss's design and model are picked first
+- [ ] Boss rings (user, 2026-11-28; 10–18 h; [IDEAS.md](gdd/IDEAS.md#boss-rings-user-2026-11-28)): a boss's first kill gives a ring that grants a power and counts toward unlocking the final boss; only one ring worn at a time (several maybe later); plain ring names for now. The powers are designed first
 
-### Phase 5: Defend (about 51–80 h left)
+### Phase 5: Defend (about 63–105 h left)
 
 - [ ] Thieves steal animals (14–21 h)
 - [ ] Raids get harder over the 3 nights; losing a raid has a cost (13–21 h)
 - [x] Spear thrower, a second goblin unit (9–14 h). Built 2026-11-11 with an archer as well: stand-off distances, straight throws and lobs over the fence, a wind-up, trails, landing rings and a fly-by whistle ([ARCHITECTURE.md → AI](technicals/ARCHITECTURE.md#ai)). Left: tuning by hand, checking the weapons in the hands up close
+- [ ] Fence upgrades (user, 2026-11-28; 12–25 h): buy the next fence tier with Tokens and crafting materials, its own look per tier (the tiers already exist as data with a console upgrade, [DEFENSE.md](technicals/DEFENSE.md#upgrades-and-new-kinds)); the tier list and costs are designed first
 - [ ] Raid HUD (7–9 h)
 - [ ] Blood Moon on night 3, light version: red look, more goblins, one elite instead of a full miniboss (17–29 h)
 
@@ -133,13 +146,13 @@ This comes before the sound and VFX pass, because impact sounds are timed by mar
 
 ## After the vertical slice
 
-Milestones to Early Access (about late June 2027): **Ten days** (save/load, more upgrades and skills, losses, the rest of the Pine Forest and its boss, the second enemy type, hunger and sanity) → **Thirty days** (eclipse, tutorial, balance, the Steam build) → **Early Access**.
+Milestones to Early Access (about late June 2027): **Ten days** (save/load, more upgrades and skills, losses, the second enemy type, hunger and sanity) → **Thirty days** (eclipse, tutorial, balance, the Steam build) → **Early Access**.
 
 Left out of the slice on purpose:
 
-- Systems: save/load (first version built early, 2026-11-10: five slots, morning autosave, pause and main menus, [SAVE.md](technicals/SAVE.md); a settings menu still to come), hunger and sanity, crafting (`Proto_Crafting`), the daily box, deposit, rescued robots.
+- Systems: save/load (first version built early, 2026-11-10: five slots, morning autosave, pause and main menus, [SAVE.md](technicals/SAVE.md); a settings menu still to come), hunger and sanity, deposit, rescued robots.
 - Enemies: grudge and Threat level.
-- World: region bosses, other regions, eclipse.
+- World: Highlands and the final zone, eclipse.
 - Story: endings, the dog.
 
 ## Core feel (prototype milestone, closing)
@@ -167,7 +180,6 @@ The mechanics are tested together in `Scenes/Prototypes/WorldMap.unity`; each me
 ## Later (Features — after the core feels good)
 
 - Enemy liveliness backlog (user, 2026-11-01; design each before building): **wounded goblins** limp (slower, hunched walk) or sometimes flee below ~30% health; **group reactions**: nearby goblins flinch or hesitate when one dies, duck at a headshot kill, taunt when the player retreats (Synty Emotes taunts are imported).
-- [ ] Boss rings (user, 2026-11-28; design before building, [IDEAS.md](gdd/IDEAS.md#boss-rings-user-2026-11-28)): a region boss's first kill gives a ring that grants a power and counts toward unlocking the final boss; only one ring worn at a time (several maybe later); plain ring names for now. Comes with region bosses.
 - DayNight rules (dusk warning, sleeping with `SkipTo`, night enemies), Weather effects on play (the weather and its rules are built: phases A and B in WEATHER.md), Progression, Persistence (save, death, rewind), Activities, Economy — scope follows the GDD
 
 ## Polish levels

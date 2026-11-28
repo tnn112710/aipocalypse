@@ -175,7 +175,7 @@ Still suggested:
 ### Boss rings (user, 2026-11-28)
 
 - User: a region boss's first kill gives a **ring** (a Lord of the Rings nod) that is also its key toward the final boss: collect the rings to face the ultimate AI boss. Replaces the "key or trophy" in [RAIDS.md](RAIDS.md#region-bosses) once confirmed
-- Decided (user): each ring gives the player a power; **only one ring worn at a time** (wearing several may come later); plain ring names for now, no AI-themed names. In the backlog ([ROADMAP.md](../ROADMAP.md#later-features--after-the-core-feels-good))
+- Decided (user): each ring gives the player a power; **only one ring worn at a time** (wearing several may come later); plain ring names for now, no AI-themed names. In the vertical slice, Phase 4 ([ROADMAP.md](../ROADMAP.md#phase-4-explore-about-115230-h-left))
   - Ref: Valheim — boss trophies hung on the Sacrificial Stones give Forsaken Powers, one active at a time, 5 min uptime, 20 min cooldown
   - Ref: Elden Ring — 2 Great Runes open the capital; one rune equipped at a time, active until death
 - Suggested, not confirmed: passive or automatic powers so they need no new key (e.g. get back up once a day when knocked out; see enemies through walls for a few seconds; a short dash or float for cliffs); change rings at home only, so picking one is part of preparing; keep rings apart from learned skills (recoil, reload) so pillar 5 stays about learning
